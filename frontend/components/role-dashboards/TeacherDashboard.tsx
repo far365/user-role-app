@@ -320,11 +320,25 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   key={`${student.queueid}-${student.studentid}`}
                   className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                 >
-                  {/* Row 1: Student Name (bold) */}
-                  <div className="mb-3">
+                  {/* Row 1: Student Name (bold) + Absence Request Button */}
+                  <div className="mb-3 flex items-center justify-between">
                     <h4 className="font-bold text-gray-900 text-lg">
                       {student.StudentName || 'Unknown Student'}
                     </h4>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs px-2 py-1 h-7 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                      onClick={() => {
+                        // TODO: Implement absence request functionality
+                        toast({
+                          title: "Coming Soon",
+                          description: "Absence request feature will be implemented soon",
+                        });
+                      }}
+                    >
+                      ✨ Submit Absence Request
+                    </Button>
                   </div>
                   
                   {/* Row 2: Attendance Info (2 columns) */}
