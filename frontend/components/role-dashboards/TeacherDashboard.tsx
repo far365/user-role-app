@@ -404,32 +404,16 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             parentName: '', // Not available in current data structure
             alternateName: selectedStudent.DismissalPickupBy
           }}
+          userId={user.userID}
           isOpen={isDismissalDialogOpen}
           onClose={() => {
             setIsDismissalDialogOpen(false);
             setSelectedStudent(null);
           }}
           onStatusUpdated={async (studentId: string, newStatus: string) => {
-            // Handle dismissal status update
-            // This would need a new API endpoint to update dismissal status
-            try {
-              // For now, just refresh the data
-              toast({
-                title: "Status Update",
-                description: `Dismissal status updated to ${newStatus}`,
-              });
-              
-              // Refresh data after status update
-              if (selectedGrade) {
-                loadStudentData(selectedGrade);
-              }
-            } catch (error) {
-              console.error("Failed to update dismissal status:", error);
-              toast({
-                title: "Error",
-                description: "Failed to update dismissal status",
-                variant: "destructive",
-              });
+            // Refresh data after status update
+            if (selectedGrade) {
+              loadStudentData(selectedGrade);
             }
           }}
         />

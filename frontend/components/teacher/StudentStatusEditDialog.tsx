@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/components/ui/use-toast";
 import { Save, X, User, Clock, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import backend from "~backend/client";
 
 interface DismissalQueueRecord {
   queueId: string;
@@ -23,6 +24,7 @@ interface StudentStatusEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusUpdated: (studentId: string, newStatus: string) => Promise<void>;
+  userId: string;
 }
 
 const dismissalStatuses = [
@@ -38,7 +40,7 @@ const dismissalStatuses = [
   { value: "AfterCare", label: "After Care", description: "Student goes to after-school care" }
 ];
 
-export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpdated }: StudentStatusEditDialogProps) {
+export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpdated, userId }: StudentStatusEditDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState(student.dismissalQueueStatus);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -56,13 +58,36 @@ export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpda
     try {
       setIsSaving(true);
       
-      // Call the parent component's status update function
-      await onStatusUpdated(student.studentId, selectedStatus);
+      const response = await backend.student.updateDismissalStatusByStudent({
+        studentId: student.studentId,
+        dismissalQueueStatus: selectedStatus,
+        addToQueueMethod: 'Manual',
+        dismissedAt: new Date(),
+        userId: userId
+      });
       
-      onClose();
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: `Status updated to ${selectedStatus}`,
+        });
+        
+        await onStatusUpdated(student.studentId, selectedStatus);
+        onClose();
+      } else {
+        toast({
+          title: "Error",
+          description: response.error || "Failed to update status",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Failed to update student status:", error);
-      // Error handling is done in the parent component
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update status",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
