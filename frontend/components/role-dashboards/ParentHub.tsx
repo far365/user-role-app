@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Users, Bell, BookOpen } from "lucide-react";
+import { ArrowRight, Users, CalendarX, BookOpen, DollarSign, FileCheck } from "lucide-react";
 import { ParentDashboard } from "./ParentDashboard";
 import { ManageAbsencesPage } from "../parent/ManageAbsencesPage";
 import { ParentHifzPortal } from "../parent/ParentHifzPortal";
@@ -133,7 +133,7 @@ export function ParentHub({ user }: ParentHubProps) {
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowManageAbsences(true)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Manage Absences</CardTitle>
-              <Bell className="h-8 w-8 text-green-600" />
+              <CalendarX className="h-8 w-8 text-green-600" />
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
@@ -163,7 +163,7 @@ export function ParentHub({ user }: ParentHubProps) {
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowHifzPortal(true)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Payments & Receipts</CardTitle>
-              <BookOpen className="h-8 w-8 text-purple-600" />
+              <DollarSign className="h-8 w-8 text-orange-600" />
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
@@ -178,7 +178,7 @@ export function ParentHub({ user }: ParentHubProps) {
 				          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowHifzPortal(true)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xl font-semibold">Permission for Activities</CardTitle>
-              <BookOpen className="h-8 w-8 text-purple-600" />
+              <FileCheck className="h-8 w-8 text-teal-600" />
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
