@@ -328,7 +328,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs px-2 py-1 h-7 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                      className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
                       onClick={() => {
                         // TODO: Implement absence request functionality
                         toast({
