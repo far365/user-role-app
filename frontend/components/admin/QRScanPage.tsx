@@ -333,88 +333,93 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
       console.log("[QR Scanner] QR data to process:", qrData);
       
-      // Check if there's an open queue first
-      console.log("[QR Scanner] Checking for open queue...");
-      const currentQueueResponse = await backend.queue.getCurrentQueue();
-      console.log("[QR Scanner] Current queue response:", currentQueueResponse);
+      // Get parent ID from QR data
+      const parentId = qrData.parentId;
       
-      if (!currentQueueResponse.queue) {
-        console.error("[QR Scanner] No open queue found");
+      if (!parentId) {
+        console.error("[QR Scanner] No parent ID in QR code data");
         toast({
-          title: "No Open Queue",
-          description: "There is no open dismissal queue. Please start a queue first.",
+          title: "Missing Parent ID",
+          description: "QR code does not contain a parent ID. Cannot add to queue.",
           variant: "destructive",
         });
         return;
       }
-
-      const queueId = currentQueueResponse.queue.queueId;
-      console.log("[QR Scanner] Found open queue:", queueId);
       
-      // Determine the contact name and type
-      let parentName = "";
-      let alternateName = "";
-      let parentId = "";
+      console.log("[QR Scanner] Parent ID:", parentId);
       
-      if (qrData.parent && qrData.alternatePickupBy) {
-        // This is an alternate contact
-        parentName = qrData.parent;
-        alternateName = qrData.alternatePickupBy;
-        parentId = qrData.parentId || "";
-        console.log("[QR Scanner] Processing as alternate contact:");
-        console.log("[QR Scanner] - Parent name:", parentName);
-        console.log("[QR Scanner] - Alternate name:", alternateName);
-        console.log("[QR Scanner] - Parent ID:", parentId);
-      } else if (qrData.name) {
-        // This is a regular parent contact
-        parentName = qrData.name;
-        parentId = qrData.parentId || "";
-        console.log("[QR Scanner] Processing as regular parent contact:");
-        console.log("[QR Scanner] - Parent name:", parentName);
-        console.log("[QR Scanner] - Parent ID:", parentId);
+      // Get students for this parent
+      console.log("[QR Scanner] Fetching students for parent:", parentId);
+      const studentsResponse = await backend.student.getStudentsByParent({ parentId });
+      console.log("[QR Scanner] Students response:", studentsResponse);
+      
+      if (!studentsResponse.students || studentsResponse.students.length === 0) {
+        console.error("[QR Scanner] No students found for parent:", parentId);
+        toast({
+          title: "No Students Found",
+          description: `No students found for parent ID: ${parentId}`,
+          variant: "destructive",
+        });
+        return;
       }
       
-      const updateRequest = {
-        queueId: queueId,
-        parentId: parentId,
-        parentName: parentName || undefined,
-        alternateName: alternateName || undefined,
-        qrScannedAtBuilding: "A"
-      };
+      const students = studentsResponse.students;
+      console.log("[QR Scanner] Found", students.length, "student(s)");
       
-      console.log("[QR Scanner] Sending update request to backend:", updateRequest);
+      // Update each student's dismissal status
+      let successCount = 0;
+      let errorCount = 0;
       
-      // Update dismissal queue records
-      const response = await backend.queue.updateDismissalQueueByQRScan(updateRequest);
+      for (const student of students) {
+        try {
+          console.log("[QR Scanner] Updating student:", student.studentId);
+          
+          const updateResponse = await backend.student.updateDismissalStatusByStudent({
+            studentId: student.studentId,
+            dismissalQueueStatus: "InQueue",
+            addToQueueMethod: "QRScan",
+            dismissedAt: new Date(),
+            userId: user.userId
+          });
+          
+          console.log("[QR Scanner] Update response for", student.studentId, ":", updateResponse);
+          
+          if (updateResponse.success) {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error("[QR Scanner] Failed to update student:", student.studentId, updateResponse.error);
+          }
+        } catch (studentError) {
+          errorCount++;
+          console.error("[QR Scanner] Error updating student:", student.studentId, studentError);
+        }
+      }
       
-      console.log("[QR Scanner] Backend response:", response);
+      const contactDisplayName = qrData.alternatePickupBy || qrData.name || 'Contact';
       
-      const contactDisplayName = alternateName || parentName || 'Contact';
-      const updatedCount = response.updatedCount || 0;
+      console.log("[QR Scanner] Update complete - Success:", successCount, "Errors:", errorCount);
       
-      console.log("[QR Scanner] Contact display name:", contactDisplayName);
-      console.log("[QR Scanner] Updated count:", updatedCount);
-      
-      if (updatedCount > 0) {
+      if (successCount > 0) {
         console.log("[QR Scanner] Successfully added to queue");
         toast({
           title: "Added to Queue",
-          description: `${contactDisplayName} has been added to the dismissal queue. ${updatedCount} student record(s) updated.`,
+          description: `${contactDisplayName} has been added to the dismissal queue. ${successCount} student record(s) updated.`,
         });
+        
+        // Clear the scan result after successful addition
+        setScanResult(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       } else {
         console.log("[QR Scanner] No records were updated");
         toast({
-          title: "No Records Updated",
-          description: `No student records found for ${contactDisplayName} in the current queue.`,
+          title: "Update Failed",
+          description: `Failed to update student records for ${contactDisplayName}.`,
           variant: "destructive",
         });
-      }
-      
-      // Clear the scan result after successful addition
-      setScanResult(null);
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
       }
       
       console.log("[QR Scanner] Cleared scan result and file selection");
@@ -430,14 +435,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
           message: error.message,
           stack: error.stack
         });
-        
-        if (error.message.includes("No open queue")) {
-          errorMessage = "No open dismissal queue found. Please start a queue first.";
-        } else if (error.message.includes("not found")) {
-          errorMessage = "No student records found for this parent/contact in the current queue.";
-        } else {
-          errorMessage = `Failed to add to queue: ${error.message}`;
-        }
+        errorMessage = `Failed to add to queue: ${error.message}`;
       }
       
       toast({
