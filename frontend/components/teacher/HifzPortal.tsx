@@ -318,7 +318,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
     const todaysHistory = history.filter(entry => {
       if (!entry.lessonDateText) return false;
-      const entryDate = new Date(entry.lessonDateText).toISOString().split('T')[0];
+      const entryDate = entry.lessonDateText.split('T')[0];
       return entryDate === selectedDate;
     });
     

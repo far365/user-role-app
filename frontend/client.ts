@@ -152,7 +152,6 @@ export namespace grades {
  * Import the endpoint handlers to derive the types for the client.
  */
 import { deleteHifzRcdByRcdId as api_hifz_delete_hifz_rcd_by_rcdid_deleteHifzRcdByRcdId } from "~backend/hifz/delete_hifz_rcd_by_rcdid";
-import { getAbsenceByStudentDate as api_hifz_get_absence_by_student_date_getAbsenceByStudentDate } from "~backend/hifz/get_absence_by_student_date";
 import { getData as api_hifz_get_data_getData } from "~backend/hifz/get_data";
 import { getGroupsByCategory as api_hifz_get_groups_by_category_getGroupsByCategory } from "~backend/hifz/get_groups_by_category";
 import { getHistoryByParentId as api_hifz_get_hifz_history_by_parentid_getHistoryByParentId } from "~backend/hifz/get_hifz_history_by_parentid";
@@ -170,7 +169,6 @@ export namespace hifz {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.deleteHifzRcdByRcdId = this.deleteHifzRcdByRcdId.bind(this)
-            this.getAbsenceByStudentDate = this.getAbsenceByStudentDate.bind(this)
             this.getData = this.getData.bind(this)
             this.getGroupsByCategory = this.getGroupsByCategory.bind(this)
             this.getHistory = this.getHistory.bind(this)
@@ -185,12 +183,6 @@ export namespace hifz {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/hifz/delete-rcd-by-rcdid`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_delete_hifz_rcd_by_rcdid_deleteHifzRcdByRcdId>
-        }
-
-        public async getAbsenceByStudentDate(params: RequestType<typeof api_hifz_get_absence_by_student_date_getAbsenceByStudentDate>): Promise<ResponseType<typeof api_hifz_get_absence_by_student_date_getAbsenceByStudentDate>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/hifz/get-absence-by-student-date`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_absence_by_student_date_getAbsenceByStudentDate>
         }
 
         public async getData(params: RequestType<typeof api_hifz_get_data_getData>): Promise<ResponseType<typeof api_hifz_get_data_getData>> {
