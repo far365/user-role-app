@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { ArrowRight, Users, Bell, BookOpen } from "lucide-react";
 import { ParentDashboard } from "./ParentDashboard";
 import { ManageAbsencesPage } from "../parent/ManageAbsencesPage";
 import { ParentHifzPortal } from "../parent/ParentHifzPortal";
+import { QRCodeGenerator } from "../QRCodeGenerator";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
+import type { ParentInfo } from "~backend/parent/get_parent_info";
 
 interface ParentHubProps {
   user: UserType;
@@ -24,6 +27,7 @@ export function ParentHub({ user }: ParentHubProps) {
   const [showHifzPortal, setShowHifzPortal] = useState(false);
   const [currentYear, setCurrentYear] = useState<string>("");
   const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
+  const [parentData, setParentData] = useState<ParentInfo | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +36,8 @@ export function ParentHub({ user }: ParentHubProps) {
         setCurrentYear(yearResp.ayid);
 
         const parentInfo = await backend.parent.getParentInfo({ username: user.loginID });
+        setParentData(parentInfo);
+        
         const studentsResp = await backend.student.getStudentsByParentID({ parentId: parentInfo.parentID });
         
         setStudentData(studentsResp.students.map(s => ({
@@ -91,6 +97,22 @@ export function ParentHub({ user }: ParentHubProps) {
             </div>
           </CardContent>
         </Card>
+
+        {parentData && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">Parent QR Code</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QRCodeGenerator
+                name={parentData.parentName || 'Parent'}
+                phone={parentData.parentPhoneMain || ''}
+                title="Parent Contact"
+                parentID={parentData.parentID}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowParentDashboard(true)}>
