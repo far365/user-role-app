@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Users, CalendarX, BookOpen, DollarSign, FileCheck } from "lucide-react";
+import { ArrowRight, Users, CalendarX, BookOpen, DollarSign, FileCheck, Bell } from "lucide-react";
 import { ParentDashboard } from "./ParentDashboard";
 import { ManageAbsencesPage } from "../parent/ManageAbsencesPage";
 import { ParentHifzPortal } from "../parent/ParentHifzPortal";
