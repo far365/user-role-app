@@ -1,6 +1,6 @@
 import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
-import type { Queue, CreateQueueRequest, CreateQueueResponse } from "./types";
+import type { Queue, CreateQueueRequest, CreateQueueResponse, QueueStatus } from "./types";
 
 // Creates a new queue with YYYYMMDD format ID and populates dismissal queue.
 export const create = api<CreateQueueRequest, CreateQueueResponse>(
@@ -128,6 +128,10 @@ const userDate = new Intl.DateTimeFormat('en-US', {
       }
       */
 
+      // Call the build_new_queue Supabase API instead of creating queue manually
+      console.log("[Queue API] === CALLING SUPABASE build_new_queue API ===");
+      
+      /*
       // Create new queue - COMMENTED OUT - Using Supabase API instead
       const currentTime = new Date().toISOString();
       console.log("[Queue API] Creating queue with data:", {
@@ -140,6 +144,7 @@ const userDate = new Intl.DateTimeFormat('en-US', {
         lastupdatedttm: currentTime,
         archiveddttm: null
       });
+      */
       /*
       const { data: newQueue, error: createError } = await supabase
         .from('queuemasterrcd')
@@ -191,38 +196,13 @@ const userDate = new Intl.DateTimeFormat('en-US', {
       console.log("[Queue API] Successfully created queue:", newQueue);
       */
       
-      // TODO: Replace with Supabase API call for queue creation
-      console.log("[Queue API] PLACEHOLDER: Would call Supabase API to create queue with ID:", queueId);
-      
-      // Create mock queue object for now
-      const newQueue = {
-        queueid: queueId,
-        queuestarttime: currentTime,
-        queuestartedbyusername: queueStartedByUsername.trim(),
-        queueendtime: null,
-        queueclosedbyusername: null,
-        queuemasterstatus: 'Open',
-        lastupdatedttm: currentTime,
-        archiveddttm: null
-      };
-
-      // Now call the Supabase function to build the dismissal queue
-      console.log("[Queue API] === CALLING SUPABASE FUNCTION TO BUILD DISMISSAL QUEUE ===");
+      // Call the build_new_queue Supabase API instead of creating queue manually
+      console.log("[Queue API] === CALLING SUPABASE build_new_queue API ===");
       
       try {
         console.log("[Queue API] Calling build_new_queue() function...");
         
-        // TODO: Replace with proper Supabase API call for queue creation and dismissal queue building
-        // This should call a Supabase function that handles both queue creation and dismissal queue population
-        /*
-        const { data: functionResult, error: functionError } = await supabase
-          .rpc('create_queue_and_build_dismissal', {
-            p_queue_id: queueId,
-            p_started_by_username: queueStartedByUsername.trim()
-          });
-        */
-        
-        // PLACEHOLDER: Mock Supabase function call
+        // Call build_new_queue Supabase function which handles both queue creation and dismissal queue population
         const { data: functionResult, error: functionError } = await supabase
           .rpc('build_new_queue', {
             p_started_by_username: queueStartedByUsername.trim()
@@ -258,26 +238,26 @@ const userDate = new Intl.DateTimeFormat('en-US', {
           archiveddttm: null
         };
 
+        const queue: Queue = {
+          queueId: newQueue.queueid,
+          queueStartTime: newQueue.queuestarttime ? new Date(newQueue.queuestarttime) : null,
+          queueStartedByUsername: newQueue.queuestartedbyusername,
+          queueEndTime: newQueue.queueendtime ? new Date(newQueue.queueendtime) : null,
+          queueClosedByUsername: newQueue.queueclosedbyusername,
+          queueMasterStatus: (newQueue.queuemasterstatus as QueueStatus) || null,
+          lastUpdatedTTM: newQueue.lastupdatedttm ? new Date(newQueue.lastupdatedttm) : null,
+          archivedDTTM: newQueue.archiveddttm ? new Date(newQueue.archiveddttm) : null,
+        };
+
+        console.log("[Queue API] Mapped queue response:", queue);
+        console.log("[Queue API] === QUEUE CREATION DEBUG END ===");
+        return { queue };
+
       } catch (functionCallError) {
         console.error("[Queue API] Error calling build_new_queue Supabase function:", functionCallError);
         console.error("[Queue API] Function call error:", functionCallError instanceof Error ? functionCallError.message : String(functionCallError));
         throw APIError.internal(`Failed to call build_new_queue function: ${functionCallError instanceof Error ? functionCallError.message : 'Unknown error'}`);
       }
-
-      const queue: Queue = {
-        queueId: newQueue.queueid,
-        queueStartTime: newQueue.queuestarttime ? new Date(newQueue.queuestarttime) : null,
-        queueStartedByUsername: newQueue.queuestartedbyusername,
-        queueEndTime: newQueue.queueendtime ? new Date(newQueue.queueendtime) : null,
-        queueClosedByUsername: newQueue.queueclosedbyusername,
-        queueMasterStatus: newQueue.queuemasterstatus,
-        lastUpdatedTTM: newQueue.lastupdatedttm ? new Date(newQueue.lastupdatedttm) : null,
-        archivedDTTM: newQueue.archiveddttm ? new Date(newQueue.archiveddttm) : null,
-      };
-
-      console.log("[Queue API] Mapped queue response:", queue);
-      console.log("[Queue API] === QUEUE CREATION DEBUG END ===");
-      return { queue };
 
     } catch (error) {
       console.error("[Queue API] === QUEUE CREATION ERROR ===");
