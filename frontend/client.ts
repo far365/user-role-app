@@ -425,8 +425,11 @@ export namespace queue {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { approveAbsenceRequest as api_student_approve_absence_request_approveAbsenceRequest } from "~backend/student/approve_absence_request";
 import { debug as api_student_debug_debug } from "~backend/student/debug";
 import { getByParentID as api_student_get_by_parent_getByParentID } from "~backend/student/get_by_parent";
+import { pendingAbsenceApprovalsByGrade as api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade } from "~backend/student/pending_absence_approvals_by_grade";
+import { rejectAbsenceRequest as api_student_reject_absence_request_rejectAbsenceRequest } from "~backend/student/reject_absence_request";
 import {
     searchByGrade as api_student_search_searchByGrade,
     searchById as api_student_search_searchById,
@@ -443,14 +446,23 @@ export namespace student {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.approveAbsenceRequest = this.approveAbsenceRequest.bind(this)
             this.debug = this.debug.bind(this)
             this.getByParentID = this.getByParentID.bind(this)
+            this.pendingAbsenceApprovalsByGrade = this.pendingAbsenceApprovalsByGrade.bind(this)
+            this.rejectAbsenceRequest = this.rejectAbsenceRequest.bind(this)
             this.searchByGrade = this.searchByGrade.bind(this)
             this.searchById = this.searchById.bind(this)
             this.searchByName = this.searchByName.bind(this)
             this.update = this.update.bind(this)
             this.updateDismissalStatusByStudent = this.updateDismissalStatusByStudent.bind(this)
             this.updateStudentAttendanceStatus = this.updateStudentAttendanceStatus.bind(this)
+        }
+
+        public async approveAbsenceRequest(params: RequestType<typeof api_student_approve_absence_request_approveAbsenceRequest>): Promise<ResponseType<typeof api_student_approve_absence_request_approveAbsenceRequest>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/approve-absence-request`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_approve_absence_request_approveAbsenceRequest>
         }
 
         /**
@@ -469,6 +481,23 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/by-parent/${encodeURIComponent(params.parentID)}`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_get_by_parent_getByParentID>
+        }
+
+        public async pendingAbsenceApprovalsByGrade(params: RequestType<typeof api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade>): Promise<ResponseType<typeof api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                grade: params.grade,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/pending-absence-approvals-by-grade`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade>
+        }
+
+        public async rejectAbsenceRequest(params: RequestType<typeof api_student_reject_absence_request_rejectAbsenceRequest>): Promise<ResponseType<typeof api_student_reject_absence_request_rejectAbsenceRequest>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/reject-absence-request`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_reject_absence_request_rejectAbsenceRequest>
         }
 
         /**
