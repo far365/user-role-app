@@ -80,21 +80,13 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       setDismissalQueueStatus(null);
       setCloseQueueStatus(null);
       
-      // Comment out the old queue.create call
-      // const response = await backend.queue.create({
-      //   queueStartedByUsername: user.loginID,
-      // });
-      
-      // Call the new build_new_queue API
+      // Call the build_new_queue API without creating queue master records
       const response = await backend.queue.buildNewQueue({
         queueStartedByUsername: user.loginID,
       });
       
-      // Handle the response which should include both queue data and build status
-      if (response.queue) {
-        setCurrentQueue(response.queue);
-        await fetchAllQueues(); // Refresh the list
-      }
+      // Refresh the queues list to see any updates
+      await fetchAllQueues();
       
       // Display the actual result status from the API
       setDismissalQueueStatus({
@@ -111,17 +103,17 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     } catch (error) {
       console.error("Build new queue failed:", error);
       
-      let errorMessage = "Failed to build new queue";
+      let errorMessage = "Failed to build dismissal queue";
       let errorDetails = "";
       
       if (error instanceof Error) {
         if (error.message.includes("already open")) {
-          errorMessage = "Cannot build new queue: Another queue is already open. Please close the open queue first.";
+          errorMessage = "Cannot build dismissal queue: Another queue is already open. Please close the open queue first.";
         } else if (error.message.includes("already exists")) {
           if (error.message.includes("must be deleted")) {
-            errorMessage = "Cannot build new queue: A queue for today already exists and must be deleted before starting a new one.";
+            errorMessage = "Cannot build dismissal queue: A queue for today already exists and must be deleted before building a new one.";
           } else {
-            errorMessage = "Cannot build new queue: A queue for today already exists";
+            errorMessage = "Cannot build dismissal queue: A queue for today already exists";
           }
         } else if (error.message.includes("Table") && error.message.includes("does not exist")) {
           errorMessage = "Database error: Required tables do not exist in your Supabase database";
@@ -133,7 +125,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           errorMessage = "Database error: Cannot connect to Supabase database";
           errorDetails = "Check your database connection and try again.";
         } else {
-          errorMessage = `Failed to build new queue: ${error.message}`;
+          errorMessage = `Failed to build dismissal queue: ${error.message}`;
           errorDetails = "The build_new_queue API encountered an unexpected error.";
         }
       }
@@ -528,17 +520,17 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <span>Start Attendance</span>
             </CardTitle>
             <CardDescription>
-              Start a new Attendance/Class Roster for today.
+              Populate dismissal queue for today without creating a queue master record.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                This will call the build_new_queue API which creates a new queue and automatically populates the dismissal queue with eligible students.
+                This will call the build_new_queue API which only populates the dismissal queue with eligible students, without creating a queue master record.
               </p>
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800">
-                  <strong>Build New Queue API:</strong> Calls backend.queue.buildNewQueue() which handles both queue creation and dismissal queue population in a single operation. The API will return the actual status and results.
+                  <strong>Build New Queue API:</strong> Calls backend.queue.buildNewQueue() which populates the dismissal queue without creating queue master records. The API will return the actual status and results.
                 </p>
               </div>
               <Button 
@@ -547,7 +539,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 className="w-full"
               >
                 <Play className="w-4 h-4 mr-2" />
-                {isCreating ? 'Building New Queue...' : 'Build New Queue'}
+                {isCreating ? 'Building Dismissal Queue...' : 'Build Dismissal Queue'}
               </Button>
               {!canStartNewQueue() && (
                 <p className="text-xs text-yellow-600">
