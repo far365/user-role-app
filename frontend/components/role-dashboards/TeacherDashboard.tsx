@@ -50,6 +50,21 @@ interface StatusCounts {
 
 type StatusFilter = 'all' | 'standby' | 'inQueue' | 'released' | 'collected';
 
+interface AttendanceCount {
+  status: string;
+  count: number;
+}
+
+interface DismissalCount {
+  status: string;
+  count: number;
+}
+
+interface AttendanceDismissalCounts {
+  attendance: AttendanceCount[];
+  dismissal: DismissalCount[];
+}
+
 export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
@@ -62,6 +77,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     released: 0,
     collected: 0
   });
+  const [attendanceDismissalCounts, setAttendanceDismissalCounts] = useState<AttendanceDismissalCounts | null>(null);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -149,24 +165,64 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     filterRecords();
   }, [activeFilter, dismissalRecords]);
 
+  const parseAttendanceDismissalData = (attendanceData: string, dismissalData: string): AttendanceDismissalCounts => {
+    const parseCountData = (data: string) => {
+      const [, countsString] = data.split(':');
+      return countsString.split('|').map(item => {
+        const [status, count] = item.split(',');
+        return { status, count: parseInt(count, 10) };
+      });
+    };
+
+    return {
+      attendance: parseCountData(attendanceData),
+      dismissal: parseCountData(dismissalData)
+    };
+  };
+
+  const loadAttendanceDismissalCounts = async (grade: string) => {
+    try {
+      const timezone = 'America/Chicago';
+      const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade(grade, timezone);
+      console.log("Attendance/Dismissal counts response:", response);
+      
+      if (response && response.length >= 2) {
+        const parsedCounts = parseAttendanceDismissalData(response[0], response[1]);
+        setAttendanceDismissalCounts(parsedCounts);
+      }
+    } catch (error) {
+      console.error("Failed to load attendance/dismissal counts:", error);
+      setAttendanceDismissalCounts(null);
+    }
+  };
+
   const loadDismissalQueue = async (grade: string) => {
     setIsLoading(true);
     try {
       console.log(`Loading dismissal queue for grade: ${grade}`);
       
-      const response = await backend.queue.getQueueListByGrade({ grade });
-      console.log("Dismissal queue response:", response);
+      // Load both dismissal queue and attendance/dismissal counts
+      const [queueResponse] = await Promise.allSettled([
+        backend.queue.getQueueListByGrade({ grade }),
+        loadAttendanceDismissalCounts(grade)
+      ]);
       
-      setDismissalRecords(response.records);
-      setCurrentQueueId(response.queueId);
-      calculateStatusCounts(response.records);
-      setLastRefresh(new Date());
-      
-      if (!isRefreshing) {
-        toast({
-          title: "Queue Loaded",
-          description: `Loaded dismissal queue for ${grade} (${response.totalCount} students)`,
-        });
+      if (queueResponse.status === 'fulfilled') {
+        console.log("Dismissal queue response:", queueResponse.value);
+        
+        setDismissalRecords(queueResponse.value.records);
+        setCurrentQueueId(queueResponse.value.queueId);
+        calculateStatusCounts(queueResponse.value.records);
+        setLastRefresh(new Date());
+        
+        if (!isRefreshing) {
+          toast({
+            title: "Queue Loaded",
+            description: `Loaded dismissal queue for ${grade} (${queueResponse.value.totalCount} students)`,
+          });
+        }
+      } else {
+        throw queueResponse.reason;
       }
     } catch (error) {
       console.error("Failed to load dismissal queue:", error);
@@ -174,6 +230,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       // Clear data on error
       setDismissalRecords([]);
       setCurrentQueueId(null);
+      setAttendanceDismissalCounts(null);
       calculateStatusCounts([]);
       
       let errorMessage = "Failed to load dismissal queue";
@@ -626,6 +683,54 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Attendance and Dismissal Counts Grid */}
+      {selectedGrade && attendanceDismissalCounts && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Clock className="w-5 h-5" />
+              <span>Attendance & Dismissal Overview</span>
+            </CardTitle>
+            <CardDescription>
+              Daily attendance and dismissal status counts for {selectedGrade}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Attendance Column */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 text-center">Attendance</h4>
+                <div className="space-y-2">
+                  {attendanceDismissalCounts.attendance.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700">{item.status}</span>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {item.count}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dismissal Column */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 text-center">Dismissal</h4>
+                <div className="space-y-2">
+                  {attendanceDismissalCounts.dismissal.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-700">{item.status}</span>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        {item.count}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Student List Section */}
       <Card>
