@@ -8,6 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { ViewAbsenceHistoryDialog } from "./ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
 
@@ -39,7 +43,7 @@ const mockAbsenceHistory: AbsenceRequest[] = [
 
 export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted }: SubmitAbsenceRequestDialogProps) {
   const [absenceType, setAbsenceType] = useState<"full" | "half">("full");
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState("9:00am");
   const [endTime, setEndTime] = useState("10:00am");
   const [reason, setReason] = useState("");
@@ -93,50 +97,10 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   };
 
   const handleSubmit = () => {
-    const dateRegex = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\/(\d{1,2})\/(\d{2})$/i;
-    const dateMatch = startDate.match(dateRegex);
-    
-    if (!dateMatch) {
+    if (!startDate) {
       toast({
         title: "Invalid Date",
-        description: "Please enter date in format: Fri 10/3/25",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const month = parseInt(dateMatch[2]);
-    const day = parseInt(dateMatch[3]);
-    const year = 2000 + parseInt(dateMatch[4]);
-    const selectedDate = new Date(year, month - 1, day);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const oneYearFromNow = new Date(today);
-    oneYearFromNow.setFullYear(today.getFullYear() + 1);
-
-    if (selectedDate < today) {
-      toast({
-        title: "Invalid Date",
-        description: "Start date cannot be in the past",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (selectedDate > oneYearFromNow) {
-      toast({
-        title: "Invalid Date",
-        description: "Start date cannot be more than one year in the future",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const dayOfWeek = selectedDate.getDay();
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      toast({
-        title: "Invalid Date",
-        description: "Start date cannot be on a weekend",
+        description: "Please select a start date",
         variant: "destructive",
       });
       return;
@@ -198,7 +162,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
   const handleCancel = () => {
     setAbsenceType("full");
-    setStartDate("");
+    setStartDate(undefined);
     setStartTime("9:00am");
     setEndTime("10:00am");
     setReason("");
@@ -277,37 +241,57 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
               </RadioGroup>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Start Date:</Label>
-                <Input
-                  type="text"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  placeholder="Fri 10/3/25"
-                />
-              </div>
-              {absenceType === "half" && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Start Time:</Label>
-                    <Input
-                      type="text"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>End Time:</Label>
-                    <Input
-                      type="text"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
+            <div className="space-y-2">
+              <Label>Start Date:</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "EEE M/d/yy") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const oneYearFromNow = new Date(today);
+                      oneYearFromNow.setFullYear(today.getFullYear() + 1);
+                      const dayOfWeek = date.getDay();
+                      return date < today || date > oneYearFromNow || dayOfWeek === 0 || dayOfWeek === 6;
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
+
+            {absenceType === "half" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Start Time:</Label>
+                  <Input
+                    type="text"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>End Time:</Label>
+                  <Input
+                    type="text"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Additional Notes</Label>
