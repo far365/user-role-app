@@ -170,9 +170,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   }, [activeFilter, dismissalRecords]);
 
   const parseAttendanceDismissalData = (response: any): AttendanceDismissalCounts => {
-    // The response should contain the attendance and dismissal data
-    // We need to check the actual format when we get the response
-    console.log("Raw response from attendance API:", response);
+    console.log("🔍 PARSING DEBUG - Starting to parse response:", response);
     
     // Default empty data if parsing fails
     const defaultData: AttendanceDismissalCounts = {
@@ -181,44 +179,85 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     };
     
     if (!response || !response.data || !Array.isArray(response.data)) {
+      console.log("🔍 PARSING DEBUG - Invalid response structure");
       return defaultData;
     }
     
-    // The data array should contain strings in the format mentioned
-    // "ATTENDANCE:Unknown,0|OnTime,0|OnTime-M,0|Tardy,0|Tardy-M,0|NoShow,0"
-    // "DISMISSAL:Unknown,0|StandBy,0|InQueue,0|Collected,0|EarlyDismissal,0|DirectPickup,0|LatePickup,0|After Care,0"
-    
-    const parseCountData = (data: string) => {
-      const [, countsString] = data.split(':');
-      if (!countsString) return [];
+    // Function to parse individual status-count data string
+    // Example: "ATTENDANCE:Unknown,0|OnTime,5|OnTime-M,2|Tardy,1|Tardy-M,0|NoShow,0"
+    const parseCountData = (dataString: string) => {
+      console.log("🔍 PARSING DEBUG - Processing data string:", dataString);
       
-      return countsString.split('|').map(item => {
-        const [status, count] = item.split(',');
-        return { status: status || '', count: parseInt(count, 10) || 0 };
+      if (!dataString || typeof dataString !== 'string') {
+        console.log("🔍 PARSING DEBUG - Invalid data string");
+        return [];
+      }
+      
+      // Split by colon to separate the prefix (ATTENDANCE/DISMISSAL) from the data
+      const colonIndex = dataString.indexOf(':');
+      if (colonIndex === -1) {
+        console.log("🔍 PARSING DEBUG - No colon found in data string");
+        return [];
+      }
+      
+      const prefix = dataString.substring(0, colonIndex);
+      const countsString = dataString.substring(colonIndex + 1);
+      
+      console.log("🔍 PARSING DEBUG - Prefix:", prefix);
+      console.log("🔍 PARSING DEBUG - Counts string:", countsString);
+      
+      if (!countsString) {
+        console.log("🔍 PARSING DEBUG - Empty counts string");
+        return [];
+      }
+      
+      // Split by pipe (|) to get individual status,count pairs
+      const pairs = countsString.split('|');
+      console.log("🔍 PARSING DEBUG - Status-count pairs:", pairs);
+      
+      const result = pairs.map((pair, index) => {
+        const [status, countStr] = pair.split(',');
+        const count = parseInt(countStr, 10) || 0;
+        console.log(`🔍 PARSING DEBUG - Pair ${index}: status="${status}", count=${count}`);
+        return { status: status || '', count };
       });
+      
+      console.log("🔍 PARSING DEBUG - Parsed result:", result);
+      return result;
     };
 
     try {
       let attendanceData = '';
       let dismissalData = '';
       
+      console.log("🔍 PARSING DEBUG - Searching through response.data items:");
+      
       // Find attendance and dismissal strings in the response
-      for (const item of response.data) {
+      for (let i = 0; i < response.data.length; i++) {
+        const item = response.data[i];
+        console.log(`🔍 PARSING DEBUG - Item ${i}:`, item, typeof item);
+        
         if (typeof item === 'string') {
           if (item.startsWith('ATTENDANCE:')) {
             attendanceData = item;
+            console.log("🔍 PARSING DEBUG - Found attendance data:", attendanceData);
           } else if (item.startsWith('DISMISSAL:')) {
             dismissalData = item;
+            console.log("🔍 PARSING DEBUG - Found dismissal data:", dismissalData);
           }
         }
       }
       
-      return {
+      const parsedResult = {
         attendance: attendanceData ? parseCountData(attendanceData) : [],
         dismissal: dismissalData ? parseCountData(dismissalData) : []
       };
+      
+      console.log("🔍 PARSING DEBUG - Final parsed result:", parsedResult);
+      return parsedResult;
+      
     } catch (error) {
-      console.error("Error parsing attendance/dismissal data:", error);
+      console.error("🔍 PARSING DEBUG - Error during parsing:", error);
       return defaultData;
     }
   };
@@ -872,8 +911,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Expected Format:</h4>
                   <div className="bg-yellow-50 p-3 rounded-lg text-sm">
-                    <div className="font-semibold">Expected API response format:</div>
-                    <div className="mt-1 font-mono">
+                    <div className="font-semibold mb-2">Expected API response format:</div>
+                    <div className="font-mono text-xs bg-white p-2 rounded border">
                       {`{
   "data": [
     "ATTENDANCE:Unknown,0|OnTime,5|OnTime-M,2|Tardy,1|Tardy-M,0|NoShow,0",
@@ -881,8 +920,74 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   ]
 }`}
                     </div>
+                    <div className="mt-3">
+                      <div className="font-semibold">Parsing Rules:</div>
+                      <ul className="list-disc list-inside text-xs mt-1 space-y-1">
+                        <li>Each string starts with "ATTENDANCE:" or "DISMISSAL:"</li>
+                        <li>Status-count pairs are separated by "|" (pipe)</li>
+                        <li>Each pair format: "Status,Count" (comma-separated)</li>
+                        <li>Example: "OnTime,5" means 5 students with OnTime status</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
+                
+                {debugApiResponse && debugApiResponse.data && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Parsing Breakdown:</h4>
+                    <div className="bg-blue-50 p-3 rounded-lg text-sm">
+                      {debugApiResponse.data.map((item: any, index: number) => (
+                        <div key={index} className="mb-3 last:mb-0">
+                          <div className="font-semibold">Data Item {index}:</div>
+                          <div className="font-mono text-xs bg-white p-2 rounded border mt-1">
+                            {typeof item === 'string' ? item : JSON.stringify(item)}
+                          </div>
+                          {typeof item === 'string' && (
+                            <div className="mt-2">
+                              {item.startsWith('ATTENDANCE:') && (
+                                <div>
+                                  <span className="text-blue-600 font-medium">→ ATTENDANCE DATA:</span>
+                                  <div className="ml-4 text-xs">
+                                    {item.substring(11).split('|').map((pair, pairIndex) => {
+                                      const [status, count] = pair.split(',');
+                                      return (
+                                        <div key={pairIndex} className="flex justify-between w-40">
+                                          <span>{status}:</span>
+                                          <span className="font-medium">{count}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {item.startsWith('DISMISSAL:') && (
+                                <div>
+                                  <span className="text-green-600 font-medium">→ DISMISSAL DATA:</span>
+                                  <div className="ml-4 text-xs">
+                                    {item.substring(10).split('|').map((pair, pairIndex) => {
+                                      const [status, count] = pair.split(',');
+                                      return (
+                                        <div key={pairIndex} className="flex justify-between w-40">
+                                          <span>{status}:</span>
+                                          <span className="font-medium">{count}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {!item.startsWith('ATTENDANCE:') && !item.startsWith('DISMISSAL:') && (
+                                <div className="text-orange-600 text-xs">
+                                  ⚠️ Unexpected format - should start with ATTENDANCE: or DISMISSAL:
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           )}
