@@ -31,6 +31,7 @@ interface SubmitAbsenceRequestDialogProps {
 
 export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted, userRole }: SubmitAbsenceRequestDialogProps) {
   const [absenceType, setAbsenceType] = useState<"full" | "half">("full");
+  const [absenceCategory, setAbsenceCategory] = useState<"UnapprovedAbsence" | "No Show">("UnapprovedAbsence");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState("9:00am");
   const [endTime, setEndTime] = useState("10:00am");
@@ -191,7 +192,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       
       const response = await backend.student.insertAbsence({
         studentid: student.studentid,
-        absencetype: "UnapprovedAbsence",
+        absencetype: absenceCategory,
         absencedate: formattedDate,
         fullday: absenceType === "full",
         absencestarttime: absenceType === "half" ? startTime : undefined,
@@ -209,6 +210,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         });
         
         setAbsenceType("full");
+        setAbsenceCategory("UnapprovedAbsence");
         setStartDate(undefined);
         setStartTime("9:00am");
         setEndTime("10:00am");
@@ -239,6 +241,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
   const handleCancel = () => {
     setAbsenceType("full");
+    setAbsenceCategory("UnapprovedAbsence");
     setStartDate(undefined);
     setStartTime("9:00am");
     setEndTime("10:00am");
@@ -324,6 +327,26 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             </div>
 
             <div className="space-y-3">
+              <Label className="font-medium">Absence Type</Label>
+              <RadioGroup
+                value={absenceCategory}
+                onValueChange={(value) => setAbsenceCategory(value as "UnapprovedAbsence" | "No Show")}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="UnapprovedAbsence" id="unapproved" />
+                    <Label htmlFor="unapproved" className="font-normal">Unapproved Absence</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="No Show" id="noshow" />
+                    <Label htmlFor="noshow" className="font-normal">No Show</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="font-medium">Duration</Label>
               <RadioGroup
                 value={absenceType}
                 onValueChange={(value) => setAbsenceType(value as "full" | "half")}
