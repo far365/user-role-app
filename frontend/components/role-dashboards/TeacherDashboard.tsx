@@ -86,6 +86,10 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentQueueId, setCurrentQueueId] = useState<string | null>(null);
   
+  // Debug state for API response
+  const [debugApiResponse, setDebugApiResponse] = useState<any>(null);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  
   // Auto-refresh state
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
   const [countdown, setCountdown] = useState(10);
@@ -222,17 +226,64 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const loadAttendanceDismissalCounts = async (grade: string) => {
     try {
       const timezone = 'America/Chicago';
-      const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade({ 
+      const requestPayload = { 
         sch_tz: timezone, 
         p_grade: grade 
-      });
-      console.log("Attendance/Dismissal counts response:", response);
+      };
+      
+      console.log("🚀 ATTENDANCE API DEBUG - SENDING REQUEST:");
+      console.log("  API Endpoint: queue.attendanceAndDismissalQueueCountsByGrade");
+      console.log("  Request Payload:", JSON.stringify(requestPayload, null, 2));
+      console.log("  Grade:", grade);
+      console.log("  Timezone:", timezone);
+      
+      const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade(requestPayload);
+      
+      console.log("📥 ATTENDANCE API DEBUG - RECEIVED RESPONSE:");
+      console.log("  Full Response Object:", response);
+      console.log("  Response Type:", typeof response);
+      console.log("  Response Stringified:", JSON.stringify(response, null, 2));
+      
+      if (response && response.data) {
+        console.log("  Response.data:", response.data);
+        console.log("  Response.data Type:", typeof response.data);
+        console.log("  Response.data Length:", Array.isArray(response.data) ? response.data.length : 'not an array');
+        if (Array.isArray(response.data)) {
+          response.data.forEach((item, index) => {
+            console.log(`  Response.data[${index}]:`, item, typeof item);
+          });
+        }
+      }
       
       const parsedCounts = parseAttendanceDismissalData(response);
+      console.log("🔄 ATTENDANCE API DEBUG - PARSED RESULT:");
+      console.log("  Parsed Counts:", JSON.stringify(parsedCounts, null, 2));
+      
+      // Store the raw response for debug display
+      setDebugApiResponse(response);
       setAttendanceDismissalCounts(parsedCounts);
+      
+      // Show a toast with the API status
+      toast({
+        title: "Attendance API Called",
+        description: `Grade: ${grade}, Response received: ${response ? 'Yes' : 'No'}`,
+        variant: "default",
+      });
+      
     } catch (error) {
-      console.error("Failed to load attendance/dismissal counts:", error);
+      console.error("❌ ATTENDANCE API DEBUG - ERROR:");
+      console.error("  Error Object:", error);
+      console.error("  Error Message:", error instanceof Error ? error.message : 'Unknown error');
+      console.error("  Error Stack:", error instanceof Error ? error.stack : 'No stack trace');
+      
       setAttendanceDismissalCounts(null);
+      
+      // Show error toast
+      toast({
+        title: "Attendance API Error",
+        description: `Failed to load attendance data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -769,6 +820,72 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               </div>
             </div>
           </CardContent>
+        </Card>
+      )}
+
+      {/* Debug Information Section */}
+      {selectedGrade && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5" />
+                <span>API Debug Information</span>
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowDebugInfo(!showDebugInfo)}
+              >
+                {showDebugInfo ? 'Hide' : 'Show'} Debug Info
+              </Button>
+            </div>
+            <CardDescription>
+              Raw API request/response data for troubleshooting
+            </CardDescription>
+          </CardHeader>
+          {showDebugInfo && (
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">API Request Parameters:</h4>
+                  <div className="bg-gray-100 p-3 rounded-lg font-mono text-sm">
+                    <div>sch_tz: "America/Chicago"</div>
+                    <div>p_grade: "{selectedGrade}"</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Raw API Response:</h4>
+                  <div className="bg-gray-100 p-3 rounded-lg font-mono text-sm max-h-60 overflow-auto">
+                    <pre>{debugApiResponse ? JSON.stringify(debugApiResponse, null, 2) : 'No response yet - select a grade to trigger API call'}</pre>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Parsed Data:</h4>
+                  <div className="bg-gray-100 p-3 rounded-lg font-mono text-sm max-h-60 overflow-auto">
+                    <pre>{attendanceDismissalCounts ? JSON.stringify(attendanceDismissalCounts, null, 2) : 'No parsed data available'}</pre>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Expected Format:</h4>
+                  <div className="bg-yellow-50 p-3 rounded-lg text-sm">
+                    <div className="font-semibold">Expected API response format:</div>
+                    <div className="mt-1 font-mono">
+                      {`{
+  "data": [
+    "ATTENDANCE:Unknown,0|OnTime,5|OnTime-M,2|Tardy,1|Tardy-M,0|NoShow,0",
+    "DISMISSAL:Unknown,0|StandBy,3|InQueue,2|Collected,1|EarlyDismissal,0|DirectPickup,0|LatePickup,0|After Care,0"
+  ]
+}`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
       )}
 
