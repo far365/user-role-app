@@ -79,3 +79,14 @@ export interface GetQueueCountByGradeResponse {
   statusCounts: QueueStatusCount[];
   totalCount: number;
 }
+
+export interface BuildNewQueueRequest {
+  queueStartedByUsername: string;
+}
+
+export interface BuildNewQueueResponse {
+  success: boolean;
+  message: string;
+  details?: string;
+  result?: any;
+}

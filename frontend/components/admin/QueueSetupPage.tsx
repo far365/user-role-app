@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, StopCircle, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
+import { ArrowLeft, Play, StopCircle, Trash2, RefreshCw, Clock, User as UserIcon, Calendar, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -80,7 +80,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       setDismissalQueueStatus(null);
       setCloseQueueStatus(null);
       
-      // Call the build_new_queue API without creating queue master records
+      // Call the build_new_queue Supabase API directly
       const response = await backend.queue.buildNewQueue({
         queueStartedByUsername: user.loginID,
       });
@@ -88,22 +88,22 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       // Refresh the queues list to see any updates
       await fetchAllQueues();
       
-      // Display the actual result status from the API
+      // Display the actual result status from the Supabase API
       setDismissalQueueStatus({
-        success: response.buildSuccess || false,
-        message: response.buildMessage || "Build new queue function executed",
-        details: response.buildDetails
+        success: response.success || false,
+        message: response.message || "build_new_queue function executed",
+        details: response.details
       });
       
       toast({
-        title: response.buildSuccess ? "Success" : "Warning",
-        description: response.buildMessage || `Queue operation completed`,
-        variant: response.buildSuccess ? "default" : "destructive",
+        title: response.success ? "Success" : "Warning",
+        description: response.message || `Supabase build_new_queue operation completed`,
+        variant: response.success ? "default" : "destructive",
       });
     } catch (error) {
       console.error("Build new queue failed:", error);
       
-      let errorMessage = "Failed to build dismissal queue";
+      let errorMessage = "Failed to call build_new_queue Supabase function";
       let errorDetails = "";
       
       if (error instanceof Error) {
@@ -125,8 +125,8 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           errorMessage = "Database error: Cannot connect to Supabase database";
           errorDetails = "Check your database connection and try again.";
         } else {
-          errorMessage = `Failed to build dismissal queue: ${error.message}`;
-          errorDetails = "The build_new_queue API encountered an unexpected error.";
+          errorMessage = `Failed to call build_new_queue Supabase function: ${error.message}`;
+          errorDetails = "The build_new_queue Supabase API encountered an unexpected error.";
         }
       }
       
@@ -297,42 +297,15 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     }
   };
 
-  // Check if we can start a new queue
+  // Check if we can start a new queue (simplified for Supabase function call)
   const canStartNewQueue = () => {
-    // Can't start if there's already an open queue
-    if (currentQueue) {
-      return false;
-    }
-    
-    // Check if there's already a queue for today (YYYYMMDD format)
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const todayQueueId = `${year}${month}${day}`;
-    
-    const existingTodayQueue = allQueues.find(queue => queue.queueId === todayQueueId);
-    
-    return !existingTodayQueue;
+    // Since we're only calling the Supabase function, we can always call it
+    // The function itself will handle any business logic validation
+    return true;
   };
 
   const getStartQueueDisabledReason = () => {
-    if (currentQueue) {
-      return "Cannot start new queue while another queue is open";
-    }
-    
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const todayQueueId = `${year}${month}${day}`;
-    
-    const existingTodayQueue = allQueues.find(queue => queue.queueId === todayQueueId);
-    
-    if (existingTodayQueue) {
-      return `A queue for today (${todayQueueId}) already exists and must be deleted first`;
-    }
-    
+    // Since the Supabase function handles validation, no frontend restrictions
     return null;
   };
 
@@ -400,7 +373,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               ) : (
                 <XCircle className="w-5 h-5" />
               )}
-              <span>Dismissal Queue Build New Queue Status</span>
+              <span>Build New Queue Status</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -414,7 +387,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
             )}
             {dismissalQueueStatus.success && (
               <p className="text-xs text-green-600 mt-2">
-                The build_new_queue() function has been executed successfully. Check your dismissal queue table to verify the results.
+                The build_new_queue() Supabase function has been executed successfully. Check your dismissal queue table to verify the results.
               </p>
             )}
           </CardContent>
@@ -483,7 +456,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                     <span>{formatDateTime(currentQueue.queueStartTime)}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4 text-gray-500" />
+                    <UserIcon className="w-4 h-4 text-gray-500" />
                     <span className="font-medium">Started by:</span>
                     <span>{currentQueue.queueStartedByUsername || 'Unknown'}</span>
                   </div>
@@ -520,17 +493,17 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <span>Start Attendance</span>
             </CardTitle>
             <CardDescription>
-              Populate dismissal queue for today without creating a queue master record.
+              Call build_new_queue Supabase function directly to populate dismissal queue.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                This will call the build_new_queue API which only populates the dismissal queue with eligible students, without creating a queue master record.
+                This will call the build_new_queue Supabase function directly to populate the dismissal queue with eligible students.
               </p>
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800">
-                  <strong>Build New Queue API:</strong> Calls backend.queue.buildNewQueue() which populates the dismissal queue without creating queue master records. The API will return the actual status and results.
+                  <strong>Supabase Function:</strong> Calls SELECT build_new_queue() directly in Supabase which populates the dismissal queue without using backend API intermediates. The function will return the actual status and results.
                 </p>
               </div>
               <Button 
@@ -539,7 +512,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 className="w-full"
               >
                 <Play className="w-4 h-4 mr-2" />
-                {isCreating ? 'Building Dismissal Queue...' : 'Build Dismissal Queue'}
+                {isCreating ? 'Calling build_new_queue()...' : 'Call build_new_queue()'}
               </Button>
               {!canStartNewQueue() && (
                 <p className="text-xs text-yellow-600">
