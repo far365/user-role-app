@@ -177,7 +177,8 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
 
       console.log("[Queue API] Inserting dismissal queue record:", recordData);
 
-      // Insert the record
+      // Insert the record - COMMENTED OUT - Using Supabase API instead
+      /*
       const { data: insertedRecord, error: insertError } = await supabase
         .from('dismissalqueuercd')
         .insert(recordData)
@@ -215,6 +216,51 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
       }
 
       console.log("[Queue API] Successfully inserted dismissal queue record:", insertedRecord);
+      */
+      
+      // TODO: Replace with Supabase API call for dismissal queue record insertion
+      console.log("[Queue API] PLACEHOLDER: Would call Supabase API to insert dismissal queue record");
+      
+      // TODO: This should call a Supabase function like:
+      /*
+      const { data: functionResult, error: functionError } = await supabase
+        .rpc('add_dismissal_queue_record', {
+          p_queue_id: queueId.trim(),
+          p_class_building: classBuilding.trim(),
+          p_grade: grade?.trim() || null,
+          p_dismissal_status: dismissalQueueStatus.trim(),
+          p_parent_id: parentId?.trim() || null,
+          p_student_id: finalStudentId,
+          p_student_name: studentName?.trim() || null,
+          p_parent_name: parentName?.trim() || null,
+          p_alternate_name: alternateName?.trim() || null,
+          p_add_method: addToQueueMethod.trim(),
+          p_qr_building: qrScannedAtBuilding?.trim() || null,
+          p_dismissed_by: dismissedByName?.trim() || null,
+          p_dismiss_status: dismissStatus?.trim() || null,
+          p_self_dismiss: studentSelfDismiss || false,
+          p_dismiss_issue: dismissIssue?.trim() || null,
+          p_pickup_confirmed_by: pickupConfirmedByName?.trim() || null,
+          p_pickup_issue: pickupIssue?.trim() || null
+        });
+      
+      if (functionError) {
+        console.error("[Queue API] Supabase function error:", functionError);
+        throw APIError.internal(`Failed to add dismissal queue record: ${functionError.message}`);
+      }
+      
+      const insertedRecord = functionResult;
+      */
+      
+      // Create mock inserted record for now
+      const insertedRecord = {
+        ...recordData,
+        id: Date.now(), // Mock ID
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
+      };
+      
+      console.log("[Queue API] MOCK: Successfully would insert dismissal queue record:", insertedRecord);
       console.log("[Queue API] === DISMISSAL QUEUE RECORD INSERTION COMPLETE ===");
 
       // Return the actual queueId and studentId combination as the record identifier

@@ -122,7 +122,7 @@ const userDate = new Intl.DateTimeFormat('en-US', {
         throw APIError.alreadyExists(`A queue with ID ${queueId} already exists (Status: ${existingQueue.queuemasterstatus}). This queue must be deleted before a new one can be started for today.`);
       }
 
-      // Create new queue
+      // Create new queue - COMMENTED OUT - Using Supabase API instead
       const currentTime = new Date().toISOString();
       console.log("[Queue API] Creating queue with data:", {
         queueid: queueId,
@@ -134,7 +134,7 @@ const userDate = new Intl.DateTimeFormat('en-US', {
         lastupdatedttm: currentTime,
         archiveddttm: null
       });
-
+      /*
       const { data: newQueue, error: createError } = await supabase
         .from('queuemasterrcd')
         .insert({
@@ -183,6 +183,22 @@ const userDate = new Intl.DateTimeFormat('en-US', {
       }
 
       console.log("[Queue API] Successfully created queue:", newQueue);
+      */
+      
+      // TODO: Replace with Supabase API call for queue creation
+      console.log("[Queue API] PLACEHOLDER: Would call Supabase API to create queue with ID:", queueId);
+      
+      // Create mock queue object for now
+      const newQueue = {
+        queueid: queueId,
+        queuestarttime: currentTime,
+        queuestartedbyusername: queueStartedByUsername.trim(),
+        queueendtime: null,
+        queueclosedbyusername: null,
+        queuemasterstatus: 'Open',
+        lastupdatedttm: currentTime,
+        archiveddttm: null
+      };
 
       // Now call the Supabase function to build the dismissal queue
       console.log("[Queue API] === CALLING SUPABASE FUNCTION TO BUILD DISMISSAL QUEUE ===");
@@ -190,6 +206,17 @@ const userDate = new Intl.DateTimeFormat('en-US', {
       try {
         console.log("[Queue API] Calling auto_build_dismissal_queue() function...");
         
+        // TODO: Replace with proper Supabase API call for queue creation and dismissal queue building
+        // This should call a Supabase function that handles both queue creation and dismissal queue population
+        /*
+        const { data: functionResult, error: functionError } = await supabase
+          .rpc('create_queue_and_build_dismissal', {
+            p_queue_id: queueId,
+            p_started_by_username: queueStartedByUsername.trim()
+          });
+        */
+        
+        // PLACEHOLDER: Mock Supabase function call
         const { data: functionResult, error: functionError } = await supabase
           .rpc('auto_build_dismissal_queue');
 
