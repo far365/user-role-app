@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
-import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
+import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -393,7 +393,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
       {/* Dismissal Status Dialog (reuse existing one) */}
       {selectedStudent && (
-        <StudentStatusEditDialog
+        <StudentDismissalStatusEditDialog
           student={{
             queueId: selectedStudent.queueid,
             studentId: selectedStudent.studentid,

@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause, UserX, UserCheck, LogOut, Settings } from "lucide-react";
-import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
+import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
 import { SlideReleaseButton } from "../teacher/SlideReleaseButton";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { SelectClosedQueueDialog } from "../teacher/SelectClosedQueueDialog";
@@ -1245,7 +1245,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
       {/* Student Status Edit Dialog */}
       {selectedStudent && (
-        <StudentStatusEditDialog
+        <StudentDismissalStatusEditDialog
           student={selectedStudent}
           isOpen={isEditDialogOpen}
           onClose={() => {

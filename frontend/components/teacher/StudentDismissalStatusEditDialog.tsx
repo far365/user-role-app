@@ -19,7 +19,7 @@ interface DismissalQueueRecord {
   alternateName?: string;
 }
 
-interface StudentStatusEditDialogProps {
+interface StudentDismissalStatusEditDialogProps {
   student: DismissalQueueRecord;
   isOpen: boolean;
   onClose: () => void;
@@ -40,7 +40,7 @@ const dismissalStatuses = [
   { value: "AfterCare", label: "After Care", description: "Student goes to after-school care" }
 ];
 
-export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpdated, userId }: StudentStatusEditDialogProps) {
+export function StudentDismissalStatusEditDialog({ student, isOpen, onClose, onStatusUpdated, userId }: StudentDismissalStatusEditDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState(student.dismissalQueueStatus);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
