@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen } from "lucide-react";
+import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode } from "lucide-react";
 import { ParentSetupPage } from "../admin/ParentSetupPage";
 import { StudentSetupPage } from "../admin/StudentSetupPage";
 import { QueueSetupPage } from "../admin/QueueSetupPage";
+import { QRScanPage } from "../admin/QRScanPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -20,6 +21,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const handleBackToDashboard = () => {
     setCurrentPage('dashboard');
   };
+
+  if (currentPage === 'qr-scan') {
+    return <QRScanPage user={user} onBack={handleBackToDashboard} />;
+  }
 
   if (currentPage === 'queue-setup') {
     return <QueueSetupPage user={user} onBack={handleBackToDashboard} />;
@@ -43,6 +48,15 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-green-700 hover:text-green-800 hover:bg-green-50"
+          onClick={() => handleNavigate('qr-scan')}
+        >
+          <QrCode className="h-5 w-5 mr-3" />
+          Scan QR Code
+        </Button>
+
         <Button 
           variant="ghost" 
           className="justify-start h-12 px-4 text-blue-700 hover:text-blue-800 hover:bg-blue-50"
