@@ -227,6 +227,7 @@ export namespace parent {
  */
 import { addToDismissalQueue as api_queue_add_to_dismissal_queue_addToDismissalQueue } from "~backend/queue/add_to_dismissal_queue";
 import { attendanceAndDismissalQueueCountsByGrade as api_queue_attendance_and_dismissal_queue_counts_by_grade_attendanceAndDismissalQueueCountsByGrade } from "~backend/queue/attendance_and_dismissal_queue_counts_by_grade";
+import { buildNewQueue as api_queue_build_new_queue_buildNewQueue } from "~backend/queue/build_new_queue";
 import { close as api_queue_close_close } from "~backend/queue/close";
 import { create as api_queue_create_create } from "~backend/queue/create";
 import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
@@ -249,6 +250,7 @@ export namespace queue {
             this.baseClient = baseClient
             this.addToDismissalQueue = this.addToDismissalQueue.bind(this)
             this.attendanceAndDismissalQueueCountsByGrade = this.attendanceAndDismissalQueueCountsByGrade.bind(this)
+            this.buildNewQueue = this.buildNewQueue.bind(this)
             this.close = this.close.bind(this)
             this.create = this.create.bind(this)
             this.debugTable = this.debugTable.bind(this)
@@ -276,6 +278,15 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/attendance-and-dismissal-queue-counts-by-grade`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_attendance_and_dismissal_queue_counts_by_grade_attendanceAndDismissalQueueCountsByGrade>
+        }
+
+        /**
+         * Calls the build_new_queue Supabase function directly
+         */
+        public async buildNewQueue(params: RequestType<typeof api_queue_build_new_queue_buildNewQueue>): Promise<ResponseType<typeof api_queue_build_new_queue_buildNewQueue>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/build-new-queue`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_build_new_queue_buildNewQueue>
         }
 
         /**
