@@ -49,7 +49,9 @@ interface ApproveConfirmation {
   absencercdid: number | null;
 }
 
-interface StatusCounts {
+interface StatusCount {
+  attendance_status?: string;
+  dismissal_status?: string;
   count: number;
 }
 
@@ -78,7 +80,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   });
   const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(false);
   const [isStudentListOpen, setIsStudentListOpen] = useState(false);
-  const [statusCounts, setStatusCounts] = useState<StatusCounts[]>([]);
+  const [statusCounts, setStatusCounts] = useState<StatusCount[]>([]);
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
   
   const { toast } = useToast();
@@ -165,6 +167,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         sch_tz: 'America/Los_Angeles',
         p_grade: grade
       });
+      console.log("Status counts response:", response);
+      console.log("Status counts data:", response.data);
       setStatusCounts(response.data);
     } catch (error) {
       console.error("Failed to load status counts:", error);
@@ -464,15 +468,17 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2 px-3 font-semibold">Attendance Status</th>
-                      <th className="text-left py-2 px-3 font-semibold">Dismissal Status</th>
+                      <th className="text-left py-2 px-3 font-semibold">Status</th>
+                      <th className="text-right py-2 px-3 font-semibold">Count</th>
                     </tr>
                   </thead>
                   <tbody>
                     {statusCounts.map((row, index) => (
                       <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
-                        <td className="py-2 px-3">{row.count}</td>
-                        <td className="py-2 px-3">{row.count}</td>
+                        <td className="py-2 px-3">
+                          {row.attendance_status || row.dismissal_status || 'Unknown'}
+                        </td>
+                        <td className="py-2 px-3 text-right font-medium">{row.count}</td>
                       </tr>
                     ))}
                   </tbody>
