@@ -11,6 +11,7 @@ import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, 
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
+import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -82,6 +83,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [isStudentListOpen, setIsStudentListOpen] = useState(false);
   const [statusCounts, setStatusCounts] = useState<StatusCount[]>([]);
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
+  const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
+  const [selectedStudentForAbsence, setSelectedStudentForAbsence] = useState<{ studentid: string; StudentName: string } | null>(null);
   
   const { toast } = useToast();
 
@@ -660,11 +663,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                           size="sm"
                           className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
                           onClick={() => {
-                            // TODO: Implement absence request functionality
-                            toast({
-                              title: "Coming Soon",
-                              description: "Absence request feature will be implemented soon",
+                            setSelectedStudentForAbsence({
+                              studentid: student.studentid,
+                              StudentName: student.StudentName
                             });
+                            setIsSubmitAbsenceDialogOpen(true);
                           }}
                         >
                           ✨ Submit Absence Request
@@ -800,6 +803,23 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Submit Absence Request Dialog */}
+      {selectedStudentForAbsence && (
+        <SubmitAbsenceRequestDialog
+          student={selectedStudentForAbsence}
+          isOpen={isSubmitAbsenceDialogOpen}
+          onClose={() => {
+            setIsSubmitAbsenceDialogOpen(false);
+            setSelectedStudentForAbsence(null);
+          }}
+          onSubmitted={() => {
+            if (selectedGrade) {
+              loadPendingAbsenceRequests(selectedGrade);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
