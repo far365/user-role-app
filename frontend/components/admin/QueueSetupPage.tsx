@@ -27,6 +27,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [dismissalQueueStatus, setDismissalQueueStatus] = useState<{
     success: boolean;
     message: string;
+    details?: string;
   } | null>(null);
   const [closeQueueStatus, setCloseQueueStatus] = useState<{
     success: boolean;
@@ -79,52 +80,68 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       setDismissalQueueStatus(null);
       setCloseQueueStatus(null);
       
-      const response = await backend.queue.create({
+      // Comment out the old queue.create call
+      // const response = await backend.queue.create({
+      //   queueStartedByUsername: user.loginID,
+      // });
+      
+      // Call the new build_new_queue API
+      const response = await backend.queue.buildNewQueue({
         queueStartedByUsername: user.loginID,
       });
       
-      setCurrentQueue(response.queue);
-      await fetchAllQueues(); // Refresh the list
+      // Handle the response which should include both queue data and build status
+      if (response.queue) {
+        setCurrentQueue(response.queue);
+        await fetchAllQueues(); // Refresh the list
+      }
       
-      // Check the backend logs to determine if the Supabase function was successful
-      // Since the function result isn't returned in the API response, we'll show a general success message
-      // and let the user know to check the dismissal queue
+      // Display the actual result status from the API
       setDismissalQueueStatus({
-        success: true,
-        message: "Queue created successfully. Dismissal queue build_new_queue function has been executed. Check the dismissal queue table to verify student records were populated."
+        success: response.buildSuccess || false,
+        message: response.buildMessage || "Build new queue function executed",
+        details: response.buildDetails
       });
       
       toast({
-        title: "Success",
-        description: `New queue ${response.queue.queueId} has been started and dismissal queue build_new_queue function executed`,
+        title: response.buildSuccess ? "Success" : "Warning",
+        description: response.buildMessage || `Queue operation completed`,
+        variant: response.buildSuccess ? "default" : "destructive",
       });
     } catch (error) {
-      console.error("Queue creation failed:", error);
+      console.error("Build new queue failed:", error);
       
-      let errorMessage = "Failed to start new queue";
+      let errorMessage = "Failed to build new queue";
+      let errorDetails = "";
+      
       if (error instanceof Error) {
         if (error.message.includes("already open")) {
-          errorMessage = "Cannot start new queue: Another queue is already open. Please close the open queue first.";
+          errorMessage = "Cannot build new queue: Another queue is already open. Please close the open queue first.";
         } else if (error.message.includes("already exists")) {
           if (error.message.includes("must be deleted")) {
-            errorMessage = "Cannot start new queue: A queue for today already exists and must be deleted before starting a new one.";
+            errorMessage = "Cannot build new queue: A queue for today already exists and must be deleted before starting a new one.";
           } else {
-            errorMessage = "Cannot start new queue: A queue for today already exists";
+            errorMessage = "Cannot build new queue: A queue for today already exists";
           }
         } else if (error.message.includes("Table") && error.message.includes("does not exist")) {
-          errorMessage = "Database error: The queuemasterrcd table does not exist in your Supabase database";
+          errorMessage = "Database error: Required tables do not exist in your Supabase database";
+          errorDetails = "The build_new_queue function requires specific database tables to be present.";
         } else if (error.message.includes("permission") || error.message.includes("denied")) {
-          errorMessage = "Database error: Permission denied accessing the queuemasterrcd table";
+          errorMessage = "Database error: Permission denied accessing database tables";
+          errorDetails = "Check that the database user has proper permissions for the build_new_queue function.";
         } else if (error.message.includes("connection") || error.message.includes("Database")) {
           errorMessage = "Database error: Cannot connect to Supabase database";
+          errorDetails = "Check your database connection and try again.";
         } else {
-          errorMessage = `Failed to start queue: ${error.message}`;
+          errorMessage = `Failed to build new queue: ${error.message}`;
+          errorDetails = "The build_new_queue API encountered an unexpected error.";
         }
       }
       
       setDismissalQueueStatus({
         success: false,
-        message: errorMessage
+        message: errorMessage,
+        details: errorDetails
       });
       
       toast({
@@ -398,9 +415,14 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
             <p className={`text-sm ${dismissalQueueStatus.success ? "text-green-700" : "text-red-700"}`}>
               {dismissalQueueStatus.message}
             </p>
+            {dismissalQueueStatus.details && (
+              <p className={`text-xs mt-2 ${dismissalQueueStatus.success ? "text-green-600" : "text-red-600"}`}>
+                {dismissalQueueStatus.details}
+              </p>
+            )}
             {dismissalQueueStatus.success && (
               <p className="text-xs text-green-600 mt-2">
-                The Supabase function build_new_queue() has been executed. Check your dismissal queue table to verify that eligible students (Active status, Present attendance) have been added with 'Standby' status.
+                The build_new_queue() function has been executed successfully. Check your dismissal queue table to verify the results.
               </p>
             )}
           </CardContent>
@@ -512,11 +534,11 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                This will create a new queue with ID in YYYYMMDD format and automatically call the Supabase function to populate the dismissal queue with eligible students.
+                This will call the build_new_queue API which creates a new queue and automatically populates the dismissal queue with eligible students.
               </p>
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800">
-                  <strong>Build New Queue Process:</strong> After queue creation, the system will call SELECT public.build_new_queue() to populate eligible students (Active status, Present attendance) into the dismissal queue with 'Standby' status.
+                  <strong>Build New Queue API:</strong> Calls backend.queue.buildNewQueue() which handles both queue creation and dismissal queue population in a single operation. The API will return the actual status and results.
                 </p>
               </div>
               <Button 
@@ -525,7 +547,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 className="w-full"
               >
                 <Play className="w-4 h-4 mr-2" />
-                {isCreating ? 'Starting & Building Queue...' : 'Start New Queue'}
+                {isCreating ? 'Building New Queue...' : 'Build New Queue'}
               </Button>
               {!canStartNewQueue() && (
                 <p className="text-xs text-yellow-600">
