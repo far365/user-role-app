@@ -165,31 +165,71 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     filterRecords();
   }, [activeFilter, dismissalRecords]);
 
-  const parseAttendanceDismissalData = (attendanceData: string, dismissalData: string): AttendanceDismissalCounts => {
+  const parseAttendanceDismissalData = (response: any): AttendanceDismissalCounts => {
+    // The response should contain the attendance and dismissal data
+    // We need to check the actual format when we get the response
+    console.log("Raw response from attendance API:", response);
+    
+    // Default empty data if parsing fails
+    const defaultData: AttendanceDismissalCounts = {
+      attendance: [],
+      dismissal: []
+    };
+    
+    if (!response || !response.data || !Array.isArray(response.data)) {
+      return defaultData;
+    }
+    
+    // The data array should contain strings in the format mentioned
+    // "ATTENDANCE:Unknown,0|OnTime,0|OnTime-M,0|Tardy,0|Tardy-M,0|NoShow,0"
+    // "DISMISSAL:Unknown,0|StandBy,0|InQueue,0|Collected,0|EarlyDismissal,0|DirectPickup,0|LatePickup,0|After Care,0"
+    
     const parseCountData = (data: string) => {
       const [, countsString] = data.split(':');
+      if (!countsString) return [];
+      
       return countsString.split('|').map(item => {
         const [status, count] = item.split(',');
-        return { status, count: parseInt(count, 10) };
+        return { status: status || '', count: parseInt(count, 10) || 0 };
       });
     };
 
-    return {
-      attendance: parseCountData(attendanceData),
-      dismissal: parseCountData(dismissalData)
-    };
+    try {
+      let attendanceData = '';
+      let dismissalData = '';
+      
+      // Find attendance and dismissal strings in the response
+      for (const item of response.data) {
+        if (typeof item === 'string') {
+          if (item.startsWith('ATTENDANCE:')) {
+            attendanceData = item;
+          } else if (item.startsWith('DISMISSAL:')) {
+            dismissalData = item;
+          }
+        }
+      }
+      
+      return {
+        attendance: attendanceData ? parseCountData(attendanceData) : [],
+        dismissal: dismissalData ? parseCountData(dismissalData) : []
+      };
+    } catch (error) {
+      console.error("Error parsing attendance/dismissal data:", error);
+      return defaultData;
+    }
   };
 
   const loadAttendanceDismissalCounts = async (grade: string) => {
     try {
       const timezone = 'America/Chicago';
-      const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade(grade, timezone);
+      const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade({ 
+        sch_tz: timezone, 
+        p_grade: grade 
+      });
       console.log("Attendance/Dismissal counts response:", response);
       
-      if (response && response.length >= 2) {
-        const parsedCounts = parseAttendanceDismissalData(response[0], response[1]);
-        setAttendanceDismissalCounts(parsedCounts);
-      }
+      const parsedCounts = parseAttendanceDismissalData(response);
+      setAttendanceDismissalCounts(parsedCounts);
     } catch (error) {
       console.error("Failed to load attendance/dismissal counts:", error);
       setAttendanceDismissalCounts(null);
