@@ -49,6 +49,10 @@ interface ApproveConfirmation {
   absencercdid: number | null;
 }
 
+interface StatusCounts {
+  count: number;
+}
+
 export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
@@ -74,6 +78,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   });
   const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(false);
   const [isStudentListOpen, setIsStudentListOpen] = useState(false);
+  const [statusCounts, setStatusCounts] = useState<StatusCounts[]>([]);
+  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
   
   const { toast } = useToast();
 
@@ -152,16 +158,34 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     }
   };
 
+  const loadStatusCounts = async (grade: string) => {
+    setIsLoadingCounts(true);
+    try {
+      const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade({
+        sch_tz: 'America/Los_Angeles',
+        p_grade: grade
+      });
+      setStatusCounts(response.data);
+    } catch (error) {
+      console.error("Failed to load status counts:", error);
+      setStatusCounts([]);
+    } finally {
+      setIsLoadingCounts(false);
+    }
+  };
+
   const handleGradeSelect = (grade: string) => {
     setSelectedGrade(grade);
     loadStudentData(grade);
     loadPendingAbsenceRequests(grade);
+    loadStatusCounts(grade);
   };
 
   const handleRefresh = async () => {
     if (!selectedGrade) return;
     await loadStudentData(selectedGrade);
     await loadPendingAbsenceRequests(selectedGrade);
+    await loadStatusCounts(selectedGrade);
   };
 
   const handleApproveAbsenceClick = (absencercdid: number) => {
@@ -417,6 +441,46 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* Status Counts Table */}
+      {selectedGrade && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Attendance & Dismissal Status Summary</CardTitle>
+            <CardDescription>
+              Count of students by attendance and dismissal status for {selectedGrade}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingCounts ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+              </div>
+            ) : statusCounts.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No status data available</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-3 font-semibold">Attendance Status</th>
+                      <th className="text-left py-2 px-3 font-semibold">Dismissal Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statusCounts.map((row, index) => (
+                      <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
+                        <td className="py-2 px-3">{row.count}</td>
+                        <td className="py-2 px-3">{row.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Pending Absence Requests Section */}
