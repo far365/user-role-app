@@ -91,12 +91,12 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       // and let the user know to check the dismissal queue
       setDismissalQueueStatus({
         success: true,
-        message: "Queue created successfully. Dismissal queue auto-build function has been executed. Check the dismissal queue table to verify student records were populated."
+        message: "Queue created successfully. Dismissal queue build_new_queue function has been executed. Check the dismissal queue table to verify student records were populated."
       });
       
       toast({
         title: "Success",
-        description: `New queue ${response.queue.queueId} has been started and dismissal queue auto-build function executed`,
+        description: `New queue ${response.queue.queueId} has been started and dismissal queue build_new_queue function executed`,
       });
     } catch (error) {
       console.error("Queue creation failed:", error);
@@ -391,7 +391,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               ) : (
                 <XCircle className="w-5 h-5" />
               )}
-              <span>Dismissal Queue Auto-Build Status</span>
+              <span>Dismissal Queue Build New Queue Status</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -400,7 +400,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
             </p>
             {dismissalQueueStatus.success && (
               <p className="text-xs text-green-600 mt-2">
-                The Supabase function auto_build_dismissal_queue() has been executed. Check your dismissal queue table to verify that eligible students (Active status, Present attendance) have been added with 'Standby' status.
+                The Supabase function build_new_queue() has been executed. Check your dismissal queue table to verify that eligible students (Active status, Present attendance) have been added with 'Standby' status.
               </p>
             )}
           </CardContent>
@@ -516,7 +516,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               </p>
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs text-blue-800">
-                  <strong>Auto-Build Process:</strong> After queue creation, the system will call SELECT public.auto_build_dismissal_queue() to populate eligible students (Active status, Present attendance) into the dismissal queue with 'Standby' status.
+                  <strong>Build New Queue Process:</strong> After queue creation, the system will call SELECT public.build_new_queue() to populate eligible students (Active status, Present attendance) into the dismissal queue with 'Standby' status.
                 </p>
               </div>
               <Button 
