@@ -3,7 +3,7 @@ import { supabase } from "../user/supabase";
 
 export interface InsertAbsenceRequest {
   studentid: string;
-  absencetype: 'ApprovedAbsence' | 'UnapprovedAbsence' | 'ExcusedAbsence' | 'UnexcusedAbsence';
+  absencetype: 'ApprovedAbsence' | 'UnapprovedAbsence' | 'ExcusedAbsence' | 'UnexcusedAbsence' | 'No Show';
   absencedate: string;
   fullday: boolean;
   absencestarttime?: string;
