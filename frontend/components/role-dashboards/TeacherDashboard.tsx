@@ -375,7 +375,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                     key={request.absencercdid}
                     className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col">
                       <div className="flex-1">
                         <h4 className="font-bold text-gray-900">
                           {request.studentname}
@@ -391,23 +391,23 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2 ml-4">
+                      <div className="flex gap-2 mt-3 justify-end">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-green-500 text-green-600 hover:bg-green-50"
+                          className="border-green-500 text-green-600 hover:bg-green-50 h-7 px-2.5 text-xs"
                           onClick={() => handleApproveAbsence(request.absencercdid)}
                         >
-                          <CheckCircle className="w-4 h-4 mr-1" />
+                          <CheckCircle className="w-3 h-3 mr-1" />
                           Approve
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-red-500 text-red-600 hover:bg-red-50"
+                          className="border-red-500 text-red-600 hover:bg-red-50 h-7 px-2.5 text-xs"
                           onClick={() => handleRejectAbsence(request.absencercdid)}
                         >
-                          <XCircle className="w-4 h-4 mr-1" />
+                          <XCircle className="w-3 h-3 mr-1" />
                           Reject
                         </Button>
                       </div>
