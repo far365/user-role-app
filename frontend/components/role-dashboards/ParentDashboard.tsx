@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import { EditParentInfoDialog } from "./EditParentInfoDialog";
+import { StudentAbsenceCard } from "../parent/StudentAbsenceCard";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -613,6 +614,21 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Absence Cards for Each Student */}
+          {studentData.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Absence Records</h3>
+              {studentData.map((student) => (
+                <StudentAbsenceCard
+                  key={student.studentId}
+                  studentId={student.studentId}
+                  studentName={student.studentName}
+                />
+              ))}
+            </div>
+          )}
+
           {/* Submit QR Code Button */}
           <div className="flex justify-center">
             <Button
