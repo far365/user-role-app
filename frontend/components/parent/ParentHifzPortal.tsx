@@ -592,9 +592,18 @@ function ProgressCircle({ label, percentage, color, bgColor, history, historyCol
   const offset = circumference - (percentage / 100) * circumference;
   const maxHistory = Math.max(...history, 1);
 
+  const getColorByPercentage = (pct: number) => {
+    if (pct >= 75) return { stroke: 'stroke-green-600', text: 'text-green-600', bg: 'bg-green-500' };
+    if (pct >= 50) return { stroke: 'stroke-blue-600', text: 'text-blue-600', bg: 'bg-blue-500' };
+    if (pct >= 25) return { stroke: 'stroke-orange-600', text: 'text-orange-600', bg: 'bg-orange-500' };
+    return { stroke: 'stroke-red-600', text: 'text-red-600', bg: 'bg-red-500' };
+  };
+
+  const colors = getColorByPercentage(percentage);
+
   return (
     <div className="flex flex-col items-center space-y-3">
-      <div className="relative w-32 h-32">
+      <div className="relative w-26 h-26">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
           <circle
             cx="50"
@@ -612,7 +621,7 @@ function ProgressCircle({ label, percentage, color, bgColor, history, historyCol
             stroke="currentColor"
             strokeWidth="8"
             fill="none"
-            className={bgColor}
+            className={colors.stroke}
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
@@ -620,7 +629,7 @@ function ProgressCircle({ label, percentage, color, bgColor, history, historyCol
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`text-2xl font-bold ${color}`}>{percentage}%</span>
+          <span className={`text-2xl font-bold ${colors.text}`}>{percentage}%</span>
         </div>
       </div>
       <div className="text-sm font-medium text-gray-700">{label}</div>
@@ -631,7 +640,7 @@ function ProgressCircle({ label, percentage, color, bgColor, history, historyCol
             return (
               <div
                 key={index}
-                className={`flex-1 ${historyColor} rounded-sm opacity-70`}
+                className={`flex-1 ${colors.bg} rounded-sm opacity-70`}
                 style={{ height: `${height}%` }}
                 title={`${value} lines`}
               />
