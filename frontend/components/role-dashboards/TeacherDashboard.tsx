@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
@@ -37,6 +38,11 @@ interface AbsenceNotes {
   [absencercdid: number]: string;
 }
 
+interface RejectConfirmation {
+  isOpen: boolean;
+  absencercdid: number | null;
+}
+
 export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
@@ -52,6 +58,10 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     isLoading: false
   });
   const [absenceNotes, setAbsenceNotes] = useState<AbsenceNotes>({});
+  const [rejectConfirmation, setRejectConfirmation] = useState<RejectConfirmation>({
+    isOpen: false,
+    absencercdid: null
+  });
   
   const { toast } = useToast();
 
@@ -162,11 +172,20 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     }
   };
 
-  const handleRejectAbsence = async (absencercdid: number) => {
+  const handleRejectAbsenceClick = (absencercdid: number) => {
+    setRejectConfirmation({
+      isOpen: true,
+      absencercdid
+    });
+  };
+
+  const handleRejectAbsenceConfirm = async () => {
+    if (rejectConfirmation.absencercdid === null) return;
+    
     try {
-      const note = absenceNotes[absencercdid] || '';
+      const note = absenceNotes[rejectConfirmation.absencercdid] || '';
       await backend.student.rejectAbsenceRequest({ 
-        absencercdid: absencercdid.toString(), 
+        absencercdid: rejectConfirmation.absencercdid.toString(), 
         p_approver_note: note,
         p_userid: user.userID
       });
@@ -176,7 +195,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       });
       setAbsenceNotes(prev => {
         const updated = { ...prev };
-        delete updated[absencercdid];
+        delete updated[rejectConfirmation.absencercdid!];
         return updated;
       });
       if (selectedGrade) {
@@ -189,6 +208,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         description: "Failed to reject absence request",
         variant: "destructive",
       });
+    } finally {
+      setRejectConfirmation({ isOpen: false, absencercdid: null });
     }
   };
 
@@ -437,7 +458,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                           size="sm"
                           variant="outline"
                           className="border-red-500 text-red-600 hover:bg-red-50 h-7 px-2.5 text-xs"
-                          onClick={() => handleRejectAbsence(request.absencercdid)}
+                          onClick={() => handleRejectAbsenceClick(request.absencercdid)}
                         >
                           <XCircle className="w-3 h-3 mr-1" />
                           Reject
@@ -613,6 +634,24 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           }}
         />
       )}
+
+      {/* Reject Confirmation Dialog */}
+      <AlertDialog open={rejectConfirmation.isOpen} onOpenChange={(open) => !open && setRejectConfirmation({ isOpen: false, absencercdid: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Rejection</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reject this absence request? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRejectAbsenceConfirm} className="bg-red-600 hover:bg-red-700">
+              Reject
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
