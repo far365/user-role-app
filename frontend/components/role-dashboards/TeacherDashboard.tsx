@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit } from "lucide-react";
+import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -50,6 +51,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<DismissalQueueRecord | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Auto-refresh every 5 seconds
@@ -253,11 +256,23 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
   const handleEditStudent = (studentId: string) => {
     const student = dismissalRecords.find(r => r.studentId === studentId);
-    toast({
-      title: "Edit Student",
-      description: `Opening edit dialog for ${student?.studentName}`,
-    });
-    // TODO: Implement edit student dialog/functionality
+    if (student) {
+      setSelectedStudent(student);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleStatusUpdated = (studentId: string, newStatus: string) => {
+    const updatedRecords = dismissalRecords.map(record => 
+      record.studentId === studentId 
+        ? { ...record, dismissalQueueStatus: newStatus }
+        : record
+    );
+    
+    setDismissalRecords(updatedRecords);
+    calculateStatusCounts(updatedRecords);
+    setIsEditDialogOpen(false);
+    setSelectedStudent(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -535,6 +550,19 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Student Status Edit Dialog */}
+      {selectedStudent && (
+        <StudentStatusEditDialog
+          student={selectedStudent}
+          isOpen={isEditDialogOpen}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setSelectedStudent(null);
+          }}
+          onStatusUpdated={handleStatusUpdated}
+        />
+      )}
     </div>
   );
 }
