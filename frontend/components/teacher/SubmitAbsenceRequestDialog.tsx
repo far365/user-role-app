@@ -40,6 +40,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   const [classTimings, setClassTimings] = useState<{ startTime: string; endTime: string } | null>(null);
   const [absenceHistory, setAbsenceHistory] = useState<AbsenceRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
@@ -116,11 +117,20 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
     return `${hours}:${minutes} ${period}`;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!startDate) {
       toast({
         title: "Invalid Date",
         description: "Please select a start date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!reason) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a reason",
         variant: "destructive",
       });
       return;
@@ -174,10 +184,57 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       }
     }
 
-    toast({
-      title: "Coming Soon",
-      description: "Absence request submission will be implemented when backend endpoints are ready",
-    });
+    setIsSubmitting(true);
+    try {
+      const formattedDate = format(startDate, "yyyy-MM-dd");
+      const approvalStatus = userRole === "Teacher" ? "Approved" : "Pending";
+      
+      const response = await backend.student.insertAbsence({
+        studentid: student.studentid,
+        absencetype: "UnapprovedAbsence",
+        absencedate: formattedDate,
+        fullday: absenceType === "full",
+        absencestarttime: absenceType === "half" ? startTime : undefined,
+        absenceendtime: absenceType === "half" ? endTime : undefined,
+        createdbyuserid: "current-user-id",
+        absencereason: reason,
+        approvalstatus: approvalStatus,
+        requester_note: additionalNotes || undefined,
+      });
+
+      if (response.status === "Success") {
+        toast({
+          title: "Success",
+          description: `Absence request ${userRole === "Teacher" ? "submitted and approved" : "submitted"} successfully`,
+        });
+        
+        setAbsenceType("full");
+        setStartDate(undefined);
+        setStartTime("9:00am");
+        setEndTime("10:00am");
+        setReason("");
+        setAdditionalNotes("");
+        
+        onSubmitted?.();
+        onClose();
+      } else {
+        console.error("Insert absence error:", response.message);
+        toast({
+          title: "Error",
+          description: response.message || "Failed to submit absence request",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit absence request:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -363,8 +420,8 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             >
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
-              Submit Request
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>
           </DialogFooter>
         </DialogContent>
