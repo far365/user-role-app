@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck } from "lucide-react";
+import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen } from "lucide-react";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -49,6 +49,21 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           <CardContent className="text-center">
             <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('parent-setup'); }}>
               Open Parent Setup
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('student-setup')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-2">
+              <BookOpen className="h-6 w-6 text-yellow-600" />
+            </div>
+            <CardTitle className="text-lg">Student Setup</CardTitle>
+            <CardDescription>Manage student records and enrollment</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('student-setup'); }}>
+              Open Student Setup
             </Button>
           </CardContent>
         </Card>
