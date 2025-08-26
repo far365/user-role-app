@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug } from "lucide-react";
+import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -192,115 +193,223 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       </div>
 
       {parentData && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <UserCheck className="w-5 h-5" />
-                <span>Parent Information</span>
-              </CardTitle>
-              <CardDescription>Your contact details and information from parentrcd table</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Parent Name</p>
-                  <p className="text-sm text-gray-900">{parentData.parentName || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Parent ID</p>
-                  <p className="text-sm text-gray-900 font-mono">{parentData.parentID}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-2">
-                <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700">Phone Number</p>
-                  <p className="text-sm text-gray-900">{parentData.phoneNumber || 'Not provided'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <Mail className="w-4 h-4 text-gray-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700">Email</p>
-                  <p className="text-sm text-gray-900 break-words">{parentData.email || 'Not provided'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700">Address</p>
-                  <p className="text-sm text-gray-900 break-words">{parentData.address || 'Not provided'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Phone className="w-5 h-5" />
-                <span>Emergency Contact</span>
-              </CardTitle>
-              <CardDescription>Emergency contact information from parentrcd table</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700">Emergency Contact Name</p>
-                <p className="text-sm text-gray-900">{parentData.emergencyContact || 'Not provided'}</p>
-              </div>
-              
-              <div className="flex items-start space-x-2">
-                <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700">Emergency Phone</p>
-                  <p className="text-sm text-gray-900">{parentData.emergencyPhone || 'Not provided'}</p>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-500">
+        <div className="space-y-6">
+          {/* Main Parent Information */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <UserCheck className="w-5 h-5" />
+                  <span>Parent Information</span>
+                </CardTitle>
+                <CardDescription>Your primary contact details and information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Record Created</p>
-                    <p>{parentData.createdAt.toLocaleDateString()}</p>
+                    <p className="text-sm font-medium text-gray-700">Parent Name</p>
+                    <p className="text-sm text-gray-900">{parentData.parentName || 'Not provided'}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Last Updated</p>
-                    <p>{parentData.updatedAt.toLocaleDateString()}</p>
+                    <p className="text-sm font-medium text-gray-700">Parent ID</p>
+                    <p className="text-sm text-gray-900 font-mono">{parentData.parentID}</p>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Gender</p>
+                    <p className="text-sm text-gray-900">{parentData.gender === 'M' ? 'Male' : parentData.gender === 'F' ? 'Female' : parentData.gender || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Record Status</p>
+                    <Badge variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'secondary'}>
+                      {parentData.parentRecordStatus || 'Unknown'}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Main Phone Number</p>
+                    <p className="text-sm text-gray-900">{parentData.parentPhoneMain || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">SMS Notifications</p>
+                    <Badge variant={parentData.sendSMS ? 'default' : 'secondary'}>
+                      {parentData.sendSMS ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
+                    <p className="text-sm text-gray-900">{parentData.parentVehicleInfo || 'Not provided'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span>Alternate Contact 1</span>
+                </CardTitle>
+                <CardDescription>Primary alternate contact information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Name</p>
+                  <p className="text-sm text-gray-900">{parentData.alternate1Name || 'Not provided'}</p>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate1Phone || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <User className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Relationship</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate1Relationship || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate1VehicleInfo || 'Not provided'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Alternate Contacts 2 & 3 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span>Alternate Contact 2</span>
+                </CardTitle>
+                <CardDescription>Secondary alternate contact information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Name</p>
+                  <p className="text-sm text-gray-900">{parentData.alternate2Name || 'Not provided'}</p>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate2Phone || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <User className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Relationship</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate2Relationship || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate2VehicleInfo || 'Not provided'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span>Alternate Contact 3</span>
+                </CardTitle>
+                <CardDescription>Third alternate contact information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Name</p>
+                  <p className="text-sm text-gray-900">{parentData.alternate3Name || 'Not provided'}</p>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate3Phone || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <User className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Relationship</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate3Relationship || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
+                    <p className="text-sm text-gray-900">{parentData.alternate3VehicleInfo || 'Not provided'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Record Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-blue-800">Record Information</CardTitle>
+              <CardDescription className="text-blue-700">
+                Database record details and timestamps
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-blue-800">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p><strong>Parent ID:</strong> {parentData.parentID}</p>
+                  <p><strong>Record Status:</strong> {parentData.parentRecordStatus}</p>
+                  <p><strong>SMS Enabled:</strong> {parentData.sendSMS ? 'Yes' : 'No'}</p>
+                </div>
+                <div>
+                  <p><strong>Gender:</strong> {parentData.gender === 'M' ? 'Male' : parentData.gender === 'F' ? 'Female' : parentData.gender || 'Not specified'}</p>
+                  <p><strong>Main Phone:</strong> {parentData.parentPhoneMain || 'N/A'}</p>
+                  <p><strong>Vehicle:</strong> {parentData.parentVehicleInfo || 'N/A'}</p>
+                </div>
+                <div>
+                  <p><strong>Created:</strong> {parentData.createdAt.toLocaleDateString()}</p>
+                  <p><strong>Updated:</strong> {parentData.updatedAt.toLocaleDateString()}</p>
+                  <p><strong>Username:</strong> {user.loginID}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {parentData && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-800">Debug Information</CardTitle>
-            <CardDescription className="text-blue-700">
-              Data successfully loaded from parentrcd table
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-blue-800">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p><strong>Username:</strong> {user.loginID}</p>
-                <p><strong>Parent ID:</strong> {parentData.parentID}</p>
-                <p><strong>Parent Name:</strong> {parentData.parentName}</p>
-              </div>
-              <div>
-                <p><strong>Phone:</strong> {parentData.phoneNumber || 'N/A'}</p>
-                <p><strong>Email:</strong> {parentData.email || 'N/A'}</p>
-                <p><strong>Emergency Contact:</strong> {parentData.emergencyContact || 'N/A'}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
