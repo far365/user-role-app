@@ -189,7 +189,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
           <p className="text-gray-600">Loading your information...</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -213,7 +213,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
           <p className="text-gray-600">Welcome {user.displayName}!</p>
         </div>
         
@@ -308,7 +308,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
           <p className="text-gray-600">
             Welcome {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
           </p>

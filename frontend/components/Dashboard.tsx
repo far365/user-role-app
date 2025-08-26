@@ -57,7 +57,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
             <div className="flex items-center space-x-4">
               <User className="w-8 h-8 text-gray-600" />
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-lg font-semibold text-gray-900">
                   Welcome, {user.displayName}
                 </h1>
                 <div className="flex items-center space-x-2">

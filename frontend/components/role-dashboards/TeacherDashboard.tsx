@@ -10,7 +10,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Teacher Dashboard</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Teacher Dashboard</h2>
         <p className="text-gray-600">
           Manage your classes, track student progress, and plan activities.
         </p>
