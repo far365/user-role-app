@@ -50,9 +50,21 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       }
     } catch (error) {
       console.error("Login error:", error);
+      
+      // More specific error handling
+      let errorMessage = "Invalid login ID or user account is disabled";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("User not found")) {
+          errorMessage = "Login ID not found. Please check your login ID and try again.";
+        } else if (error.message.includes("disabled")) {
+          errorMessage = "Your account has been disabled. Please contact support.";
+        }
+      }
+      
       toast({
         title: "Login Failed",
-        description: "Invalid login ID or user account is disabled",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -95,12 +107,14 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             </Button>
           </form>
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Demo Accounts:</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">Instructions:</p>
             <div className="space-y-1 text-xs text-gray-600">
-              <div>Admin: admin001</div>
-              <div>Parent: parent001</div>
-              <div>Teacher: teacher001</div>
-              <div>Dispatch: dispatch001</div>
+              <div>1. Make sure your Supabase database has the 'usersrcd' table</div>
+              <div>2. The table should have records with 'loginid' field</div>
+              <div>3. Enter a valid loginid from your Supabase database</div>
+              <div className="mt-2 text-gray-500">
+                Use the list_usersrcd API to see available login IDs
+              </div>
             </div>
           </div>
         </CardContent>

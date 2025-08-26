@@ -8,53 +8,76 @@ export const login = api<LoginRequest, LoginResponse>(
   async (req) => {
     const { loginID, deviceID } = req;
 
-    // Get user from database
-    const { data: userRow, error } = await supabase
-      .from('usersrcd')
-      .select('loginid, hashedpassword, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
-      .eq('loginid', loginID)
-      .single();
+    if (!loginID || !loginID.trim()) {
+      throw APIError.invalidArgument("Login ID is required");
+    }
 
-    if (error || !userRow) {
+    try {
+      // Get user from database
+      const { data: userRow, error } = await supabase
+        .from('usersrcd')
+        .select('loginid, hashedpassword, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+        .eq('loginid', loginID.trim())
+        .single();
+
+      if (error) {
+        console.error("Supabase query error:", error);
+        throw APIError.notFound("User not found");
+      }
+
+      if (!userRow) {
+        throw APIError.notFound("User not found");
+      }
+
+      if (userRow.userstatus !== "Active") {
+        throw APIError.permissionDenied("User account is disabled");
+      }
+
+      // Update last login information
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('usersrcd')
+        .update({
+          lastlogindttm: new Date().toISOString(),
+          lastdeviceid: deviceID || null,
+          updatedat: new Date().toISOString()
+        })
+        .eq('loginid', loginID.trim())
+        .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+        .single();
+
+      if (updateError) {
+        console.error("Failed to update login information:", updateError);
+        // Don't fail the login if we can't update the timestamp
+      }
+
+      const finalUser = updatedUser || userRow;
+
+      const user: User = {
+        loginID: finalUser.loginid,
+        userRole: finalUser.userrole as any,
+        userID: finalUser.userid,
+        displayName: finalUser.displayname,
+        userStatus: finalUser.userstatus as any,
+        lastLoginDTTM: finalUser.lastlogindttm ? new Date(finalUser.lastlogindttm) : null,
+        lastPhoneHash: finalUser.lastphonehash,
+        lastDeviceID: finalUser.lastdeviceid,
+        createdAt: new Date(finalUser.createdat),
+        updatedAt: new Date(finalUser.updatedat),
+      };
+
+      return {
+        user,
+        success: true,
+      };
+
+    } catch (error) {
+      // Re-throw APIErrors as-is
+      if (error instanceof APIError) {
+        throw error;
+      }
+      
+      console.error("Login error:", error);
       throw APIError.notFound("User not found");
     }
-
-    if (userRow.userstatus !== "Active") {
-      throw APIError.permissionDenied("User account is disabled");
-    }
-
-    // Update last login information
-    const { data: updatedUser, error: updateError } = await supabase
-      .from('usersrcd')
-      .update({
-        lastlogindttm: new Date().toISOString(),
-        lastdeviceid: deviceID || null,
-        updatedat: new Date().toISOString()
-      })
-      .eq('loginid', loginID)
-      .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
-      .single();
-
-    if (updateError || !updatedUser) {
-      throw APIError.internal("Failed to update login information");
-    }
-
-    const user: User = {
-      loginID: updatedUser.loginid,
-      userRole: updatedUser.userrole as any,
-      userID: updatedUser.userid,
-      displayName: updatedUser.displayname,
-      userStatus: updatedUser.userstatus as any,
-      lastLoginDTTM: updatedUser.lastlogindttm ? new Date(updatedUser.lastlogindttm) : null,
-      lastPhoneHash: updatedUser.lastphonehash,
-      lastDeviceID: updatedUser.lastdeviceid,
-      createdAt: new Date(updatedUser.createdat),
-      updatedAt: new Date(updatedUser.updatedat),
-    };
-
-    return {
-      user,
-      success: true,
-    };
   }
 );
