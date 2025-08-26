@@ -77,73 +77,75 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">User Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <User className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">
-                  <span className="font-medium">Login ID:</span> {user.loginID}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge className={getRoleColor(user.userRole)}>
-                  {user.userRole}
-                </Badge>
-                <span className="text-sm text-gray-600">Role</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${user.userStatus === 'Active' ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className="text-sm">
-                  <span className="font-medium">Status:</span> {user.userStatus}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Last Login</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">
-                  {formatDate(user.lastLoginDTTM)}
-                </span>
-              </div>
-              {user.lastDeviceID && (
+        {user.userRole !== "Parent" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">User Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <div className="flex items-center space-x-2">
-                  <Smartphone className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-mono text-gray-600">
-                    {user.lastDeviceID}
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm">
+                    <span className="font-medium">Login ID:</span> {user.loginID}
                   </span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex items-center space-x-2">
+                  <Badge className={getRoleColor(user.userRole)}>
+                    {user.userRole}
+                  </Badge>
+                  <span className="text-sm text-gray-600">Role</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${user.userStatus === 'Active' ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="text-sm">
+                    <span className="font-medium">Status:</span> {user.userStatus}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Account Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-sm">
-                <span className="font-medium">Created:</span>
-                <br />
-                {formatDate(user.createdAt)}
-              </div>
-              <div className="text-sm">
-                <span className="font-medium">Updated:</span>
-                <br />
-                {formatDate(user.updatedAt)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Last Login</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm">
+                    {formatDate(user.lastLoginDTTM)}
+                  </span>
+                </div>
+                {user.lastDeviceID && (
+                  <div className="flex items-center space-x-2">
+                    <Smartphone className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-mono text-gray-600">
+                      {user.lastDeviceID}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Account Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="text-sm">
+                  <span className="font-medium">Created:</span>
+                  <br />
+                  {formatDate(user.createdAt)}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Updated:</span>
+                  <br />
+                  {formatDate(user.updatedAt)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {renderRoleDashboard()}
       </main>
