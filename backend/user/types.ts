@@ -16,7 +16,7 @@ export interface User {
 
 export interface LoginRequest {
   loginID: string;
-  password: string;
+  password?: string;
   deviceID?: string;
 }
 

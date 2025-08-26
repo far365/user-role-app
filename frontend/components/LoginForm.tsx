@@ -14,17 +14,16 @@ interface LoginFormProps {
 
 export function LoginForm({ onLogin }: LoginFormProps) {
   const [loginID, setLoginID] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!loginID.trim() || !password.trim()) {
+    if (!loginID.trim()) {
       toast({
         title: "Error",
-        description: "Please enter both login ID and password",
+        description: "Please enter your login ID",
         variant: "destructive",
       });
       return;
@@ -38,7 +37,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       
       const response = await backend.user.login({
         loginID: loginID.trim(),
-        password: password.trim(),
+        password: "demo", // Using a dummy password since it's not validated
         deviceID,
       });
 
@@ -53,7 +52,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       console.error("Login error:", error);
       toast({
         title: "Login Failed",
-        description: "Invalid credentials or user account is disabled",
+        description: "Invalid login ID or user account is disabled",
         variant: "destructive",
       });
     } finally {
@@ -67,7 +66,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to access your dashboard
+            Enter your login ID to access your dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,17 +81,6 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 onChange={(e) => setLoginID(e.target.value)}
                 disabled={isLoading}
                 maxLength={12}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -113,7 +101,6 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               <div>Parent: parent001</div>
               <div>Teacher: teacher001</div>
               <div>Dispatch: dispatch001</div>
-              <div className="mt-2 text-gray-500">Password: any value</div>
             </div>
           </div>
         </CardContent>

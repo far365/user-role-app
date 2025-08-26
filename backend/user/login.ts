@@ -6,7 +6,7 @@ import type { LoginRequest, LoginResponse, User } from "./types";
 export const login = api<LoginRequest, LoginResponse>(
   { expose: true, method: "POST", path: "/user/login" },
   async (req) => {
-    const { loginID, password, deviceID } = req;
+    const { loginID, deviceID } = req;
 
     // Get user from database
     const { data: userRow, error } = await supabase
@@ -23,9 +23,6 @@ export const login = api<LoginRequest, LoginResponse>(
       throw APIError.permissionDenied("User account is disabled");
     }
 
-    // In a real app, you would verify the password hash here
-    // For demo purposes, we'll accept any password
-    
     // Update last login information
     const { data: updatedUser, error: updateError } = await supabase
       .from('usersrcd')
