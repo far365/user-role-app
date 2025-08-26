@@ -12,7 +12,7 @@ export const list_usersrcd = api<void, ListUsersrcdResponse>(
     const { data: records, error } = await supabase
       .from('usersrcd')
       .select('*')
-      .order('createdat', { ascending: false });
+      );
 
     if (error) {
       throw new Error(`Failed to fetch usersrcd records: ${error.message}`);
