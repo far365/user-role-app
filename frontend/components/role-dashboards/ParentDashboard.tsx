@@ -33,6 +33,10 @@ interface EditableParentData {
   alternate3VehicleInfo: string;
 }
 
+interface ValidationErrors {
+  [key: string]: string;
+}
+
 export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +45,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [showDebug, setShowDebug] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editData, setEditData] = useState<EditableParentData>({
     parentPhoneMain: '',
     sendSMS: false,
@@ -106,6 +111,53 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     fetchParentData();
   }, [user.loginID, toast]);
 
+  const validateAlternateContact = (contactNumber: number, data: EditableParentData): string[] => {
+    const errors: string[] = [];
+    const prefix = `alternate${contactNumber}`;
+    
+    const name = data[`${prefix}Name` as keyof EditableParentData] as string;
+    const phone = data[`${prefix}Phone` as keyof EditableParentData] as string;
+    const relationship = data[`${prefix}Relationship` as keyof EditableParentData] as string;
+    const vehicleInfo = data[`${prefix}VehicleInfo` as keyof EditableParentData] as string;
+    
+    // Check if any field is filled
+    const hasAnyField = name.trim() || phone.trim() || relationship.trim() || vehicleInfo.trim();
+    
+    if (hasAnyField) {
+      // If any field is filled, all fields must be filled
+      if (!name.trim()) errors.push(`Alternate Contact ${contactNumber} Name is required`);
+      if (!phone.trim()) errors.push(`Alternate Contact ${contactNumber} Phone is required`);
+      if (!relationship.trim()) errors.push(`Alternate Contact ${contactNumber} Relationship is required`);
+      if (!vehicleInfo.trim()) errors.push(`Alternate Contact ${contactNumber} Vehicle Info is required`);
+    }
+    
+    return errors;
+  };
+
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
+    
+    // Validate alternate contacts
+    const alternate1Errors = validateAlternateContact(1, editData);
+    const alternate2Errors = validateAlternateContact(2, editData);
+    const alternate3Errors = validateAlternateContact(3, editData);
+    
+    // Add errors to the errors object
+    alternate1Errors.forEach((error, index) => {
+      errors[`alternate1_${index}`] = error;
+    });
+    alternate2Errors.forEach((error, index) => {
+      errors[`alternate2_${index}`] = error;
+    });
+    alternate3Errors.forEach((error, index) => {
+      errors[`alternate3_${index}`] = error;
+    });
+    
+    setValidationErrors(errors);
+    
+    return Object.keys(errors).length === 0;
+  };
+
   const handleDebug = async () => {
     try {
       console.log("Fetching debug data for username:", user.loginID);
@@ -125,6 +177,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
   const handleEdit = () => {
     setIsEditing(true);
+    setValidationErrors({});
   };
 
   const handleCancel = () => {
@@ -148,9 +201,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
     }
     setIsEditing(false);
+    setValidationErrors({});
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      const errorMessages = Object.values(validationErrors);
+      toast({
+        title: "Validation Error",
+        description: errorMessages.join('. '),
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
       
@@ -161,6 +225,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       
       setParentData(response.parent);
       setIsEditing(false);
+      setValidationErrors({});
       
       toast({
         title: "Success",
@@ -183,6 +248,21 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       ...prev,
       [field]: value,
     }));
+    
+    // Clear validation errors for this field when user starts typing
+    if (typeof value === 'string' && value.trim()) {
+      const newErrors = { ...validationErrors };
+      Object.keys(newErrors).forEach(key => {
+        if (key.includes(field)) {
+          delete newErrors[key];
+        }
+      });
+      setValidationErrors(newErrors);
+    }
+  };
+
+  const getFieldError = (fieldName: string): boolean => {
+    return Object.values(validationErrors).some(error => error.includes(fieldName));
   };
 
   if (isLoading) {
@@ -340,6 +420,30 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         <p className="text-sm text-gray-600">
           Stay connected with your child's activities and important updates.
         </p>
+        
+        {Object.keys(validationErrors).length > 0 && (
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center space-x-2 text-red-800 text-sm">
+                <AlertCircle className="w-4 h-4" />
+                <span>Validation Errors</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="text-sm text-red-700">
+                <p className="font-medium mb-2">Please fix the following errors:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  {Object.values(validationErrors).map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs">
+                  <strong>Note:</strong> If you fill in any field for an alternate contact, all 4 fields (Name, Phone, Relationship, Vehicle Info) must be completed.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {parentData && (
@@ -437,7 +541,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={getFieldError('Alternate Contact 1') ? 'border-red-300' : ''}>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="w-5 h-5" />
@@ -455,7 +559,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       value={editData.alternate1Name}
                       onChange={(e) => handleInputChange('alternate1Name', e.target.value)}
                       placeholder="Enter contact name"
-                      className="mt-1"
+                      className={`mt-1 ${getFieldError('Alternate Contact 1 Name') ? 'border-red-300' : ''}`}
                     />
                   ) : (
                     <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Name || 'Not provided'}</p>
@@ -473,7 +577,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate1Phone}
                         onChange={(e) => handleInputChange('alternate1Phone', e.target.value)}
                         placeholder="Enter phone number"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 1 Phone') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Phone || 'Not provided'}</p>
@@ -492,7 +596,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate1Relationship}
                         onChange={(e) => handleInputChange('alternate1Relationship', e.target.value)}
                         placeholder="Enter relationship"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 1 Relationship') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Relationship || 'Not provided'}</p>
@@ -511,7 +615,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate1VehicleInfo}
                         onChange={(e) => handleInputChange('alternate1VehicleInfo', e.target.value)}
                         placeholder="Enter vehicle information"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 1 Vehicle Info') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1VehicleInfo || 'Not provided'}</p>
@@ -524,7 +628,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
           {/* Alternate Contacts 2 & 3 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className={getFieldError('Alternate Contact 2') ? 'border-red-300' : ''}>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="w-5 h-5" />
@@ -542,7 +646,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       value={editData.alternate2Name}
                       onChange={(e) => handleInputChange('alternate2Name', e.target.value)}
                       placeholder="Enter contact name"
-                      className="mt-1"
+                      className={`mt-1 ${getFieldError('Alternate Contact 2 Name') ? 'border-red-300' : ''}`}
                     />
                   ) : (
                     <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Name || 'Not provided'}</p>
@@ -560,7 +664,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate2Phone}
                         onChange={(e) => handleInputChange('alternate2Phone', e.target.value)}
                         placeholder="Enter phone number"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 2 Phone') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Phone || 'Not provided'}</p>
@@ -579,7 +683,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate2Relationship}
                         onChange={(e) => handleInputChange('alternate2Relationship', e.target.value)}
                         placeholder="Enter relationship"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 2 Relationship') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Relationship || 'Not provided'}</p>
@@ -598,7 +702,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate2VehicleInfo}
                         onChange={(e) => handleInputChange('alternate2VehicleInfo', e.target.value)}
                         placeholder="Enter vehicle information"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 2 Vehicle Info') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2VehicleInfo || 'Not provided'}</p>
@@ -608,7 +712,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className={getFieldError('Alternate Contact 3') ? 'border-red-300' : ''}>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Users className="w-5 h-5" />
@@ -626,7 +730,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       value={editData.alternate3Name}
                       onChange={(e) => handleInputChange('alternate3Name', e.target.value)}
                       placeholder="Enter contact name"
-                      className="mt-1"
+                      className={`mt-1 ${getFieldError('Alternate Contact 3 Name') ? 'border-red-300' : ''}`}
                     />
                   ) : (
                     <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Name || 'Not provided'}</p>
@@ -644,7 +748,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate3Phone}
                         onChange={(e) => handleInputChange('alternate3Phone', e.target.value)}
                         placeholder="Enter phone number"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 3 Phone') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Phone || 'Not provided'}</p>
@@ -663,7 +767,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate3Relationship}
                         onChange={(e) => handleInputChange('alternate3Relationship', e.target.value)}
                         placeholder="Enter relationship"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 3 Relationship') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Relationship || 'Not provided'}</p>
@@ -682,7 +786,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         value={editData.alternate3VehicleInfo}
                         onChange={(e) => handleInputChange('alternate3VehicleInfo', e.target.value)}
                         placeholder="Enter vehicle information"
-                        className="mt-1"
+                        className={`mt-1 ${getFieldError('Alternate Contact 3 Vehicle Info') ? 'border-red-300' : ''}`}
                       />
                     ) : (
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3VehicleInfo || 'Not provided'}</p>
