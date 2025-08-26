@@ -13,10 +13,10 @@ export const login = api<LoginRequest, LoginResponse>(
     }
 
     try {
-      // Get user from database
+      // Get user from database - select all fields to see what's available
       const { data: userRow, error } = await supabase
         .from('usersrcd')
-        .select('loginid, hashedpassword, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+        .select('*')
         .eq('loginid', loginID.trim())
         .single();
 
@@ -42,7 +42,7 @@ export const login = api<LoginRequest, LoginResponse>(
           updatedat: new Date().toISOString()
         })
         .eq('loginid', loginID.trim())
-        .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+        .select('*')
         .single();
 
       if (updateError) {
@@ -59,10 +59,10 @@ export const login = api<LoginRequest, LoginResponse>(
         displayName: finalUser.displayname,
         userStatus: finalUser.userstatus as any,
         lastLoginDTTM: finalUser.lastlogindttm ? new Date(finalUser.lastlogindttm) : null,
-        lastPhoneHash: finalUser.lastphonehash,
-        lastDeviceID: finalUser.lastdeviceid,
-        createdAt: new Date(finalUser.createdat),
-        updatedAt: new Date(finalUser.updatedat),
+        lastPhoneHash: finalUser.lastphonehash || null,
+        lastDeviceID: finalUser.lastdeviceid || null,
+        createdAt: finalUser.createdat ? new Date(finalUser.createdat) : new Date(),
+        updatedAt: finalUser.updatedat ? new Date(finalUser.updatedat) : new Date(),
       };
 
       return {

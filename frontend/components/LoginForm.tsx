@@ -88,7 +88,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               <Input
                 id="loginID"
                 type="text"
-                placeholder="Enter your login ID"
+                placeholder="Enter your login ID (e.g., p0001)"
                 value={loginID}
                 onChange={(e) => setLoginID(e.target.value)}
                 disabled={isLoading}
@@ -107,13 +107,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             </Button>
           </form>
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Instructions:</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">Available Login IDs:</p>
             <div className="space-y-1 text-xs text-gray-600">
-              <div>1. Make sure your Supabase database has the 'usersrcd' table</div>
-              <div>2. The table should have records with 'loginid' field</div>
-              <div>3. Enter a valid loginid from your Supabase database</div>
+              <div>p0001 - Usman Hadi (Parent)</div>
               <div className="mt-2 text-gray-500">
-                Use the list_usersrcd API to see available login IDs
+                Use any login ID from your Supabase usersrcd table
               </div>
             </div>
           </div>
