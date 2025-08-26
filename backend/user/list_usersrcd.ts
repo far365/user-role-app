@@ -11,8 +11,7 @@ export const list_usersrcd = api<void, ListUsersrcdResponse>(
   async () => {
     const { data: records, error } = await supabase
       .from('usersrcd')
-      .select('*')
-      );
+      .select('*');
 
     if (error) {
       throw new Error(`Failed to fetch usersrcd records: ${error.message}`);
