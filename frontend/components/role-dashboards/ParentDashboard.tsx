@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Baby, Calendar, MessageCircle, Bell, Phone, Mail, MapPin, UserCheck } from "lucide-react";
+import { Baby, Calendar, MessageCircle, Bell, Phone, Mail, MapPin, UserCheck, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
@@ -13,19 +13,26 @@ interface ParentDashboardProps {
 export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchParentData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        console.log("Fetching parent data for username:", user.loginID);
+        
         const response = await backend.parent.getByUsername({ username: user.loginID });
+        console.log("Parent data response:", response);
+        
         setParentData(response.parent);
       } catch (error) {
         console.error("Failed to fetch parent data:", error);
+        setError(error instanceof Error ? error.message : "Failed to load parent information");
         toast({
           title: "Error",
-          description: "Failed to load parent information",
+          description: "Failed to load parent information. Please check if your parent record exists in the database.",
           variant: "destructive",
         });
       } finally {
@@ -60,6 +67,42 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     );
   }
 
+  if (error && !parentData) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <p className="text-gray-600">Welcome {user.displayName}!</p>
+        </div>
+        
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-red-800">
+              <AlertCircle className="w-5 h-5" />
+              <span>Parent Information Not Found</span>
+            </CardTitle>
+            <CardDescription className="text-red-700">
+              No parent record found for username: {user.loginID}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-red-700">
+            <p className="text-sm">
+              Please ensure that:
+            </p>
+            <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+              <li>Your username ({user.loginID}) exists in the usersrcd table</li>
+              <li>The usersrcd record has a valid parentid field</li>
+              <li>A corresponding record exists in the parentrcd table with that parentid</li>
+            </ul>
+            <p className="text-sm mt-3">
+              Error details: {error}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -77,7 +120,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 <UserCheck className="w-5 h-5" />
                 <span>Parent Information</span>
               </CardTitle>
-              <CardDescription>Your contact details and information</CardDescription>
+              <CardDescription>Your contact details and information from parentrcd table</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,7 +166,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 <Phone className="w-5 h-5" />
                 <span>Emergency Contact</span>
               </CardTitle>
-              <CardDescription>Emergency contact information</CardDescription>
+              <CardDescription>Emergency contact information from parentrcd table</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -163,8 +206,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <Baby className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">Enrolled children</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Data not available yet</p>
           </CardContent>
         </Card>
 
@@ -174,8 +217,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">This week</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Data not available yet</p>
           </CardContent>
         </Card>
 
@@ -185,8 +228,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <MessageCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Unread messages</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Data not available yet</p>
           </CardContent>
         </Card>
 
@@ -196,8 +239,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">7</div>
-            <p className="text-xs text-muted-foreground">New notifications</p>
+            <div className="text-2xl font-bold">-</div>
+            <p className="text-xs text-muted-foreground">Data not available yet</p>
           </CardContent>
         </Card>
       </div>
@@ -209,28 +252,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <CardDescription>Your children's activities for today</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Emma - Math Class</p>
-                  <p className="text-xs text-gray-500">9:00 AM - 10:00 AM</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Jake - Art Activity</p>
-                  <p className="text-xs text-gray-500">11:00 AM - 12:00 PM</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Emma - Lunch Time</p>
-                  <p className="text-xs text-gray-500">12:30 PM - 1:30 PM</p>
-                </div>
-              </div>
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-sm">No schedule data available yet</p>
+              <p className="text-xs mt-1">Schedule information will be displayed here once children data is integrated</p>
             </div>
           </CardContent>
         </Card>
@@ -241,23 +266,39 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <CardDescription>Latest news about your children</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="p-3 border rounded-lg">
-                <p className="font-medium text-sm">Emma completed her reading assignment</p>
-                <p className="text-xs text-gray-500">Teacher: Ms. Johnson • 2 hours ago</p>
-              </div>
-              <div className="p-3 border rounded-lg">
-                <p className="font-medium text-sm">Jake participated in group activity</p>
-                <p className="text-xs text-gray-500">Teacher: Mr. Smith • 4 hours ago</p>
-              </div>
-              <div className="p-3 border rounded-lg">
-                <p className="font-medium text-sm">Parent-teacher conference scheduled</p>
-                <p className="text-xs text-gray-500">Admin • Yesterday</p>
-              </div>
+            <div className="text-center py-8 text-gray-500">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-sm">No updates available yet</p>
+              <p className="text-xs mt-1">Recent updates will be displayed here once activity data is integrated</p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {parentData && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-blue-800">Debug Information</CardTitle>
+            <CardDescription className="text-blue-700">
+              Data successfully loaded from parentrcd table
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-blue-800">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p><strong>Username:</strong> {user.loginID}</p>
+                <p><strong>Parent ID:</strong> {parentData.parentID}</p>
+                <p><strong>Parent Name:</strong> {parentData.parentName}</p>
+              </div>
+              <div>
+                <p><strong>Phone:</strong> {parentData.phoneNumber || 'N/A'}</p>
+                <p><strong>Email:</strong> {parentData.email || 'N/A'}</p>
+                <p><strong>Emergency Contact:</strong> {parentData.emergencyContact || 'N/A'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
