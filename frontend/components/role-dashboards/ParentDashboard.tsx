@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Baby, Calendar, MessageCircle, Bell, Phone, Mail, MapPin, UserCheck, AlertCircle } from "lucide-react";
+import { Baby, Calendar, MessageCircle, Bell, Phone, Mail, MapPin, UserCheck, AlertCircle, Bug } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -14,6 +15,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [debugData, setDebugData] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,6 +45,23 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
     fetchParentData();
   }, [user.loginID, toast]);
+
+  const handleDebug = async () => {
+    try {
+      console.log("Fetching debug data for username:", user.loginID);
+      const response = await backend.parent.debug({ username: user.loginID });
+      console.log("Debug data response:", response);
+      setDebugData(response);
+      setShowDebug(true);
+    } catch (error) {
+      console.error("Failed to fetch debug data:", error);
+      toast({
+        title: "Debug Error",
+        description: "Failed to fetch debug information",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -97,8 +117,60 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <p className="text-sm mt-3">
               Error details: {error}
             </p>
+            <div className="mt-4">
+              <Button onClick={handleDebug} variant="outline" size="sm">
+                <Bug className="w-4 h-4 mr-2" />
+                Debug Database
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        {showDebug && debugData && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-yellow-800">Debug Information</CardTitle>
+              <CardDescription className="text-yellow-700">
+                Database contents for troubleshooting
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-yellow-800">
+              <div className="space-y-4 text-sm">
+                <div>
+                  <p className="font-medium">Specific User Record:</p>
+                  <pre className="bg-white p-2 rounded text-xs overflow-auto">
+                    {JSON.stringify(debugData.specificUser, null, 2)}
+                  </pre>
+                </div>
+                
+                <div>
+                  <p className="font-medium">All usersrcd Records ({debugData.usersrcdRecords.length}):</p>
+                  <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
+                    {debugData.usersrcdRecords.map((record: any, index: number) => (
+                      <div key={index} className="mb-2 p-1 border-b">
+                        <strong>Username:</strong> {record.username || 'N/A'} | 
+                        <strong> LoginID:</strong> {record.loginid || 'N/A'} | 
+                        <strong> ParentID:</strong> {record.parentid || 'N/A'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="font-medium">All parentrcd Records ({debugData.parentrcdRecords.length}):</p>
+                  <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
+                    {debugData.parentrcdRecords.map((record: any, index: number) => (
+                      <div key={index} className="mb-2 p-1 border-b">
+                        <strong>ParentID:</strong> {record.parentid || 'N/A'} | 
+                        <strong> Name:</strong> {record.parentname || 'N/A'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
