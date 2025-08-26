@@ -12,24 +12,24 @@ export const list = api<void, ListUsersResponse>(
   async () => {
     const { data: userRows, error } = await supabase
       .from('usersrcd')
-      .select('loginID, userRole, userID, userName, userStatus, lastLoginDTTM, lastPhoneHash, lastDeviceID, createdAt, updatedAt')
-      .order('createdAt', { ascending: false });
+      .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .order('createdat', { ascending: false });
 
     if (error) {
       throw new Error(`Failed to fetch users: ${error.message}`);
     }
 
     const users: User[] = (userRows || []).map(row => ({
-      loginID: row.loginID,
-      userRole: row.userRole as any,
-      userID: row.userID,
-      userName: row.userName,
-      userStatus: row.userStatus as any,
-      lastLoginDTTM: row.lastLoginDTTM ? new Date(row.lastLoginDTTM) : null,
-      lastPhoneHash: row.lastPhoneHash,
-      lastDeviceID: row.lastDeviceID,
-      createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      loginID: row.loginid,
+      userRole: row.userrole as any,
+      userID: row.userid,
+      userName: row.username,
+      userStatus: row.userstatus as any,
+      lastLoginDTTM: row.lastlogindttm ? new Date(row.lastlogindttm) : null,
+      lastPhoneHash: row.lastphonehash,
+      lastDeviceID: row.lastdeviceid,
+      createdAt: new Date(row.createdat),
+      updatedAt: new Date(row.updatedat),
     }));
 
     return { users };

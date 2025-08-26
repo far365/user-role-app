@@ -1,5 +1,5 @@
 import { api, APIError } from "encore.dev/api";
-import { userDB } from "./db";
+import { supabase } from "./supabase";
 import type { LoginRequest, LoginResponse, User } from "./types";
 
 // Authenticates a user and updates their last login information.
@@ -9,27 +9,17 @@ export const login = api<LoginRequest, LoginResponse>(
     const { loginID, password, deviceID } = req;
 
     // Get user from database
-    const userRow = await userDB.queryRow<{
-      loginID: string;
-      hashedPassword: string;
-      userRole: string;
-      userID: string;
-      userName: string;
-      userStatus: string;
-      lastLoginDTTM: Date | null;
-      lastPhoneHash: string | null;
-      lastDeviceID: string | null;
-      createdAt: Date;
-      updatedAt: Date;
-    }>`
-      SELECT * FROM usersRcd WHERE loginID = ${loginID}
-    `;
+    const { data: userRow, error } = await supabase
+      .from('usersrcd')
+      .select('loginid, hashedpassword, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .eq('loginid', loginID)
+      .single();
 
-    if (!userRow) {
+    if (error || !userRow) {
       throw APIError.notFound("User not found");
     }
 
-    if (userRow.userStatus !== "Active") {
+    if (userRow.userstatus !== "Active") {
       throw APIError.permissionDenied("User account is disabled");
     }
 
@@ -37,43 +27,32 @@ export const login = api<LoginRequest, LoginResponse>(
     // For demo purposes, we'll accept any password
     
     // Update last login information
-    await userDB.exec`
-      UPDATE usersRcd 
-      SET lastLoginDTTM = CURRENT_TIMESTAMP,
-          lastDeviceID = ${deviceID || null},
-          updatedAt = CURRENT_TIMESTAMP
-      WHERE loginID = ${loginID}
-    `;
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('usersrcd')
+      .update({
+        lastlogindttm: new Date().toISOString(),
+        lastdeviceid: deviceID || null,
+        updatedat: new Date().toISOString()
+      })
+      .eq('loginid', loginID)
+      .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .single();
 
-    // Get updated user data
-    const updatedUserRow = await userDB.queryRow<{
-      loginID: string;
-      userRole: string;
-      userID: string;
-      userName: string;
-      userStatus: string;
-      lastLoginDTTM: Date | null;
-      lastPhoneHash: string | null;
-      lastDeviceID: string | null;
-      createdAt: Date;
-      updatedAt: Date;
-    }>`
-      SELECT loginID, userRole, userID, userName, userStatus, 
-             lastLoginDTTM, lastPhoneHash, lastDeviceID, createdAt, updatedAt
-      FROM usersRcd WHERE loginID = ${loginID}
-    `;
+    if (updateError || !updatedUser) {
+      throw APIError.internal("Failed to update login information");
+    }
 
     const user: User = {
-      loginID: updatedUserRow!.loginID,
-      userRole: updatedUserRow!.userRole as any,
-      userID: updatedUserRow!.userID,
-      userName: updatedUserRow!.userName,
-      userStatus: updatedUserRow!.userStatus as any,
-      lastLoginDTTM: updatedUserRow!.lastLoginDTTM,
-      lastPhoneHash: updatedUserRow!.lastPhoneHash,
-      lastDeviceID: updatedUserRow!.lastDeviceID,
-      createdAt: updatedUserRow!.createdAt,
-      updatedAt: updatedUserRow!.updatedAt,
+      loginID: updatedUser.loginid,
+      userRole: updatedUser.userrole as any,
+      userID: updatedUser.userid,
+      userName: updatedUser.username,
+      userStatus: updatedUser.userstatus as any,
+      lastLoginDTTM: updatedUser.lastlogindttm ? new Date(updatedUser.lastlogindttm) : null,
+      lastPhoneHash: updatedUser.lastphonehash,
+      lastDeviceID: updatedUser.lastdeviceid,
+      createdAt: new Date(updatedUser.createdat),
+      updatedAt: new Date(updatedUser.updatedat),
     };
 
     return {

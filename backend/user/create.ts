@@ -1,5 +1,5 @@
 import { api, APIError } from "encore.dev/api";
-import { userDB } from "./db";
+import { supabase } from "./supabase";
 import type { User, UserRole, UserStatus } from "./types";
 
 export interface CreateUserRequest {
@@ -66,73 +66,73 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
 
     try {
       // Check if loginID already exists
-      const existingLoginID = await userDB.queryRow`
-        SELECT loginID FROM usersRcd WHERE loginID = ${loginID}
-      `;
+      const { data: existingLoginID } = await supabase
+        .from('usersrcd')
+        .select('loginid')
+        .eq('loginid', loginID)
+        .single();
+
       if (existingLoginID) {
         throw APIError.alreadyExists("User with this loginID already exists");
       }
 
       // Check if userID already exists
-      const existingUserID = await userDB.queryRow`
-        SELECT userID FROM usersRcd WHERE userID = ${userID}
-      `;
+      const { data: existingUserID } = await supabase
+        .from('usersrcd')
+        .select('userid')
+        .eq('userid', userID)
+        .single();
+
       if (existingUserID) {
         throw APIError.alreadyExists("User with this userID already exists");
       }
 
       // Check if userName already exists
-      const existingUserName = await userDB.queryRow`
-        SELECT userName FROM usersRcd WHERE userName = ${userName}
-      `;
+      const { data: existingUserName } = await supabase
+        .from('usersrcd')
+        .select('username')
+        .eq('username', userName)
+        .single();
+
       if (existingUserName) {
         throw APIError.alreadyExists("User with this userName already exists");
       }
 
       // Insert new user
-      await userDB.exec`
-        INSERT INTO usersRcd (
-          loginID, hashedPassword, userRole, userID, userName, userStatus,
-          lastPhoneHash, lastDeviceID
-        ) VALUES (
-          ${loginID}, ${hashedPassword}, ${userRole}, ${userID}, ${userName}, ${userStatus},
-          ${lastPhoneHash || null}, ${lastDeviceID || null}
-        )
-      `;
+      const { data: insertedUser, error: insertError } = await supabase
+        .from('usersrcd')
+        .insert({
+          loginid: loginID,
+          hashedpassword: hashedPassword,
+          userrole: userRole,
+          userid: userID,
+          username: userName,
+          userstatus: userStatus,
+          lastphonehash: lastPhoneHash || null,
+          lastdeviceid: lastDeviceID || null
+        })
+        .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+        .single();
 
-      // Retrieve the created user
-      const createdUserRow = await userDB.queryRow<{
-        loginID: string;
-        userRole: string;
-        userID: string;
-        userName: string;
-        userStatus: string;
-        lastLoginDTTM: Date | null;
-        lastPhoneHash: string | null;
-        lastDeviceID: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-      }>`
-        SELECT loginID, userRole, userID, userName, userStatus, 
-               lastLoginDTTM, lastPhoneHash, lastDeviceID, createdAt, updatedAt
-        FROM usersRcd WHERE loginID = ${loginID}
-      `;
+      if (insertError) {
+        throw new Error(`Failed to create user: ${insertError.message}`);
+      }
 
-      if (!createdUserRow) {
+      if (!insertedUser) {
         throw APIError.internal("Failed to retrieve created user");
       }
 
       const user: User = {
-        loginID: createdUserRow.loginID,
-        userRole: createdUserRow.userRole as UserRole,
-        userID: createdUserRow.userID,
-        userName: createdUserRow.userName,
-        userStatus: createdUserRow.userStatus as UserStatus,
-        lastLoginDTTM: createdUserRow.lastLoginDTTM,
-        lastPhoneHash: createdUserRow.lastPhoneHash,
-        lastDeviceID: createdUserRow.lastDeviceID,
-        createdAt: createdUserRow.createdAt,
-        updatedAt: createdUserRow.updatedAt,
+        loginID: insertedUser.loginid,
+        userRole: insertedUser.userrole as UserRole,
+        userID: insertedUser.userid,
+        userName: insertedUser.username,
+        userStatus: insertedUser.userstatus as UserStatus,
+        lastLoginDTTM: insertedUser.lastlogindttm ? new Date(insertedUser.lastlogindttm) : null,
+        lastPhoneHash: insertedUser.lastphonehash,
+        lastDeviceID: insertedUser.lastdeviceid,
+        createdAt: new Date(insertedUser.createdat),
+        updatedAt: new Date(insertedUser.updatedat),
       };
 
       return {
@@ -149,11 +149,11 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
       // Handle database constraint violations
       if (error instanceof Error) {
         if (error.message.includes('duplicate key') || error.message.includes('UNIQUE constraint')) {
-          if (error.message.includes('loginID')) {
+          if (error.message.includes('loginid')) {
             throw APIError.alreadyExists("User with this loginID already exists");
-          } else if (error.message.includes('userID')) {
+          } else if (error.message.includes('userid')) {
             throw APIError.alreadyExists("User with this userID already exists");
-          } else if (error.message.includes('userName')) {
+          } else if (error.message.includes('username')) {
             throw APIError.alreadyExists("User with this userName already exists");
           }
           throw APIError.alreadyExists("User with this information already exists");
