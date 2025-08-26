@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Users, BarChart3, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Settings, Users, BarChart3, Shield, Queue, UserPlus, GraduationCap, Truck } from "lucide-react";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -7,6 +8,11 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ user }: AdminDashboardProps) {
+  const handleNavigate = (page: string) => {
+    // TODO: Implement navigation to specific admin pages
+    console.log(`Navigate to ${page}`);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,105 +22,109 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">User Management</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">Total active users</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">99.9%</div>
-            <p className="text-xs text-muted-foreground">Uptime this month</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Security Alerts</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">3</div>
-            <p className="text-xs text-muted-foreground">Pending reviews</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Configuration</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Settings to review</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest system events and user actions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New user registration</p>
-                  <p className="text-xs text-gray-500">2 minutes ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">System backup completed</p>
-                  <p className="text-xs text-gray-500">1 hour ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Security scan initiated</p>
-                  <p className="text-xs text-gray-500">3 hours ago</p>
-                </div>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('queue-setup')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
+              <Queue className="h-6 w-6 text-blue-600" />
             </div>
+            <CardTitle className="text-lg">Queue Setup</CardTitle>
+            <CardDescription>Configure and manage queue systems</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('queue-setup'); }}>
+              Open Queue Setup
+            </Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common administrative tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <p className="font-medium text-sm">Manage User Roles</p>
-                <p className="text-xs text-gray-500">Add, edit, or remove user permissions</p>
-              </div>
-              <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <p className="font-medium text-sm">System Configuration</p>
-                <p className="text-xs text-gray-500">Update system settings and preferences</p>
-              </div>
-              <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <p className="font-medium text-sm">Generate Reports</p>
-                <p className="text-xs text-gray-500">Create usage and activity reports</p>
-              </div>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('parent-setup')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2">
+              <Users className="h-6 w-6 text-green-600" />
             </div>
+            <CardTitle className="text-lg">Parent Setup</CardTitle>
+            <CardDescription>Manage parent accounts and information</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('parent-setup'); }}>
+              Open Parent Setup
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('teacher-setup')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
+              <GraduationCap className="h-6 w-6 text-purple-600" />
+            </div>
+            <CardTitle className="text-lg">Teacher Setup</CardTitle>
+            <CardDescription>Configure teacher accounts and classes</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('teacher-setup'); }}>
+              Open Teacher Setup
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('dispatcher-setup')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-2">
+              <Truck className="h-6 w-6 text-orange-600" />
+            </div>
+            <CardTitle className="text-lg">Dispatcher Setup</CardTitle>
+            <CardDescription>Manage dispatch operations and routes</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('dispatcher-setup'); }}>
+              Open Dispatcher Setup
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('user-setup')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-2">
+              <UserPlus className="h-6 w-6 text-indigo-600" />
+            </div>
+            <CardTitle className="text-lg">User Setup</CardTitle>
+            <CardDescription>Create and manage user accounts</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('user-setup'); }}>
+              Open User Setup
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('analytics')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-2">
+              <BarChart3 className="h-6 w-6 text-teal-600" />
+            </div>
+            <CardTitle className="text-lg">Analytics</CardTitle>
+            <CardDescription>View reports and system analytics</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('analytics'); }}>
+              Open Analytics
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleNavigate('security')}>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-2">
+              <Shield className="h-6 w-6 text-red-600" />
+            </div>
+            <CardTitle className="text-lg">Security</CardTitle>
+            <CardDescription>Security settings and monitoring</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); handleNavigate('security'); }}>
+              Open Security
+            </Button>
           </CardContent>
         </Card>
       </div>
