@@ -308,9 +308,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h3>
           <p className="text-gray-600">
-            {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
+            Stay connected with your child's activities and important updates.
           </p>
         </div>
         {parentData && (
