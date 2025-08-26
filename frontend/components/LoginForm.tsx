@@ -45,7 +45,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       if (response.success) {
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${response.user.userName}!`,
+          description: `Welcome back, ${response.user.displayName}!`,
         });
         onLogin(response.user);
       }

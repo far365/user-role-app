@@ -12,7 +12,7 @@ export const list = api<void, ListUsersResponse>(
   async () => {
     const { data: userRows, error } = await supabase
       .from('usersrcd')
-      .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
       .order('createdat', { ascending: false });
 
     if (error) {
@@ -23,7 +23,7 @@ export const list = api<void, ListUsersResponse>(
       loginID: row.loginid,
       userRole: row.userrole as any,
       userID: row.userid,
-      userName: row.username,
+      displayName: row.displayname,
       userStatus: row.userstatus as any,
       lastLoginDTTM: row.lastlogindttm ? new Date(row.lastlogindttm) : null,
       lastPhoneHash: row.lastphonehash,

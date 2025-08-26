@@ -11,7 +11,7 @@ export const login = api<LoginRequest, LoginResponse>(
     // Get user from database
     const { data: userRow, error } = await supabase
       .from('usersrcd')
-      .select('loginid, hashedpassword, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .select('loginid, hashedpassword, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
       .eq('loginid', loginID)
       .single();
 
@@ -35,7 +35,7 @@ export const login = api<LoginRequest, LoginResponse>(
         updatedat: new Date().toISOString()
       })
       .eq('loginid', loginID)
-      .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
       .single();
 
     if (updateError || !updatedUser) {
@@ -46,7 +46,7 @@ export const login = api<LoginRequest, LoginResponse>(
       loginID: updatedUser.loginid,
       userRole: updatedUser.userrole as any,
       userID: updatedUser.userid,
-      userName: updatedUser.username,
+      displayName: updatedUser.displayname,
       userStatus: updatedUser.userstatus as any,
       lastLoginDTTM: updatedUser.lastlogindttm ? new Date(updatedUser.lastlogindttm) : null,
       lastPhoneHash: updatedUser.lastphonehash,

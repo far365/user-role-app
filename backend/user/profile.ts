@@ -8,7 +8,7 @@ export const getProfile = api<{ loginID: string }, UserProfileResponse>(
   async ({ loginID }) => {
     const { data: userRow, error } = await supabase
       .from('usersrcd')
-      .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+      .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
       .eq('loginid', loginID)
       .single();
 
@@ -20,7 +20,7 @@ export const getProfile = api<{ loginID: string }, UserProfileResponse>(
       loginID: userRow.loginid,
       userRole: userRow.userrole as any,
       userID: userRow.userid,
-      userName: userRow.username,
+      displayName: userRow.displayname,
       userStatus: userRow.userstatus as any,
       lastLoginDTTM: userRow.lastlogindttm ? new Date(userRow.lastlogindttm) : null,
       lastPhoneHash: userRow.lastphonehash,

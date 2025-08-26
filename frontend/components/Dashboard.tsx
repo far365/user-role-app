@@ -58,7 +58,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
               <User className="w-8 h-8 text-gray-600" />
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
-                  Welcome, {user.userName}
+                  Welcome, {user.displayName}
                 </h1>
                 <div className="flex items-center space-x-2">
                   <Badge className={getRoleColor(user.userRole)}>

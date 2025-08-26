@@ -3,7 +3,7 @@ CREATE TABLE usersrcd (
   hashedpassword TEXT NOT NULL,
   userrole VARCHAR(8) NOT NULL CHECK (userrole IN ('Parent', 'Admin', 'Teacher', 'Dispatch')),
   userid VARCHAR(8) NOT NULL UNIQUE,
-  username VARCHAR(8) NOT NULL UNIQUE,
+  displayname VARCHAR(8) NOT NULL UNIQUE,
   userstatus VARCHAR(8) NOT NULL DEFAULT 'Active' CHECK (userstatus IN ('Active', 'Disabled')),
   lastlogindttm TIMESTAMP,
   lastphonehash TEXT,

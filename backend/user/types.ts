@@ -5,7 +5,7 @@ export interface User {
   loginID: string;
   userRole: UserRole;
   userID: string;
-  userName: string;
+  displayName: string;
   userStatus: UserStatus;
   lastLoginDTTM: Date | null;
   lastPhoneHash: string | null;

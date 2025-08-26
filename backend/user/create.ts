@@ -7,7 +7,7 @@ export interface CreateUserRequest {
   hashedPassword: string;
   userRole: UserRole;
   userID: string;
-  userName: string;
+  displayName: string;
   userStatus?: UserStatus;
   lastPhoneHash?: string;
   lastDeviceID?: string;
@@ -27,14 +27,14 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
       hashedPassword,
       userRole,
       userID,
-      userName,
+      displayName,
       userStatus = "Active",
       lastPhoneHash,
       lastDeviceID
     } = req;
 
     // Validate required fields
-    if (!loginID || !hashedPassword || !userRole || !userID || !userName) {
+    if (!loginID || !hashedPassword || !userRole || !userID || !displayName) {
       throw APIError.invalidArgument("Missing required fields");
     }
 
@@ -43,13 +43,13 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
       throw APIError.invalidArgument("loginID must be 12 characters or less");
     }
 
-    // Validate userID and userName length (max 8 characters)
+    // Validate userID and displayName length (max 8 characters)
     if (userID.length > 8) {
       throw APIError.invalidArgument("userID must be 8 characters or less");
     }
 
-    if (userName.length > 8) {
-      throw APIError.invalidArgument("userName must be 8 characters or less");
+    if (displayName.length > 8) {
+      throw APIError.invalidArgument("displayName must be 8 characters or less");
     }
 
     // Validate userRole
@@ -87,15 +87,15 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
         throw APIError.alreadyExists("User with this userID already exists");
       }
 
-      // Check if userName already exists
-      const { data: existingUserName } = await supabase
+      // Check if displayName already exists
+      const { data: existingDisplayName } = await supabase
         .from('usersrcd')
-        .select('username')
-        .eq('username', userName)
+        .select('displayname')
+        .eq('displayname', displayName)
         .single();
 
-      if (existingUserName) {
-        throw APIError.alreadyExists("User with this userName already exists");
+      if (existingDisplayName) {
+        throw APIError.alreadyExists("User with this displayName already exists");
       }
 
       // Insert new user
@@ -106,12 +106,12 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
           hashedpassword: hashedPassword,
           userrole: userRole,
           userid: userID,
-          username: userName,
+          displayname: displayName,
           userstatus: userStatus,
           lastphonehash: lastPhoneHash || null,
           lastdeviceid: lastDeviceID || null
         })
-        .select('loginid, userrole, userid, username, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
+        .select('loginid, userrole, userid, displayname, userstatus, lastlogindttm, lastphonehash, lastdeviceid, createdat, updatedat')
         .single();
 
       if (insertError) {
@@ -126,7 +126,7 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
         loginID: insertedUser.loginid,
         userRole: insertedUser.userrole as UserRole,
         userID: insertedUser.userid,
-        userName: insertedUser.username,
+        displayName: insertedUser.displayname,
         userStatus: insertedUser.userstatus as UserStatus,
         lastLoginDTTM: insertedUser.lastlogindttm ? new Date(insertedUser.lastlogindttm) : null,
         lastPhoneHash: insertedUser.lastphonehash,
@@ -153,8 +153,8 @@ export const create = api<CreateUserRequest, CreateUserResponse>(
             throw APIError.alreadyExists("User with this loginID already exists");
           } else if (error.message.includes('userid')) {
             throw APIError.alreadyExists("User with this userID already exists");
-          } else if (error.message.includes('username')) {
-            throw APIError.alreadyExists("User with this userName already exists");
+          } else if (error.message.includes('displayname')) {
+            throw APIError.alreadyExists("User with this displayName already exists");
           }
           throw APIError.alreadyExists("User with this information already exists");
         }
