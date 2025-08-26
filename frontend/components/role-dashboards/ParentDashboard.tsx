@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
@@ -12,12 +15,49 @@ interface ParentDashboardProps {
   user: User;
 }
 
+interface EditableParentData {
+  parentPhoneMain: string;
+  sendSMS: boolean;
+  parentVehicleInfo: string;
+  alternate1Name: string;
+  alternate1Phone: string;
+  alternate1Relationship: string;
+  alternate1VehicleInfo: string;
+  alternate2Name: string;
+  alternate2Phone: string;
+  alternate2Relationship: string;
+  alternate2VehicleInfo: string;
+  alternate3Name: string;
+  alternate3Phone: string;
+  alternate3Relationship: string;
+  alternate3VehicleInfo: string;
+}
+
 export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editData, setEditData] = useState<EditableParentData>({
+    parentPhoneMain: '',
+    sendSMS: false,
+    parentVehicleInfo: '',
+    alternate1Name: '',
+    alternate1Phone: '',
+    alternate1Relationship: '',
+    alternate1VehicleInfo: '',
+    alternate2Name: '',
+    alternate2Phone: '',
+    alternate2Relationship: '',
+    alternate2VehicleInfo: '',
+    alternate3Name: '',
+    alternate3Phone: '',
+    alternate3Relationship: '',
+    alternate3VehicleInfo: '',
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,6 +71,25 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         console.log("Parent data response:", response);
         
         setParentData(response.parent);
+        
+        // Initialize edit data
+        setEditData({
+          parentPhoneMain: response.parent.parentPhoneMain,
+          sendSMS: response.parent.sendSMS,
+          parentVehicleInfo: response.parent.parentVehicleInfo,
+          alternate1Name: response.parent.alternate1Name,
+          alternate1Phone: response.parent.alternate1Phone,
+          alternate1Relationship: response.parent.alternate1Relationship,
+          alternate1VehicleInfo: response.parent.alternate1VehicleInfo,
+          alternate2Name: response.parent.alternate2Name,
+          alternate2Phone: response.parent.alternate2Phone,
+          alternate2Relationship: response.parent.alternate2Relationship,
+          alternate2VehicleInfo: response.parent.alternate2VehicleInfo,
+          alternate3Name: response.parent.alternate3Name,
+          alternate3Phone: response.parent.alternate3Phone,
+          alternate3Relationship: response.parent.alternate3Relationship,
+          alternate3VehicleInfo: response.parent.alternate3VehicleInfo,
+        });
       } catch (error) {
         console.error("Failed to fetch parent data:", error);
         setError(error instanceof Error ? error.message : "Failed to load parent information");
@@ -62,6 +121,68 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         variant: "destructive",
       });
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    if (parentData) {
+      setEditData({
+        parentPhoneMain: parentData.parentPhoneMain,
+        sendSMS: parentData.sendSMS,
+        parentVehicleInfo: parentData.parentVehicleInfo,
+        alternate1Name: parentData.alternate1Name,
+        alternate1Phone: parentData.alternate1Phone,
+        alternate1Relationship: parentData.alternate1Relationship,
+        alternate1VehicleInfo: parentData.alternate1VehicleInfo,
+        alternate2Name: parentData.alternate2Name,
+        alternate2Phone: parentData.alternate2Phone,
+        alternate2Relationship: parentData.alternate2Relationship,
+        alternate2VehicleInfo: parentData.alternate2VehicleInfo,
+        alternate3Name: parentData.alternate3Name,
+        alternate3Phone: parentData.alternate3Phone,
+        alternate3Relationship: parentData.alternate3Relationship,
+        alternate3VehicleInfo: parentData.alternate3VehicleInfo,
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      
+      const response = await backend.parent.update({
+        username: user.loginID,
+        ...editData,
+      });
+      
+      setParentData(response.parent);
+      setIsEditing(false);
+      
+      toast({
+        title: "Success",
+        description: "Parent information updated successfully",
+      });
+    } catch (error) {
+      console.error("Failed to update parent data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update parent information. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof EditableParentData, value: string | boolean) => {
+    setEditData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   if (isLoading) {
@@ -185,11 +306,34 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
-        <p className="text-gray-600">
-          Welcome {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <p className="text-gray-600">
+            Welcome {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
+          </p>
+        </div>
+        {parentData && (
+          <div className="flex space-x-2">
+            {!isEditing ? (
+              <Button onClick={handleEdit} variant="outline" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Information
+              </Button>
+            ) : (
+              <>
+                <Button onClick={handleSave} disabled={isSaving} size="sm">
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {parentData && (
@@ -232,26 +376,62 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 <div className="flex items-start space-x-2">
                   <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Main Phone Number</p>
-                    <p className="text-sm text-gray-900">{parentData.parentPhoneMain || 'Not provided'}</p>
+                    <Label htmlFor="parentPhoneMain" className="text-sm font-medium text-gray-700">Main Phone Number</Label>
+                    {isEditing ? (
+                      <Input
+                        id="parentPhoneMain"
+                        type="tel"
+                        value={editData.parentPhoneMain}
+                        onChange={(e) => handleInputChange('parentPhoneMain', e.target.value)}
+                        placeholder="Enter phone number"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.parentPhoneMain || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">SMS Notifications</p>
-                    <Badge variant={parentData.sendSMS ? 'default' : 'secondary'}>
-                      {parentData.sendSMS ? 'Enabled' : 'Disabled'}
-                    </Badge>
+                    <Label className="text-sm font-medium text-gray-700">SMS Notifications</Label>
+                    {isEditing ? (
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Switch
+                          checked={editData.sendSMS}
+                          onCheckedChange={(checked) => handleInputChange('sendSMS', checked)}
+                        />
+                        <span className="text-sm text-gray-600">
+                          {editData.sendSMS ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="mt-1">
+                        <Badge variant={parentData.sendSMS ? 'default' : 'secondary'}>
+                          {parentData.sendSMS ? 'Enabled' : 'Disabled'}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <Car className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
-                    <p className="text-sm text-gray-900">{parentData.parentVehicleInfo || 'Not provided'}</p>
+                    <Label htmlFor="parentVehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                    {isEditing ? (
+                      <Input
+                        id="parentVehicleInfo"
+                        type="text"
+                        value={editData.parentVehicleInfo}
+                        onChange={(e) => handleInputChange('parentVehicleInfo', e.target.value)}
+                        placeholder="Enter vehicle information"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.parentVehicleInfo || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -267,31 +447,75 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Name</p>
-                  <p className="text-sm text-gray-900">{parentData.alternate1Name || 'Not provided'}</p>
+                  <Label htmlFor="alternate1Name" className="text-sm font-medium text-gray-700">Name</Label>
+                  {isEditing ? (
+                    <Input
+                      id="alternate1Name"
+                      type="text"
+                      value={editData.alternate1Name}
+                      onChange={(e) => handleInputChange('alternate1Name', e.target.value)}
+                      placeholder="Enter contact name"
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Name || 'Not provided'}</p>
+                  )}
                 </div>
                 
                 <div className="flex items-start space-x-2">
                   <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate1Phone || 'Not provided'}</p>
+                    <Label htmlFor="alternate1Phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate1Phone"
+                        type="tel"
+                        value={editData.alternate1Phone}
+                        onChange={(e) => handleInputChange('alternate1Phone', e.target.value)}
+                        placeholder="Enter phone number"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Phone || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <User className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Relationship</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate1Relationship || 'Not provided'}</p>
+                    <Label htmlFor="alternate1Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate1Relationship"
+                        type="text"
+                        value={editData.alternate1Relationship}
+                        onChange={(e) => handleInputChange('alternate1Relationship', e.target.value)}
+                        placeholder="Enter relationship"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Relationship || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <Car className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate1VehicleInfo || 'Not provided'}</p>
+                    <Label htmlFor="alternate1VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate1VehicleInfo"
+                        type="text"
+                        value={editData.alternate1VehicleInfo}
+                        onChange={(e) => handleInputChange('alternate1VehicleInfo', e.target.value)}
+                        placeholder="Enter vehicle information"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate1VehicleInfo || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -310,31 +534,75 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Name</p>
-                  <p className="text-sm text-gray-900">{parentData.alternate2Name || 'Not provided'}</p>
+                  <Label htmlFor="alternate2Name" className="text-sm font-medium text-gray-700">Name</Label>
+                  {isEditing ? (
+                    <Input
+                      id="alternate2Name"
+                      type="text"
+                      value={editData.alternate2Name}
+                      onChange={(e) => handleInputChange('alternate2Name', e.target.value)}
+                      placeholder="Enter contact name"
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Name || 'Not provided'}</p>
+                  )}
                 </div>
                 
                 <div className="flex items-start space-x-2">
                   <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate2Phone || 'Not provided'}</p>
+                    <Label htmlFor="alternate2Phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate2Phone"
+                        type="tel"
+                        value={editData.alternate2Phone}
+                        onChange={(e) => handleInputChange('alternate2Phone', e.target.value)}
+                        placeholder="Enter phone number"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Phone || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <User className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Relationship</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate2Relationship || 'Not provided'}</p>
+                    <Label htmlFor="alternate2Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate2Relationship"
+                        type="text"
+                        value={editData.alternate2Relationship}
+                        onChange={(e) => handleInputChange('alternate2Relationship', e.target.value)}
+                        placeholder="Enter relationship"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Relationship || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <Car className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate2VehicleInfo || 'Not provided'}</p>
+                    <Label htmlFor="alternate2VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate2VehicleInfo"
+                        type="text"
+                        value={editData.alternate2VehicleInfo}
+                        onChange={(e) => handleInputChange('alternate2VehicleInfo', e.target.value)}
+                        placeholder="Enter vehicle information"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate2VehicleInfo || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -350,31 +618,75 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Name</p>
-                  <p className="text-sm text-gray-900">{parentData.alternate3Name || 'Not provided'}</p>
+                  <Label htmlFor="alternate3Name" className="text-sm font-medium text-gray-700">Name</Label>
+                  {isEditing ? (
+                    <Input
+                      id="alternate3Name"
+                      type="text"
+                      value={editData.alternate3Name}
+                      onChange={(e) => handleInputChange('alternate3Name', e.target.value)}
+                      placeholder="Enter contact name"
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Name || 'Not provided'}</p>
+                  )}
                 </div>
                 
                 <div className="flex items-start space-x-2">
                   <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate3Phone || 'Not provided'}</p>
+                    <Label htmlFor="alternate3Phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate3Phone"
+                        type="tel"
+                        value={editData.alternate3Phone}
+                        onChange={(e) => handleInputChange('alternate3Phone', e.target.value)}
+                        placeholder="Enter phone number"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Phone || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <User className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Relationship</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate3Relationship || 'Not provided'}</p>
+                    <Label htmlFor="alternate3Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate3Relationship"
+                        type="text"
+                        value={editData.alternate3Relationship}
+                        onChange={(e) => handleInputChange('alternate3Relationship', e.target.value)}
+                        placeholder="Enter relationship"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Relationship || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-2">
                   <Car className="w-4 h-4 text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Vehicle Information</p>
-                    <p className="text-sm text-gray-900">{parentData.alternate3VehicleInfo || 'Not provided'}</p>
+                    <Label htmlFor="alternate3VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate3VehicleInfo"
+                        type="text"
+                        value={editData.alternate3VehicleInfo}
+                        onChange={(e) => handleInputChange('alternate3VehicleInfo', e.target.value)}
+                        placeholder="Enter vehicle information"
+                        className="mt-1"
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate3VehicleInfo || 'Not provided'}</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
