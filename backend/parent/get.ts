@@ -2,44 +2,20 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 import type { Parent, GetParentResponse } from "./types";
 
-// Retrieves parent information by username from usersrcd table.
+// Retrieves parent information by username from parentrcd table directly.
 export const getByUsername = api<{ username: string }, GetParentResponse>(
   { expose: true, method: "GET", path: "/parent/by-username/:username" },
   async ({ username }) => {
     try {
       console.log(`[Parent API] Looking up username: ${username}`);
       
-      // First, get the parentID from usersrcd table using username
-      const { data: userRow, error: userError } = await supabase
-        .from('usersrcd')
-        .select('parentid, username, loginid')
-        .eq('username', username)
-        .single();
-
-      console.log(`[Parent API] User query result:`, { userRow, userError });
-
-      if (userError) {
-        console.log(`[Parent API] User query error:`, userError);
-        throw APIError.notFound(`User not found: ${userError.message}`);
-      }
-
-      if (!userRow) {
-        console.log(`[Parent API] No user row returned for username: ${username}`);
-        throw APIError.notFound("User not found");
-      }
-
-      if (!userRow.parentid) {
-        console.log(`[Parent API] User found but no parentid: ${JSON.stringify(userRow)}`);
-        throw APIError.notFound("Parent ID not found for this user");
-      }
-
-      console.log(`[Parent API] Found parentid: ${userRow.parentid} for username: ${username}`);
-
-      // Then get the parent details from parentrcd table
+      // Query parentrcd table directly using username
+      // Assuming the parentrcd table has a field that links to the username
+      // This might be 'username', 'loginid', or 'parentid' that matches the username
       const { data: parentRow, error: parentError } = await supabase
         .from('parentrcd')
         .select('*')
-        .eq('parentid', userRow.parentid)
+        .eq('parentid', username)  // Assuming parentid in parentrcd matches the username
         .single();
 
       console.log(`[Parent API] Parent query result:`, { parentRow, parentError });
@@ -50,7 +26,7 @@ export const getByUsername = api<{ username: string }, GetParentResponse>(
       }
 
       if (!parentRow) {
-        console.log(`[Parent API] No parent row returned for parentid: ${userRow.parentid}`);
+        console.log(`[Parent API] No parent row returned for username: ${username}`);
         throw APIError.notFound("Parent record not found");
       }
 

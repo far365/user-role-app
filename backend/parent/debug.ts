@@ -5,6 +5,7 @@ export interface DebugResponse {
   usersrcdRecords: any[];
   parentrcdRecords: any[];
   specificUser: any;
+  specificParent: any;
 }
 
 // Debug endpoint to check database contents.
@@ -29,19 +30,29 @@ export const debug = api<{ username: string }, DebugResponse>(
         .eq('username', username)
         .single();
 
+      // Try to get parent record by matching parentid with username
+      const { data: specificParent, error: parentSpecificError } = await supabase
+        .from('parentrcd')
+        .select('*')
+        .eq('parentid', username)
+        .single();
+
       console.log('Debug results:', {
         usersrcdCount: usersrcdRecords?.length || 0,
         parentrcdCount: parentrcdRecords?.length || 0,
         specificUser,
+        specificParent,
         usersError,
         parentError,
-        specificError
+        specificError,
+        parentSpecificError
       });
 
       return {
         usersrcdRecords: usersrcdRecords || [],
         parentrcdRecords: parentrcdRecords || [],
-        specificUser: specificUser || null
+        specificUser: specificUser || null,
+        specificParent: specificParent || null
       };
 
     } catch (error) {

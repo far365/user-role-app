@@ -110,9 +110,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               Please ensure that:
             </p>
             <ul className="list-disc list-inside text-sm mt-2 space-y-1">
-              <li>Your username ({user.loginID}) exists in the usersrcd table</li>
-              <li>The usersrcd record has a valid parentid field</li>
-              <li>A corresponding record exists in the parentrcd table with that parentid</li>
+              <li>A record exists in the parentrcd table with parentid = "{user.loginID}"</li>
+              <li>The parentrcd table has the correct field names (parentid, parentname, etc.)</li>
+              <li>The username "{user.loginID}" matches a parentid in the parentrcd table</li>
             </ul>
             <p className="text-sm mt-3">
               Error details: {error}
@@ -137,9 +137,16 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <CardContent className="text-yellow-800">
               <div className="space-y-4 text-sm">
                 <div>
-                  <p className="font-medium">Specific User Record:</p>
+                  <p className="font-medium">Specific User Record (usersrcd):</p>
                   <pre className="bg-white p-2 rounded text-xs overflow-auto">
                     {JSON.stringify(debugData.specificUser, null, 2)}
+                  </pre>
+                </div>
+
+                <div>
+                  <p className="font-medium">Specific Parent Record (parentrcd where parentid = "{user.loginID}"):</p>
+                  <pre className="bg-white p-2 rounded text-xs overflow-auto">
+                    {JSON.stringify(debugData.specificParent, null, 2)}
                   </pre>
                 </div>
                 
@@ -150,7 +157,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <div key={index} className="mb-2 p-1 border-b">
                         <strong>Username:</strong> {record.username || 'N/A'} | 
                         <strong> LoginID:</strong> {record.loginid || 'N/A'} | 
-                        <strong> ParentID:</strong> {record.parentid || 'N/A'}
+                        <strong> UserID:</strong> {record.userid || 'N/A'}
                       </div>
                     ))}
                   </div>
