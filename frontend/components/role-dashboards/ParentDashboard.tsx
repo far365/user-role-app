@@ -306,44 +306,40 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
-          {parentData && (
-            <div className="mb-2">
-              <Badge 
-                variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
-                className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-              >
-                {parentData.parentRecordStatus || 'Unknown'}
-              </Badge>
-            </div>
-          )}
-          <p className="text-gray-600">
-            Stay connected with your child's activities and important updates.
-          </p>
-        </div>
+      <div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
         {parentData && (
-          <div className="flex space-x-2">
-            {!isEditing ? (
-              <Button onClick={handleEdit} variant="outline" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Information
-              </Button>
-            ) : (
-              <>
-                <Button onClick={handleSave} disabled={isSaving} size="sm">
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+          <div className="flex items-center justify-between mb-2">
+            <Badge 
+              variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
+              className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {parentData.parentRecordStatus || 'Unknown'}
+            </Badge>
+            <div className="flex space-x-2">
+              {!isEditing ? (
+                <Button onClick={handleEdit} variant="outline" size="sm">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
                 </Button>
-                <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-              </>
-            )}
+              ) : (
+                <>
+                  <Button onClick={handleSave} disabled={isSaving} size="sm">
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         )}
+        <p className="text-sm text-gray-600">
+          Stay connected with your child's activities and important updates.
+        </p>
       </div>
 
       {parentData && (
