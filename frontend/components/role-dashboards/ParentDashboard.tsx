@@ -189,7 +189,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h2>
           <p className="text-gray-600">Loading your information...</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -213,7 +213,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h2>
           <p className="text-gray-600">{user.displayName}!</p>
         </div>
         
@@ -306,9 +306,19 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
+          {parentData && (
+            <div className="mb-2">
+              <Badge 
+                variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
+                className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+              >
+                {parentData.parentRecordStatus || 'Unknown'}
+              </Badge>
+            </div>
+          )}
           <p className="text-gray-600">
             Stay connected with your child's activities and important updates.
           </p>
@@ -364,12 +374,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   <div>
                     <p className="text-sm font-medium text-gray-700">Gender</p>
                     <p className="text-sm text-gray-900">{parentData.gender === 'M' ? 'Male' : parentData.gender === 'F' ? 'Female' : parentData.gender || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Record Status</p>
-                    <Badge variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'secondary'}>
-                      {parentData.parentRecordStatus || 'Unknown'}
-                    </Badge>
                   </div>
                 </div>
                 
@@ -630,7 +634,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     />
                   ) : (
                     <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Name || 'Not provided'}</p>
-                  )}
+                    )}
                 </div>
                 
                 <div className="flex items-start space-x-2">
@@ -705,7 +709,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <p><strong>Parent ID:</strong> {parentData.parentID}</p>
-                  <p><strong>Record Status:</strong> {parentData.parentRecordStatus}</p>
                   <p><strong>SMS Enabled:</strong> {parentData.sendSMS ? 'Yes' : 'No'}</p>
                 </div>
                 <div>
