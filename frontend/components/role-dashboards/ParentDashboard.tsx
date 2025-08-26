@@ -214,7 +214,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
-          <p className="text-gray-600">Welcome {user.displayName}!</p>
+          <p className="text-gray-600">{user.displayName}!</p>
         </div>
         
         <Card className="border-red-200 bg-red-50">
@@ -310,7 +310,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
           <p className="text-gray-600">
-            Welcome {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
+            {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
           </p>
         </div>
         {parentData && (
