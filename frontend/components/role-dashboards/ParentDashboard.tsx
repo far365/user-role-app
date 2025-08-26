@@ -65,7 +65,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Parent Dashboard</h2>
         <p className="text-gray-600">
-          Stay connected with your child's activities and important updates.
+          Welcome {parentData?.parentName || user.displayName}! Stay connected with your child's activities and important updates.
         </p>
       </div>
 
@@ -83,7 +83,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-700">Parent Name</p>
-                  <p className="text-sm text-gray-900">{parentData.parentName}</p>
+                  <p className="text-sm text-gray-900">{parentData.parentName || 'Not provided'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700">Parent ID</p>
@@ -91,27 +91,27 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-gray-500" />
-                <div>
+              <div className="flex items-start space-x-2">
+                <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-700">Phone Number</p>
                   <p className="text-sm text-gray-900">{parentData.phoneNumber || 'Not provided'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4 text-gray-500" />
-                <div>
+              <div className="flex items-start space-x-2">
+                <Mail className="w-4 h-4 text-gray-500 mt-0.5" />
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-700">Email</p>
-                  <p className="text-sm text-gray-900">{parentData.email || 'Not provided'}</p>
+                  <p className="text-sm text-gray-900 break-words">{parentData.email || 'Not provided'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-gray-500" />
-                <div>
+              <div className="flex items-start space-x-2">
+                <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-700">Address</p>
-                  <p className="text-sm text-gray-900">{parentData.address || 'Not provided'}</p>
+                  <p className="text-sm text-gray-900 break-words">{parentData.address || 'Not provided'}</p>
                 </div>
               </div>
             </CardContent>
@@ -131,9 +131,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 <p className="text-sm text-gray-900">{parentData.emergencyContact || 'Not provided'}</p>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-gray-500" />
-                <div>
+              <div className="flex items-start space-x-2">
+                <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-700">Emergency Phone</p>
                   <p className="text-sm text-gray-900">{parentData.emergencyPhone || 'Not provided'}</p>
                 </div>
