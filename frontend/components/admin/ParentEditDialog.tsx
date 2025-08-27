@@ -17,6 +17,7 @@ interface ParentEditDialogProps {
 }
 
 interface EditableParentData {
+  parentName: string;
   parentPhoneMain: string;
   sendSMS: boolean;
   parentVehicleInfo: string;
@@ -42,6 +43,7 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editData, setEditData] = useState<EditableParentData>({
+    parentName: parent.parentName,
     parentPhoneMain: parent.parentPhoneMain,
     sendSMS: parent.sendSMS,
     parentVehicleInfo: parent.parentVehicleInfo,
@@ -86,6 +88,11 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
+    
+    // Validate parent name is required
+    if (!editData.parentName.trim()) {
+      errors.parentName = "Parent Name is required";
+    }
     
     // Validate alternate contacts
     const alternate1Errors = validateAlternateContact(1, editData);
@@ -200,14 +207,18 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="parentName">Parent Name (Read-only)</Label>
+                <Label htmlFor="parentName">Parent Name</Label>
                 <Input
                   id="parentName"
                   type="text"
-                  value={parent.parentName}
-                  disabled
-                  className="bg-gray-100"
+                  value={editData.parentName}
+                  onChange={(e) => handleInputChange('parentName', e.target.value)}
+                  placeholder="Enter parent name"
+                  className={validationErrors.parentName ? 'border-red-300' : ''}
                 />
+                {validationErrors.parentName && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.parentName}</p>
+                )}
               </div>
               
               <div>

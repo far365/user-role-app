@@ -4,6 +4,7 @@ import type { Parent, GetParentResponse } from "./types";
 
 export interface UpdateParentRequest {
   username: string;
+  parentName?: string;
   parentPhoneMain?: string;
   sendSMS?: boolean;
   parentVehicleInfo?: string;
@@ -39,6 +40,9 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
         updated_at: new Date().toISOString()
       };
 
+      if (updateData.parentName !== undefined) {
+        updateFields.parentname = updateData.parentName;
+      }
       if (updateData.parentPhoneMain !== undefined) {
         updateFields.parentphonemain = updateData.parentPhoneMain;
       }
