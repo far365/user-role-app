@@ -119,10 +119,10 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
         console.log(`[Parent API] Username: ${username}`);
         console.log(`[Parent API] New display name: ${updateData.parentName}`);
         
-        // First, let's check if the user record exists
+        // First, let's check if the user record exists and get its structure
         const { data: existingUser, error: checkError } = await supabase
           .from('usersrcd')
-          .select('loginid, displayname')
+          .select('*')
           .eq('loginid', username)
           .single();
 
@@ -132,16 +132,21 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
           console.log(`[Parent API] Warning: Could not find user record for loginid: ${username}`, checkError);
         } else if (existingUser) {
           console.log(`[Parent API] Found existing user, current displayname: ${existingUser.displayname}`);
+          console.log(`[Parent API] Available user columns:`, Object.keys(existingUser));
+          
+          // Build update payload for user record - only update displayname
+          const userUpdatePayload = {
+            displayname: updateData.parentName
+          };
+
+          console.log(`[Parent API] User update payload:`, userUpdatePayload);
           
           // Now update the displayname
           const { data: userUpdateData, error: userUpdateError } = await supabase
             .from('usersrcd')
-            .update({
-              displayname: updateData.parentName,
-              updatedat: new Date().toISOString()
-            })
+            .update(userUpdatePayload)
             .eq('loginid', username)
-            .select('loginid, displayname, updatedat');
+            .select('loginid, displayname');
 
           console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
 
