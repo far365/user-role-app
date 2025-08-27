@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap, TestTube } from "lucide-react";
+import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap, TestTube, Database } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -144,6 +144,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         console.log("1. No student records exist with parentid =", parentID);
         console.log("2. The parentid field in studentrcd doesn't match");
         console.log("3. The table name or field names are different");
+        console.log("4. The studentrcd table is empty");
+        console.log("5. There's a database connection or RLS policy issue");
       }
     } catch (error) {
       console.error("=== FRONTEND: Failed to fetch student data ===", error);
@@ -165,7 +167,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     }
 
     try {
-      console.log("=== FRONTEND: Fetching student debug data ===");
+      console.log("=== FRONTEND: Fetching comprehensive student debug data ===");
       console.log("Parent ID for debug:", parentData.parentID);
       
       const response = await backend.student.debug({ parentID: parentData.parentID });
@@ -174,9 +176,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setStudentDebugData(response);
       setShowStudentDebug(true);
       
+      // Enhanced toast message with more details
+      const totalStudents = response.studentrcdRecords.length;
+      const studentsForParent = response.specificStudentsForParent.length;
+      const tableExists = response.tableExists;
+      const connectionOk = response.connectionTest?.success;
+      
+      let debugSummary = `Database connection: ${connectionOk ? 'OK' : 'FAILED'}`;
+      debugSummary += `\nTable exists: ${tableExists ? 'YES' : 'NO'}`;
+      debugSummary += `\nTotal students in DB: ${totalStudents}`;
+      debugSummary += `\nStudents for this parent: ${studentsForParent}`;
+      
       toast({
         title: "Student Debug Complete",
-        description: `Found ${response.studentrcdRecords.length} total students, ${response.specificStudentsForParent.length} for this parent`,
+        description: debugSummary,
       });
     } catch (error) {
       console.error("Failed to fetch student debug data:", error);
@@ -1024,6 +1037,18 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   <p className="text-xs text-gray-400 mt-2">
                     Parent ID: {parentData.parentID} • Use "Debug Students" to troubleshoot
                   </p>
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center space-x-2 text-yellow-800">
+                      <Database className="w-4 h-4" />
+                      <span className="font-medium text-sm">Possible Issues:</span>
+                    </div>
+                    <ul className="text-xs text-yellow-700 mt-2 space-y-1 text-left">
+                      <li>• The studentrcd table might be empty</li>
+                      <li>• No students have parentid = "{parentData.parentID}"</li>
+                      <li>• Database connection or permission issues</li>
+                      <li>• Field name mismatches in the table</li>
+                    </ul>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1041,15 +1066,28 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               <CardHeader>
                 <CardTitle className="text-yellow-800">Student Debug Information</CardTitle>
                 <CardDescription className="text-yellow-700">
-                  Database contents for troubleshooting student data
+                  Comprehensive database analysis for troubleshooting student data
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-yellow-800">
                 <div className="space-y-4 text-sm">
                   <div>
+                    <p className="font-medium">Connection & Table Status:</p>
+                    <div className="bg-white p-2 rounded text-xs">
+                      <p><strong>Database Connection:</strong> {studentDebugData.connectionTest?.success ? '✅ OK' : '❌ FAILED'}</p>
+                      <p><strong>Table Exists:</strong> {studentDebugData.tableExists ? '✅ YES' : '❌ NO'}</p>
+                      {studentDebugData.connectionTest?.error && (
+                        <p><strong>Connection Error:</strong> {studentDebugData.connectionTest.error}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
                     <p className="font-medium">Search Parameters:</p>
-                    <p className="text-xs">Parent ID: {studentDebugData.parentID}</p>
-                    <p className="text-xs">Query: SELECT * FROM studentrcd WHERE parentid = '{studentDebugData.parentID}'</p>
+                    <div className="bg-white p-2 rounded text-xs">
+                      <p><strong>Parent ID:</strong> {studentDebugData.parentID}</p>
+                      <p><strong>Query:</strong> SELECT * FROM studentrcd WHERE parentid = '{studentDebugData.parentID}'</p>
+                    </div>
                   </div>
 
                   <div>
@@ -1063,7 +1101,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     <p className="font-medium">Students for this Parent ({studentDebugData.specificStudentsForParent.length}):</p>
                     <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
                       {studentDebugData.specificStudentsForParent.length === 0 ? (
-                        <p className="text-red-600">No students found with parentid = "{studentDebugData.parentID}"</p>
+                        <p className="text-red-600">❌ No students found with parentid = "{studentDebugData.parentID}"</p>
                       ) : (
                         studentDebugData.specificStudentsForParent.map((record: any, index: number) => (
                           <div key={index} className="mb-2 p-1 border-b">
@@ -1079,31 +1117,60 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   <div>
                     <p className="font-medium">All Students in Database ({studentDebugData.studentrcdRecords.length}):</p>
                     <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
-                      {studentDebugData.studentrcdRecords.slice(0, 10).map((record: any, index: number) => (
-                        <div key={index} className="mb-2 p-1 border-b">
-                          <strong>Student:</strong> {record.studentname || 'N/A'} | 
-                          <strong> ID:</strong> {record.studentid || 'N/A'} | 
-                          <strong> Parent ID:</strong> {record.parentid || 'N/A'} |
-                          <strong> Grade:</strong> {record.grade || 'N/A'}
-                        </div>
-                      ))}
-                      {studentDebugData.studentrcdRecords.length > 10 && (
-                        <p className="text-gray-500">... and {studentDebugData.studentrcdRecords.length - 10} more</p>
+                      {studentDebugData.studentrcdRecords.length === 0 ? (
+                        <p className="text-red-600">❌ CRITICAL: studentrcd table is completely empty!</p>
+                      ) : (
+                        <>
+                          <p className="text-green-600 mb-2">✅ Found {studentDebugData.studentrcdRecords.length} total students</p>
+                          {studentDebugData.studentrcdRecords.slice(0, 10).map((record: any, index: number) => (
+                            <div key={index} className="mb-2 p-1 border-b">
+                              <strong>Student:</strong> {record.studentname || 'N/A'} | 
+                              <strong> ID:</strong> {record.studentid || 'N/A'} | 
+                              <strong> Parent ID:</strong> {record.parentid || 'N/A'} |
+                              <strong> Grade:</strong> {record.grade || 'N/A'}
+                            </div>
+                          ))}
+                          {studentDebugData.studentrcdRecords.length > 10 && (
+                            <p className="text-gray-500">... and {studentDebugData.studentrcdRecords.length - 10} more</p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
 
                   <div>
-                    <p className="font-medium">All Parents in Database ({studentDebugData.parentrcdRecords.length}):</p>
-                    <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
-                      {studentDebugData.parentrcdRecords.slice(0, 10).map((record: any, index: number) => (
-                        <div key={index} className="mb-2 p-1 border-b">
-                          <strong>Parent:</strong> {record.parentname || 'N/A'} | 
-                          <strong> ID:</strong> {record.parentid || 'N/A'}
+                    <p className="font-medium">Query Test Results:</p>
+                    <div className="bg-white p-2 rounded text-xs">
+                      {studentDebugData.queryTest && (
+                        <>
+                          <p><strong>Filter Approach:</strong> {studentDebugData.queryTest.filterApproach?.data?.length || 0} results</p>
+                          <p><strong>iLike Approach:</strong> {studentDebugData.queryTest.ilikeApproach?.data?.length || 0} results</p>
+                          {studentDebugData.queryTest.rawSqlResult && (
+                            <p><strong>Raw SQL:</strong> {studentDebugData.queryTest.rawSqlResult.rawData?.length || 0} results</p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Diagnosis:</p>
+                    <div className="bg-white p-2 rounded text-xs">
+                      {studentDebugData.studentrcdRecords.length === 0 ? (
+                        <div className="text-red-600">
+                          <p><strong>❌ ISSUE IDENTIFIED:</strong> The studentrcd table is completely empty!</p>
+                          <p className="mt-1"><strong>Solution:</strong> You need to add student data to the studentrcd table in Supabase.</p>
+                          <p className="mt-1"><strong>Expected format:</strong> Records with parentid = "{studentDebugData.parentID}" to link to this parent.</p>
                         </div>
-                      ))}
-                      {studentDebugData.parentrcdRecords.length > 10 && (
-                        <p className="text-gray-500">... and {studentDebugData.parentrcdRecords.length - 10} more</p>
+                      ) : studentDebugData.specificStudentsForParent.length === 0 ? (
+                        <div className="text-orange-600">
+                          <p><strong>⚠️ ISSUE IDENTIFIED:</strong> Students exist in the table, but none have parentid = "{studentDebugData.parentID}"</p>
+                          <p className="mt-1"><strong>Solution:</strong> Check that student records have the correct parentid value.</p>
+                        </div>
+                      ) : (
+                        <div className="text-green-600">
+                          <p><strong>✅ NO ISSUES:</strong> Students found successfully!</p>
+                        </div>
                       )}
                     </div>
                   </div>
