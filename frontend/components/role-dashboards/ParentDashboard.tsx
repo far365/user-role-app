@@ -465,10 +465,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     <p className="text-sm font-medium text-gray-700">Parent Name</p>
                     <p className="text-sm text-gray-900">{parentData.parentName || 'Not provided'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Parent ID</p>
-                    <p className="text-sm text-gray-900 font-mono">{parentData.parentID}</p>
-                  </div>
+                  
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
