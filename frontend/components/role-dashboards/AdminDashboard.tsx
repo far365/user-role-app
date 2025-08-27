@@ -21,101 +21,77 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-blue-700 hover:text-blue-800 hover:bg-blue-50"
           onClick={() => handleNavigate('queue-setup')}
         >
-          <List className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Queue Setup</div>
-            <div className="text-sm opacity-80">Configure and manage queue systems</div>
-          </div>
+          <List className="h-5 w-5 mr-3" />
+          Queue Setup
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-green-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-green-700 hover:text-green-800 hover:bg-green-50"
           onClick={() => handleNavigate('parent-setup')}
         >
-          <Users className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Parent Setup</div>
-            <div className="text-sm opacity-80">Manage parent accounts and information</div>
-          </div>
+          <Users className="h-5 w-5 mr-3" />
+          Parent Setup
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-yellow-200 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 hover:text-yellow-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-yellow-700 hover:text-yellow-800 hover:bg-yellow-50"
           onClick={() => handleNavigate('student-setup')}
         >
-          <BookOpen className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Student Setup</div>
-            <div className="text-sm opacity-80">Manage student records and enrollment</div>
-          </div>
+          <BookOpen className="h-5 w-5 mr-3" />
+          Student Setup
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
           onClick={() => handleNavigate('teacher-setup')}
         >
-          <GraduationCap className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Teacher Setup</div>
-            <div className="text-sm opacity-80">Configure teacher accounts and classes</div>
-          </div>
+          <GraduationCap className="h-5 w-5 mr-3" />
+          Teacher Setup
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-700 hover:text-orange-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-orange-700 hover:text-orange-800 hover:bg-orange-50"
           onClick={() => handleNavigate('dispatcher-setup')}
         >
-          <Truck className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Dispatcher Setup</div>
-            <div className="text-sm opacity-80">Manage dispatch operations and routes</div>
-          </div>
+          <Truck className="h-5 w-5 mr-3" />
+          Dispatcher Setup
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-indigo-700 hover:text-indigo-800 hover:bg-indigo-50"
           onClick={() => handleNavigate('user-setup')}
         >
-          <UserPlus className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">User Setup</div>
-            <div className="text-sm opacity-80">Create and manage user accounts</div>
-          </div>
+          <UserPlus className="h-5 w-5 mr-3" />
+          User Setup
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700 hover:text-teal-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-teal-700 hover:text-teal-800 hover:bg-teal-50"
           onClick={() => handleNavigate('analytics')}
         >
-          <BarChart3 className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Analytics</div>
-            <div className="text-sm opacity-80">View reports and system analytics</div>
-          </div>
+          <BarChart3 className="h-5 w-5 mr-3" />
+          Analytics
         </Button>
 
         <Button 
-          variant="outline" 
-          className="h-auto p-6 flex flex-col items-center space-y-3 hover:shadow-md transition-all duration-200 border-red-200 bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800"
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-red-700 hover:text-red-800 hover:bg-red-50"
           onClick={() => handleNavigate('security')}
         >
-          <Shield className="h-8 w-8" />
-          <div className="text-center">
-            <div className="font-semibold text-lg">Security</div>
-            <div className="text-sm opacity-80">Security settings and monitoring</div>
-          </div>
+          <Shield className="h-5 w-5 mr-3" />
+          Security
         </Button>
       </div>
     </div>
