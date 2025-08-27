@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Plus, Search, Edit, Phone, User, Users, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, User, AlertCircle } from "lucide-react";
 import { ParentEditDialog } from "./ParentEditDialog";
 import backend from "~backend/client";
 import type { Parent } from "~backend/parent/types";
@@ -23,8 +23,6 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
   
   // Search form states
   const [nameSearch, setNameSearch] = useState("");
-  const [phoneSearch, setPhoneSearch] = useState("");
-  const [alternateNameSearch, setAlternateNameSearch] = useState("");
   
   const { toast } = useToast();
 
@@ -76,112 +74,6 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       });
     } catch (error) {
       console.error("Search by name error:", error);
-      toast({
-        title: "Search Failed",
-        description: "Failed to search parent records. Please try again.",
-        variant: "destructive",
-      });
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearchByPhone = async () => {
-    const cleanPhone = phoneSearch.replace(/\D/g, '');
-    
-    if (cleanPhone.length !== 10) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Phone number must be exactly 10 digits",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSearching(true);
-    setSearchType("phone");
-    
-    try {
-      console.log("Searching by phone:", cleanPhone);
-      
-      // Use query parameters for GET request
-      const searchParams = new URLSearchParams({ phone: cleanPhone });
-      const response = await fetch(`/api/parent/search/phone?${searchParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Search response:", data);
-      
-      setSearchResults(data.parents || []);
-      setSelectedParent(null);
-      
-      toast({
-        title: "Search Complete",
-        description: `Found ${data.parents?.length || 0} parent(s) with phone number ${cleanPhone}`,
-      });
-    } catch (error) {
-      console.error("Search by phone error:", error);
-      toast({
-        title: "Search Failed",
-        description: "Failed to search parent records. Please try again.",
-        variant: "destructive",
-      });
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearchByAlternateName = async () => {
-    if (alternateNameSearch.trim().length < 4) {
-      toast({
-        title: "Invalid Search",
-        description: "Alternate name must be at least 4 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSearching(true);
-    setSearchType("alternate");
-    
-    try {
-      console.log("Searching by alternate name:", alternateNameSearch.trim());
-      
-      // Use query parameters for GET request
-      const searchParams = new URLSearchParams({ alternateName: alternateNameSearch.trim() });
-      const response = await fetch(`/api/parent/search/alternate-name?${searchParams}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Search response:", data);
-      
-      setSearchResults(data.parents || []);
-      setSelectedParent(null);
-      
-      toast({
-        title: "Search Complete",
-        description: `Found ${data.parents?.length || 0} parent(s) with alternate contact "${alternateNameSearch}"`,
-      });
-    } catch (error) {
-      console.error("Search by alternate name error:", error);
       toast({
         title: "Search Failed",
         description: "Failed to search parent records. Please try again.",
@@ -266,7 +158,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       </div>
 
       {/* Search Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Search by Name */}
         <Card>
           <CardHeader>
@@ -296,72 +188,6 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
             >
               <Search className="w-4 h-4 mr-2" />
               {isSearching && searchType === "name" ? "Searching..." : "Search"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Search by Phone */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Phone className="w-5 h-5" />
-              <span>Search by Main Phone</span>
-            </CardTitle>
-            <CardDescription>All 10 digits required</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="phoneSearch">Phone Number</Label>
-              <Input
-                id="phoneSearch"
-                type="tel"
-                placeholder="Enter 10-digit phone number..."
-                value={phoneSearch}
-                onChange={(e) => setPhoneSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchByPhone()}
-                disabled={isSearching}
-              />
-            </div>
-            <Button 
-              onClick={handleSearchByPhone} 
-              disabled={isSearching || phoneSearch.replace(/\D/g, '').length !== 10}
-              className="w-full"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              {isSearching && searchType === "phone" ? "Searching..." : "Search"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Search by Alternate Name */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>Search by Alternate Name</span>
-            </CardTitle>
-            <CardDescription>Minimum 4 characters required</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="alternateNameSearch">Alternate Contact Name</Label>
-              <Input
-                id="alternateNameSearch"
-                type="text"
-                placeholder="Enter alternate contact name..."
-                value={alternateNameSearch}
-                onChange={(e) => setAlternateNameSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchByAlternateName()}
-                disabled={isSearching}
-              />
-            </div>
-            <Button 
-              onClick={handleSearchByAlternateName} 
-              disabled={isSearching || alternateNameSearch.trim().length < 4}
-              className="w-full"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              {isSearching && searchType === "alternate" ? "Searching..." : "Search"}
             </Button>
           </CardContent>
         </Card>
