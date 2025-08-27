@@ -73,7 +73,7 @@ export function QRCodeGenerator({ name, phone, title, parentID }: QRCodeGenerato
           variant="outline" 
           size="sm" 
           disabled={isDisabled}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 border-green-300 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800 shadow-sm hover:shadow-md transition-all duration-200"
         >
           <QrCode className="w-4 h-4" />
           <span>Generate QR Code</span>
