@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap } from "lucide-react";
+import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap, TestTube } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -49,7 +49,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [error, setError] = useState<string | null>(null);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
+  const [studentDebugData, setStudentDebugData] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [showStudentDebug, setShowStudentDebug] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -127,19 +129,62 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     try {
       setIsLoadingStudents(true);
       setStudentError(null);
-      console.log("Fetching student data for parent ID:", parentID);
+      console.log("=== FRONTEND: Fetching student data ===");
+      console.log("Parent ID:", parentID);
       console.log("This will query studentrcd table where parentid =", parentID);
       
       const response = await backend.student.getByParentID({ parentID });
-      console.log("Student data response:", response);
+      console.log("=== FRONTEND: Student data response ===", response);
       
       setStudentData(response.students);
+      
+      if (response.students.length === 0) {
+        console.log("=== FRONTEND: No students found ===");
+        console.log("This could mean:");
+        console.log("1. No student records exist with parentid =", parentID);
+        console.log("2. The parentid field in studentrcd doesn't match");
+        console.log("3. The table name or field names are different");
+      }
     } catch (error) {
-      console.error("Failed to fetch student data:", error);
+      console.error("=== FRONTEND: Failed to fetch student data ===", error);
       setStudentError(error instanceof Error ? error.message : "Failed to load student information");
       // Don't show toast for student errors as it's not critical
     } finally {
       setIsLoadingStudents(false);
+    }
+  };
+
+  const handleStudentDebug = async () => {
+    if (!parentData) {
+      toast({
+        title: "Debug Error",
+        description: "Parent data not loaded yet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log("=== FRONTEND: Fetching student debug data ===");
+      console.log("Parent ID for debug:", parentData.parentID);
+      
+      const response = await backend.student.debug({ parentID: parentData.parentID });
+      console.log("=== FRONTEND: Student debug response ===", response);
+      
+      setStudentDebugData(response);
+      setShowStudentDebug(true);
+      
+      toast({
+        title: "Student Debug Complete",
+        description: `Found ${response.studentrcdRecords.length} total students, ${response.specificStudentsForParent.length} for this parent`,
+      });
+    } catch (error) {
+      console.error("Failed to fetch student debug data:", error);
+      toast({
+        title: "Student Debug Error",
+        description: "Failed to fetch student debug information",
+        variant: "destructive",
+      });
     }
   };
 
@@ -945,6 +990,17 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               <CardDescription>
                 Information about your enrolled students
               </CardDescription>
+              <div className="flex space-x-2 pt-2">
+                <Button 
+                  onClick={handleStudentDebug} 
+                  variant="outline" 
+                  size="sm"
+                  className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                >
+                  <TestTube className="w-4 h-4 mr-2" />
+                  Debug Students
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoadingStudents ? (
@@ -965,6 +1021,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   <p className="text-sm text-gray-500 mt-1">
                     No student records are currently associated with your parent account.
                   </p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Parent ID: {parentData.parentID} • Use "Debug Students" to troubleshoot
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -975,6 +1034,83 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               )}
             </CardContent>
           </Card>
+
+          {/* Student Debug Information */}
+          {showStudentDebug && studentDebugData && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardHeader>
+                <CardTitle className="text-yellow-800">Student Debug Information</CardTitle>
+                <CardDescription className="text-yellow-700">
+                  Database contents for troubleshooting student data
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-yellow-800">
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="font-medium">Search Parameters:</p>
+                    <p className="text-xs">Parent ID: {studentDebugData.parentID}</p>
+                    <p className="text-xs">Query: SELECT * FROM studentrcd WHERE parentid = '{studentDebugData.parentID}'</p>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Table Structure:</p>
+                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-32">
+                      {JSON.stringify(studentDebugData.tableStructure, null, 2)}
+                    </pre>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Students for this Parent ({studentDebugData.specificStudentsForParent.length}):</p>
+                    <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
+                      {studentDebugData.specificStudentsForParent.length === 0 ? (
+                        <p className="text-red-600">No students found with parentid = "{studentDebugData.parentID}"</p>
+                      ) : (
+                        studentDebugData.specificStudentsForParent.map((record: any, index: number) => (
+                          <div key={index} className="mb-2 p-1 border-b">
+                            <strong>Student:</strong> {record.studentname || 'N/A'} | 
+                            <strong> ID:</strong> {record.studentid || 'N/A'} | 
+                            <strong> Parent ID:</strong> {record.parentid || 'N/A'}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium">All Students in Database ({studentDebugData.studentrcdRecords.length}):</p>
+                    <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
+                      {studentDebugData.studentrcdRecords.slice(0, 10).map((record: any, index: number) => (
+                        <div key={index} className="mb-2 p-1 border-b">
+                          <strong>Student:</strong> {record.studentname || 'N/A'} | 
+                          <strong> ID:</strong> {record.studentid || 'N/A'} | 
+                          <strong> Parent ID:</strong> {record.parentid || 'N/A'} |
+                          <strong> Grade:</strong> {record.grade || 'N/A'}
+                        </div>
+                      ))}
+                      {studentDebugData.studentrcdRecords.length > 10 && (
+                        <p className="text-gray-500">... and {studentDebugData.studentrcdRecords.length - 10} more</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">All Parents in Database ({studentDebugData.parentrcdRecords.length}):</p>
+                    <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
+                      {studentDebugData.parentrcdRecords.slice(0, 10).map((record: any, index: number) => (
+                        <div key={index} className="mb-2 p-1 border-b">
+                          <strong>Parent:</strong> {record.parentname || 'N/A'} | 
+                          <strong> ID:</strong> {record.parentid || 'N/A'}
+                        </div>
+                      ))}
+                      {studentDebugData.parentrcdRecords.length > 10 && (
+                        <p className="text-gray-500">... and {studentDebugData.parentrcdRecords.length - 10} more</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>
