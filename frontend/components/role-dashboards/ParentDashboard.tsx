@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { QRCodeGenerator } from "../QRCodeGenerator";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -538,6 +539,16 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
+
+                {!isEditing && (
+                  <div className="pt-2 border-t">
+                    <QRCodeGenerator
+                      name={parentData.parentName || 'Parent'}
+                      phone={parentData.parentPhoneMain || ''}
+                      title="Parent Contact"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -622,6 +633,16 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
+
+                {!isEditing && parentData.alternate1Name && parentData.alternate1Phone && (
+                  <div className="pt-2 border-t">
+                    <QRCodeGenerator
+                      name={parentData.alternate1Name}
+                      phone={parentData.alternate1Phone}
+                      title="Alternate Contact 1"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -709,6 +730,16 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
+
+                {!isEditing && parentData.alternate2Name && parentData.alternate2Phone && (
+                  <div className="pt-2 border-t">
+                    <QRCodeGenerator
+                      name={parentData.alternate2Name}
+                      phone={parentData.alternate2Phone}
+                      title="Alternate Contact 2"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -793,6 +824,16 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
+
+                {!isEditing && parentData.alternate3Name && parentData.alternate3Phone && (
+                  <div className="pt-2 border-t">
+                    <QRCodeGenerator
+                      name={parentData.alternate3Name}
+                      phone={parentData.alternate3Phone}
+                      title="Alternate Contact 3"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -822,6 +863,16 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   <p><strong>Username:</strong> {user.loginID}</p>
                 </div>
               </div>
+              
+              {!isEditing && (
+                <div className="mt-4 pt-4 border-t">
+                  <QRCodeGenerator
+                    name={parentData.parentName || 'Parent'}
+                    phone={parentData.parentPhoneMain || ''}
+                    title="Parent Contact Information"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
