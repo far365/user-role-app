@@ -5,17 +5,24 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Plus, Search, Edit, User, AlertCircle, Bug, Phone, Users } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, User, AlertCircle, Bug, Phone, Users, GraduationCap, Building, FileText, StickyNote } from "lucide-react";
 import { ParentEditDialog } from "./ParentEditDialog";
 import backend from "~backend/client";
 import type { Parent } from "~backend/parent/types";
+import type { Student } from "~backend/student/types";
 
 interface ParentSetupPageProps {
   onBack: () => void;
 }
 
+interface ParentWithStudents extends Parent {
+  students?: Student[];
+  isLoadingStudents?: boolean;
+  studentError?: string;
+}
+
 export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
-  const [searchResults, setSearchResults] = useState<Parent[]>([]);
+  const [searchResults, setSearchResults] = useState<ParentWithStudents[]>([]);
   const [selectedParent, setSelectedParent] = useState<Parent | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<string>("");
@@ -72,6 +79,49 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
         description: "Check console for error details",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchStudentsForParent = async (parent: ParentWithStudents) => {
+    try {
+      // Update the parent to show loading state
+      setSearchResults(prev => 
+        prev.map(p => 
+          p.parentID === parent.parentID 
+            ? { ...p, isLoadingStudents: true, studentError: undefined }
+            : p
+        )
+      );
+
+      console.log(`Fetching students for parent ID: ${parent.parentID}`);
+      const response = await backend.student.getByParentID({ parentID: parent.parentID });
+      
+      // Update the parent with student data
+      setSearchResults(prev => 
+        prev.map(p => 
+          p.parentID === parent.parentID 
+            ? { ...p, students: response.students, isLoadingStudents: false, studentError: undefined }
+            : p
+        )
+      );
+
+      console.log(`Found ${response.students.length} students for parent ${parent.parentID}`);
+    } catch (error) {
+      console.error(`Failed to fetch students for parent ${parent.parentID}:`, error);
+      
+      // Update the parent with error state
+      setSearchResults(prev => 
+        prev.map(p => 
+          p.parentID === parent.parentID 
+            ? { 
+                ...p, 
+                students: [], 
+                isLoadingStudents: false, 
+                studentError: error instanceof Error ? error.message : 'Failed to load students'
+              }
+            : p
+        )
+      );
     }
   };
 
@@ -135,8 +185,21 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       
       console.log("Search response:", response);
       
-      setSearchResults(response.parents || []);
+      // Convert parents to ParentWithStudents and fetch students for each
+      const parentsWithStudents: ParentWithStudents[] = response.parents.map(parent => ({
+        ...parent,
+        students: undefined,
+        isLoadingStudents: false,
+        studentError: undefined
+      }));
+      
+      setSearchResults(parentsWithStudents);
       setSelectedParent(null);
+      
+      // Automatically fetch students for each parent
+      parentsWithStudents.forEach(parent => {
+        fetchStudentsForParent(parent);
+      });
       
       const searchTypeLabel = type === 'name' ? 'name' : type === 'phone' ? 'phone number' : 'alternate contact name';
       toast({
@@ -173,7 +236,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     // Update the search results with the updated parent
     setSearchResults(prev => 
       prev.map(parent => 
-        parent.parentID === updatedParent.parentID ? updatedParent : parent
+        parent.parentID === updatedParent.parentID ? { ...parent, ...updatedParent } : parent
       )
     );
     setSelectedParent(updatedParent);
@@ -206,6 +269,34 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
         return cleanPhone.length !== 10;
       default:
         return true;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "inactive":
+        return "bg-red-100 text-red-800";
+      case "transferred":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getAttendanceColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "present":
+        return "bg-green-100 text-green-800";
+      case "absent":
+        return "bg-red-100 text-red-800";
+      case "late":
+        return "bg-yellow-100 text-yellow-800";
+      case "excused":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -334,13 +425,14 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
             <CardDescription>Parent records found matching your search criteria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-6">
               {searchResults.map((parent) => (
                 <div
                   key={parent.parentID}
-                  className="p-4 border rounded-lg hover:shadow-md transition-all border-gray-200 hover:border-gray-300"
+                  className="p-6 border rounded-lg hover:shadow-md transition-all border-gray-200 hover:border-gray-300"
                 >
-                  <div className="flex items-center justify-between">
+                  {/* Parent Information */}
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
                         <h3 className="font-medium text-gray-900">{parent.parentName}</h3>
@@ -376,6 +468,120 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
                         </Button>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Student Information */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <GraduationCap className="w-5 h-5 text-blue-600" />
+                      <h4 className="font-medium text-gray-900">Students</h4>
+                      {parent.students && parent.students.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {parent.students.length}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {parent.isLoadingStudents ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                        <span className="ml-2 text-sm text-gray-600">Loading students...</span>
+                      </div>
+                    ) : parent.studentError ? (
+                      <div className="text-center py-4">
+                        <AlertCircle className="w-6 h-6 text-yellow-500 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-1">Unable to load student information</p>
+                        <p className="text-xs text-gray-500">{parent.studentError}</p>
+                      </div>
+                    ) : !parent.students || parent.students.length === 0 ? (
+                      <div className="text-center py-4">
+                        <GraduationCap className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">No students found</p>
+                        <p className="text-xs text-gray-500">
+                          No student records are associated with this parent account.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {parent.students.map((student) => (
+                          <div
+                            key={student.studentId}
+                            className="p-4 border rounded-lg hover:shadow-sm transition-all border-l-4 border-l-blue-500 bg-gray-50"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                {student.studentId && (
+                                  <div className="flex items-center space-x-2 text-xs text-gray-600 mb-1">
+                                    <span className="font-medium">ID:</span>
+                                    <span className="font-mono">{student.studentId}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center space-x-2">
+                                  <User className="w-4 h-4 text-blue-600" />
+                                  <h5 className="font-semibold text-gray-900 text-sm">
+                                    {student.studentName || 'Unknown Student'}
+                                  </h5>
+                                </div>
+                                {student.attendanceStatus && (
+                                  <div className="flex items-center space-x-2 text-xs mt-1">
+                                    <span className="text-gray-600">Attendance:</span>
+                                    <Badge className={getAttendanceColor(student.attendanceStatus)} variant="outline">
+                                      {student.attendanceStatus}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                              <Badge className={getStatusColor(student.studentStatus || 'Active')}>
+                                {student.studentStatus || 'Active'}
+                              </Badge>
+                            </div>
+
+                            <div className="space-y-2">
+                              {(student.grade || student.classBuilding) && (
+                                <div className="flex items-center space-x-4 text-xs">
+                                  {student.grade && (
+                                    <div className="flex items-center space-x-2">
+                                      <GraduationCap className="w-3 h-3 text-gray-500" />
+                                      <span className="text-gray-600">
+                                        Grade {student.grade}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {student.classBuilding && (
+                                    <div className="flex items-center space-x-2">
+                                      <Building className="w-3 h-3 text-gray-500" />
+                                      <span className="text-gray-600">
+                                        {student.classBuilding}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {student.dismissalInstructions && (
+                                <div className="flex items-start space-x-2 text-xs">
+                                  <FileText className="w-3 h-3 text-orange-500 mt-0.5" />
+                                  <div className="flex-1">
+                                    <span className="text-gray-600 font-medium">Dismissal:</span>
+                                    <p className="text-gray-600 mt-1">{student.dismissalInstructions}</p>
+                                  </div>
+                                </div>
+                              )}
+
+                              {student.otherNote && (
+                                <div className="flex items-start space-x-2 text-xs">
+                                  <StickyNote className="w-3 h-3 text-purple-500 mt-0.5" />
+                                  <div className="flex-1">
+                                    <span className="text-gray-600 font-medium">Note:</span>
+                                    <p className="text-gray-600 mt-1">{student.otherNote}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
