@@ -215,6 +215,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   };
 
   const handleSave = async () => {
+    console.log("=== SAVE OPERATION START ===");
+    console.log("Current edit data:", editData);
+    console.log("Original parent data:", parentData);
+    
     if (!validateForm()) {
       const errorMessages = Object.values(validationErrors);
       toast({
@@ -228,10 +232,17 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     try {
       setIsSaving(true);
       
+      console.log("Calling backend.parent.update with:", {
+        username: user.loginID,
+        ...editData,
+      });
+      
       const response = await backend.parent.update({
         username: user.loginID,
         ...editData,
       });
+      
+      console.log("Backend response:", response);
       
       setParentData(response.parent);
       setIsEditing(false);
@@ -239,29 +250,46 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       
       // Show success message with note about display name update if parent name changed
       if (editData.parentName !== parentData?.parentName) {
+        console.log("Parent name changed, showing sync message");
         toast({
           title: "Success",
           description: "Parent information updated successfully. Display name has been synchronized across both tables.",
         });
       } else {
+        console.log("Parent name unchanged, showing standard message");
         toast({
           title: "Success",
           description: "Parent information updated successfully.",
         });
       }
     } catch (error) {
+      console.error("=== SAVE OPERATION ERROR ===");
       console.error("Failed to update parent data:", error);
+      
+      let errorMessage = "Failed to update parent information. Please try again.";
+      
+      if (error instanceof Error) {
+        errorMessage = `Update failed: ${error.message}`;
+        console.error("Error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to update parent information. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsSaving(false);
+      console.log("=== SAVE OPERATION END ===");
     }
   };
 
   const handleInputChange = (field: keyof EditableParentData, value: string | boolean) => {
+    console.log(`Input change: ${field} = ${value}`);
     setEditData(prev => ({
       ...prev,
       [field]: value,

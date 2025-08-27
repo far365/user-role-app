@@ -34,6 +34,7 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
 
     try {
       console.log(`[Parent API] Updating parent data for username: ${username}`);
+      console.log(`[Parent API] Update data:`, updateData);
       
       // Build the update object with only provided fields
       const updateFields: any = {
@@ -42,6 +43,7 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
 
       if (updateData.parentName !== undefined) {
         updateFields.parentname = updateData.parentName;
+        console.log(`[Parent API] Parent name will be updated to: ${updateData.parentName}`);
       }
       if (updateData.parentPhoneMain !== undefined) {
         updateFields.parentphonemain = updateData.parentPhoneMain;
@@ -89,6 +91,8 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
         updateFields.alternate3_vehicleinfo = updateData.alternate3VehicleInfo;
       }
 
+      console.log(`[Parent API] Final update fields:`, updateFields);
+
       // Update the parent record
       const { data: updatedParentRow, error: updateError } = await supabase
         .from('parentrcd')
@@ -112,14 +116,18 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
       // If parent name was updated, also update the displayname in usersrcd table
       if (updateData.parentName !== undefined) {
         console.log(`[Parent API] Updating displayname in usersrcd table for username: ${username}`);
+        console.log(`[Parent API] New display name: ${updateData.parentName}`);
         
-        const { error: userUpdateError } = await supabase
+        const { data: userUpdateData, error: userUpdateError } = await supabase
           .from('usersrcd')
           .update({
             displayname: updateData.parentName,
             updatedat: new Date().toISOString()
           })
-          .eq('loginid', username);
+          .eq('loginid', username)
+          .select('*');
+
+        console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
 
         if (userUpdateError) {
           console.log(`[Parent API] Warning: Failed to update displayname in usersrcd:`, userUpdateError);

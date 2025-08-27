@@ -13,6 +13,8 @@ export const debug = api<{ username: string }, DebugResponse>(
   { expose: true, method: "GET", path: "/parent/debug/:username" },
   async ({ username }) => {
     try {
+      console.log(`[Debug] Starting debug for username: ${username}`);
+      
       // Get all usersrcd records
       const { data: usersrcdRecords, error: usersError } = await supabase
         .from('usersrcd')
@@ -27,7 +29,7 @@ export const debug = api<{ username: string }, DebugResponse>(
       const { data: specificUser, error: specificError } = await supabase
         .from('usersrcd')
         .select('*')
-        .eq('username', username)
+        .eq('loginid', username)
         .single();
 
       // Try to get parent record by matching parentid with username
