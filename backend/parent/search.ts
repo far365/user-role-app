@@ -125,9 +125,7 @@ export const searchByPhone = api<SearchParentByPhoneRequest, SearchParentRespons
         alternate3Name: row.alternate3_name || '',
         alternate3Phone: row.alternate3_phone || '',
         alternate3Relationship: row.alternate3_relationship || '',
-        alternate3VehicleInfo: r
-
-ow.alternate3_vehicleinfo || '',
+        alternate3VehicleInfo: row.alternate3_vehicleinfo || '',
         createdAt: row.created_at ? new Date(row.created_at) : new Date(),
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
