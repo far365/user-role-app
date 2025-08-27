@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Plus, Search, Edit, User, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, User, AlertCircle, Bug } from "lucide-react";
 import { ParentEditDialog } from "./ParentEditDialog";
 import backend from "~backend/client";
 import type { Parent } from "~backend/parent/types";
@@ -20,6 +20,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchType, setSearchType] = useState<string>("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
   
   // Search form states
   const [nameSearch, setNameSearch] = useState("");
@@ -31,6 +32,47 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       title: "Add Parent",
       description: "Code to be added later",
     });
+  };
+
+  const handleDebugSearch = async () => {
+    try {
+      console.log("=== DEBUG: Testing backend connection ===");
+      
+      // Test if we can reach the backend at all
+      const testResponse = await backend.user.list();
+      console.log("Backend connection test successful:", testResponse);
+      
+      // Try to get all parent records to see what's in the database
+      const allParentsResponse = await fetch('/api/parent/search/name?name=a', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (allParentsResponse.ok) {
+        const allParentsData = await allParentsResponse.json();
+        console.log("All parents search result:", allParentsData);
+        setDebugInfo(`Backend connection: OK\nParents found with 'a': ${allParentsData.parents?.length || 0}\nFirst few results: ${JSON.stringify(allParentsData.parents?.slice(0, 3), null, 2)}`);
+      } else {
+        const errorText = await allParentsResponse.text();
+        console.error("Debug search failed:", errorText);
+        setDebugInfo(`Backend connection: FAILED\nStatus: ${allParentsResponse.status}\nError: ${errorText}`);
+      }
+      
+      toast({
+        title: "Debug Complete",
+        description: "Check console and debug info below for details",
+      });
+    } catch (error) {
+      console.error("Debug error:", error);
+      setDebugInfo(`Debug failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast({
+        title: "Debug Failed",
+        description: "Check console for error details",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSearchByName = async () => {
@@ -45,25 +87,58 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
 
     setIsSearching(true);
     setSearchType("name");
+    setDebugInfo("");
     
     try {
+      console.log("=== SEARCH DEBUG ===");
       console.log("Searching by name:", nameSearch.trim());
+      console.log("Using backend client:", backend);
       
-      // Use query parameters for GET request
+      // Method 1: Try using the backend client directly
+      try {
+        console.log("Attempting backend.parent.searchByName...");
+        const backendResponse = await backend.parent.searchByName({ name: nameSearch.trim() });
+        console.log("Backend client response:", backendResponse);
+        
+        setSearchResults(backendResponse.parents || []);
+        setSelectedParent(null);
+        
+        toast({
+          title: "Search Complete",
+          description: `Found ${backendResponse.parents?.length || 0} parent(s) matching "${nameSearch}"`,
+        });
+        
+        setDebugInfo(`Backend client method: SUCCESS\nFound: ${backendResponse.parents?.length || 0} results`);
+        return;
+      } catch (backendError) {
+        console.error("Backend client method failed:", backendError);
+        setDebugInfo(`Backend client method: FAILED\nError: ${backendError instanceof Error ? backendError.message : 'Unknown error'}`);
+      }
+      
+      // Method 2: Fallback to direct fetch
+      console.log("Falling back to direct fetch...");
       const searchParams = new URLSearchParams({ name: nameSearch.trim() });
-      const response = await fetch(`/api/parent/search/name?${searchParams}`, {
+      const fetchUrl = `/api/parent/search/name?${searchParams}`;
+      console.log("Fetch URL:", fetchUrl);
+      
+      const response = await fetch(fetchUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
+      console.log("Fetch response status:", response.status);
+      console.log("Fetch response headers:", Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Fetch error response:", errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("Search response:", data);
+      console.log("Fetch response data:", data);
       
       setSearchResults(data.parents || []);
       setSelectedParent(null);
@@ -72,8 +147,16 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
         title: "Search Complete",
         description: `Found ${data.parents?.length || 0} parent(s) matching "${nameSearch}"`,
       });
+      
+      setDebugInfo(`Direct fetch method: SUCCESS\nFound: ${data.parents?.length || 0} results\nFirst result: ${JSON.stringify(data.parents?.[0], null, 2)}`);
+      
     } catch (error) {
+      console.error("=== SEARCH ERROR ===");
       console.error("Search by name error:", error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setDebugInfo(`Search failed: ${errorMessage}`);
+      
       toast({
         title: "Search Failed",
         description: "Failed to search parent records. Please try again.",
@@ -155,7 +238,29 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
           <Edit className="w-4 h-4 mr-2" />
           Edit Selected Parent
         </Button>
+        <Button 
+          onClick={handleDebugSearch} 
+          variant="outline"
+          className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+        >
+          <Bug className="w-4 h-4 mr-2" />
+          Debug Search
+        </Button>
       </div>
+
+      {/* Debug Information */}
+      {debugInfo && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-yellow-800">Debug Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs text-yellow-800 whitespace-pre-wrap overflow-auto max-h-40">
+              {debugInfo}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search Section */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
@@ -258,6 +363,9 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
               <AlertCircle className="w-8 h-8 mx-auto mb-2" />
               <p className="font-medium">No parent records found</p>
               <p className="text-sm">Try adjusting your search criteria and search again.</p>
+              <p className="text-xs mt-2">
+                If you expect results, try the "Debug Search" button to troubleshoot.
+              </p>
             </div>
           </CardContent>
         </Card>
