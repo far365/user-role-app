@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen } from "lucide-react";
+import { ParentSetupPage } from "../admin/ParentSetupPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -7,10 +9,19 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ user }: AdminDashboardProps) {
+  const [currentPage, setCurrentPage] = useState<string>('dashboard');
+
   const handleNavigate = (page: string) => {
-    // TODO: Implement navigation to specific admin pages
-    console.log(`Navigate to ${page}`);
+    setCurrentPage(page);
   };
+
+  const handleBackToDashboard = () => {
+    setCurrentPage('dashboard');
+  };
+
+  if (currentPage === 'parent-setup') {
+    return <ParentSetupPage onBack={handleBackToDashboard} />;
+  }
 
   return (
     <div className="space-y-6">
