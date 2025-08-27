@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap, TestTube, Database } from "lucide-react";
+import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -129,27 +129,27 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     try {
       setIsLoadingStudents(true);
       setStudentError(null);
-      console.log("=== FRONTEND: Fetching student data ===");
+      console.log("=== FRONTEND: Fetching student data from Supabase ===");
       console.log("Parent ID:", parentID);
-      console.log("This will query studentrcd table where parentid =", parentID);
+      console.log("This will query Supabase studentrcd table where parentid =", parentID);
       
       const response = await backend.student.getByParentID({ parentID });
-      console.log("=== FRONTEND: Student data response ===", response);
+      console.log("=== FRONTEND: Student data response from Supabase ===", response);
       
       setStudentData(response.students);
       
       if (response.students.length === 0) {
-        console.log("=== FRONTEND: No students found ===");
+        console.log("=== FRONTEND: No students found in Supabase ===");
         console.log("This could mean:");
-        console.log("1. No student records exist with parentid =", parentID);
-        console.log("2. The parentid field in studentrcd doesn't match");
-        console.log("3. The table name or field names are different");
-        console.log("4. The studentrcd table is empty");
-        console.log("5. There's a database connection or RLS policy issue");
+        console.log("1. No student records exist in Supabase with parentid =", parentID);
+        console.log("2. The parentid field in Supabase studentrcd doesn't match");
+        console.log("3. The studentrcd table in Supabase is empty");
+        console.log("4. RLS (Row Level Security) policies in Supabase are blocking access");
+        console.log("5. The API is connecting to the wrong Supabase project");
       }
     } catch (error) {
-      console.error("=== FRONTEND: Failed to fetch student data ===", error);
-      setStudentError(error instanceof Error ? error.message : "Failed to load student information");
+      console.error("=== FRONTEND: Failed to fetch student data from Supabase ===", error);
+      setStudentError(error instanceof Error ? error.message : "Failed to load student information from Supabase");
       // Don't show toast for student errors as it's not critical
     } finally {
       setIsLoadingStudents(false);
@@ -167,11 +167,11 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     }
 
     try {
-      console.log("=== FRONTEND: Fetching comprehensive student debug data ===");
+      console.log("=== FRONTEND: Fetching comprehensive Supabase student debug data ===");
       console.log("Parent ID for debug:", parentData.parentID);
       
       const response = await backend.student.debug({ parentID: parentData.parentID });
-      console.log("=== FRONTEND: Student debug response ===", response);
+      console.log("=== FRONTEND: Supabase student debug response ===", response);
       
       setStudentDebugData(response);
       setShowStudentDebug(true);
@@ -181,21 +181,23 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       const studentsForParent = response.specificStudentsForParent.length;
       const tableExists = response.tableExists;
       const connectionOk = response.connectionTest?.success;
+      const supabaseConfigured = response.supabaseConfig?.supabaseUrl === 'CONFIGURED';
       
-      let debugSummary = `Database connection: ${connectionOk ? 'OK' : 'FAILED'}`;
+      let debugSummary = `Supabase connection: ${connectionOk ? 'OK' : 'FAILED'}`;
+      debugSummary += `\nSupabase configured: ${supabaseConfigured ? 'YES' : 'NO'}`;
       debugSummary += `\nTable exists: ${tableExists ? 'YES' : 'NO'}`;
-      debugSummary += `\nTotal students in DB: ${totalStudents}`;
+      debugSummary += `\nTotal students in Supabase: ${totalStudents}`;
       debugSummary += `\nStudents for this parent: ${studentsForParent}`;
       
       toast({
-        title: "Student Debug Complete",
+        title: "Supabase Student Debug Complete",
         description: debugSummary,
       });
     } catch (error) {
-      console.error("Failed to fetch student debug data:", error);
+      console.error("Failed to fetch Supabase student debug data:", error);
       toast({
-        title: "Student Debug Error",
-        description: "Failed to fetch student debug information",
+        title: "Supabase Student Debug Error",
+        description: "Failed to fetch student debug information from Supabase",
         variant: "destructive",
       });
     }
@@ -1001,7 +1003,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 )}
               </CardTitle>
               <CardDescription>
-                Information about your enrolled students
+                Information about your enrolled students from Supabase
               </CardDescription>
               <div className="flex space-x-2 pt-2">
                 <Button 
@@ -1011,7 +1013,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
                 >
                   <TestTube className="w-4 h-4 mr-2" />
-                  Debug Students
+                  Debug Supabase Students
                 </Button>
               </div>
             </CardHeader>
@@ -1019,34 +1021,35 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               {isLoadingStudents ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                  <span className="ml-2 text-gray-600">Loading student information...</span>
+                  <span className="ml-2 text-gray-600">Loading student information from Supabase...</span>
                 </div>
               ) : studentError ? (
                 <div className="text-center py-8">
                   <AlertCircle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">Unable to load student information</p>
+                  <p className="text-sm text-gray-600 mb-2">Unable to load student information from Supabase</p>
                   <p className="text-xs text-gray-500">{studentError}</p>
                 </div>
               ) : studentData.length === 0 ? (
                 <div className="text-center py-8">
                   <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">No students found</p>
+                  <p className="text-gray-600 font-medium">No students found in Supabase</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    No student records are currently associated with your parent account.
+                    No student records are currently associated with your parent account in the Supabase database.
                   </p>
                   <p className="text-xs text-gray-400 mt-2">
-                    Parent ID: {parentData.parentID} • Use "Debug Students" to troubleshoot
+                    Parent ID: {parentData.parentID} • Use "Debug Supabase Students" to troubleshoot
                   </p>
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center space-x-2 text-yellow-800">
-                      <Database className="w-4 h-4" />
-                      <span className="font-medium text-sm">Possible Issues:</span>
+                      <Cloud className="w-4 h-4" />
+                      <span className="font-medium text-sm">Possible Supabase Issues:</span>
                     </div>
                     <ul className="text-xs text-yellow-700 mt-2 space-y-1 text-left">
-                      <li>• The studentrcd table might be empty</li>
-                      <li>• No students have parentid = "{parentData.parentID}"</li>
-                      <li>• Database connection or permission issues</li>
-                      <li>• Field name mismatches in the table</li>
+                      <li>• The studentrcd table in Supabase might be empty</li>
+                      <li>• No students have parentid = "{parentData.parentID}" in Supabase</li>
+                      <li>• RLS (Row Level Security) policies in Supabase are blocking access</li>
+                      <li>• API is connecting to wrong Supabase project</li>
+                      <li>• Field name mismatches in the Supabase table</li>
                     </ul>
                   </div>
                 </div>
@@ -1064,20 +1067,47 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           {showStudentDebug && studentDebugData && (
             <Card className="border-yellow-200 bg-yellow-50">
               <CardHeader>
-                <CardTitle className="text-yellow-800">Student Debug Information</CardTitle>
+                <CardTitle className="text-yellow-800">Supabase Student Debug Information</CardTitle>
                 <CardDescription className="text-yellow-700">
-                  Comprehensive database analysis for troubleshooting student data
+                  Comprehensive Supabase database analysis for troubleshooting student data
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-yellow-800">
                 <div className="space-y-4 text-sm">
                   <div>
-                    <p className="font-medium">Connection & Table Status:</p>
+                    <p className="font-medium">Supabase Connection & Configuration:</p>
                     <div className="bg-white p-2 rounded text-xs">
                       <p><strong>Database Connection:</strong> {studentDebugData.connectionTest?.success ? '✅ OK' : '❌ FAILED'}</p>
-                      <p><strong>Table Exists:</strong> {studentDebugData.tableExists ? '✅ YES' : '❌ NO'}</p>
+                      <p><strong>Supabase URL:</strong> {studentDebugData.supabaseConfig?.supabaseUrl || 'NOT_CONFIGURED'}</p>
+                      <p><strong>Supabase Key:</strong> {studentDebugData.supabaseConfig?.supabaseKey || 'NOT_CONFIGURED'}</p>
+                      <p><strong>REST URL:</strong> {studentDebugData.supabaseConfig?.restUrl || 'NOT_AVAILABLE'}</p>
                       {studentDebugData.connectionTest?.error && (
                         <p><strong>Connection Error:</strong> {studentDebugData.connectionTest.error}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">Supabase Table Status:</p>
+                    <div className="bg-white p-2 rounded text-xs">
+                      <p><strong>Table Exists:</strong> {studentDebugData.tableExists ? '✅ YES' : '❌ NO'}</p>
+                      {studentDebugData.rawTableInfo?.testError && (
+                        <>
+                          <p><strong>Table Error:</strong> {studentDebugData.rawTableInfo.testError}</p>
+                          <p><strong>Error Code:</strong> {studentDebugData.rawTableInfo.errorCode || 'N/A'}</p>
+                          <p><strong>Error Details:</strong> {studentDebugData.rawTableInfo.errorDetails || 'N/A'}</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="font-medium">RLS (Row Level Security) Status:</p>
+                    <div className="bg-white p-2 rounded text-xs">
+                      <p><strong>Direct Test Success:</strong> {studentDebugData.rlsStatus?.directTestSuccess ? '✅ YES' : '❌ NO'}</p>
+                      <p><strong>Direct Test Records:</strong> {studentDebugData.rlsStatus?.directTestRecordCount || 0}</p>
+                      {studentDebugData.rlsStatus?.directTestError && (
+                        <p><strong>RLS Error:</strong> {studentDebugData.rlsStatus.directTestError}</p>
                       )}
                     </div>
                   </div>
@@ -1086,12 +1116,12 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     <p className="font-medium">Search Parameters:</p>
                     <div className="bg-white p-2 rounded text-xs">
                       <p><strong>Parent ID:</strong> {studentDebugData.parentID}</p>
-                      <p><strong>Query:</strong> SELECT * FROM studentrcd WHERE parentid = '{studentDebugData.parentID}'</p>
+                      <p><strong>Supabase Query:</strong> SELECT * FROM studentrcd WHERE parentid = '{studentDebugData.parentID}'</p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="font-medium">Table Structure:</p>
+                    <p className="font-medium">Supabase Table Structure:</p>
                     <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-32">
                       {JSON.stringify(studentDebugData.tableStructure, null, 2)}
                     </pre>
@@ -1101,7 +1131,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     <p className="font-medium">Students for this Parent ({studentDebugData.specificStudentsForParent.length}):</p>
                     <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
                       {studentDebugData.specificStudentsForParent.length === 0 ? (
-                        <p className="text-red-600">❌ No students found with parentid = "{studentDebugData.parentID}"</p>
+                        <p className="text-red-600">❌ No students found in Supabase with parentid = "{studentDebugData.parentID}"</p>
                       ) : (
                         studentDebugData.specificStudentsForParent.map((record: any, index: number) => (
                           <div key={index} className="mb-2 p-1 border-b">
@@ -1115,13 +1145,13 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   </div>
                   
                   <div>
-                    <p className="font-medium">All Students in Database ({studentDebugData.studentrcdRecords.length}):</p>
+                    <p className="font-medium">All Students in Supabase Database ({studentDebugData.studentrcdRecords.length}):</p>
                     <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
                       {studentDebugData.studentrcdRecords.length === 0 ? (
-                        <p className="text-red-600">❌ CRITICAL: studentrcd table is completely empty!</p>
+                        <p className="text-red-600">❌ CRITICAL: studentrcd table in Supabase is completely empty!</p>
                       ) : (
                         <>
-                          <p className="text-green-600 mb-2">✅ Found {studentDebugData.studentrcdRecords.length} total students</p>
+                          <p className="text-green-600 mb-2">✅ Found {studentDebugData.studentrcdRecords.length} total students in Supabase</p>
                           {studentDebugData.studentrcdRecords.slice(0, 10).map((record: any, index: number) => (
                             <div key={index} className="mb-2 p-1 border-b">
                               <strong>Student:</strong> {record.studentname || 'N/A'} | 
@@ -1139,12 +1169,13 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   </div>
 
                   <div>
-                    <p className="font-medium">Query Test Results:</p>
+                    <p className="font-medium">Supabase Query Test Results:</p>
                     <div className="bg-white p-2 rounded text-xs">
                       {studentDebugData.queryTest && (
                         <>
-                          <p><strong>Filter Approach:</strong> {studentDebugData.queryTest.filterApproach?.data?.length || 0} results</p>
-                          <p><strong>iLike Approach:</strong> {studentDebugData.queryTest.ilikeApproach?.data?.length || 0} results</p>
+                          <p><strong>Filter Approach:</strong> {studentDebugData.queryTest.filterApproach?.count || 0} results</p>
+                          <p><strong>iLike Approach:</strong> {studentDebugData.queryTest.ilikeApproach?.count || 0} results</p>
+                          <p><strong>Contains Approach:</strong> {studentDebugData.queryTest.containsApproach?.count || 0} results</p>
                           {studentDebugData.queryTest.rawSqlResult && (
                             <p><strong>Raw SQL:</strong> {studentDebugData.queryTest.rawSqlResult.rawData?.length || 0} results</p>
                           )}
@@ -1154,22 +1185,24 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   </div>
 
                   <div>
-                    <p className="font-medium">Diagnosis:</p>
+                    <p className="font-medium">Supabase Diagnosis:</p>
                     <div className="bg-white p-2 rounded text-xs">
                       {studentDebugData.studentrcdRecords.length === 0 ? (
                         <div className="text-red-600">
-                          <p><strong>❌ ISSUE IDENTIFIED:</strong> The studentrcd table is completely empty!</p>
-                          <p className="mt-1"><strong>Solution:</strong> You need to add student data to the studentrcd table in Supabase.</p>
+                          <p><strong>❌ ISSUE IDENTIFIED:</strong> The studentrcd table in Supabase is completely empty!</p>
+                          <p className="mt-1"><strong>Solution:</strong> You need to add student data to the studentrcd table in your Supabase database.</p>
                           <p className="mt-1"><strong>Expected format:</strong> Records with parentid = "{studentDebugData.parentID}" to link to this parent.</p>
+                          <p className="mt-1"><strong>Check:</strong> Go to your Supabase dashboard → Table Editor → studentrcd table</p>
                         </div>
                       ) : studentDebugData.specificStudentsForParent.length === 0 ? (
                         <div className="text-orange-600">
-                          <p><strong>⚠️ ISSUE IDENTIFIED:</strong> Students exist in the table, but none have parentid = "{studentDebugData.parentID}"</p>
-                          <p className="mt-1"><strong>Solution:</strong> Check that student records have the correct parentid value.</p>
+                          <p><strong>⚠️ ISSUE IDENTIFIED:</strong> Students exist in Supabase, but none have parentid = "{studentDebugData.parentID}"</p>
+                          <p className="mt-1"><strong>Solution:</strong> Check that student records in Supabase have the correct parentid value.</p>
+                          <p className="mt-1"><strong>Check:</strong> Verify the parentid field values in your Supabase studentrcd table.</p>
                         </div>
                       ) : (
                         <div className="text-green-600">
-                          <p><strong>✅ NO ISSUES:</strong> Students found successfully!</p>
+                          <p><strong>✅ NO ISSUES:</strong> Students found successfully in Supabase!</p>
                         </div>
                       )}
                     </div>
