@@ -6,9 +6,11 @@ export interface DebugResponse {
   parentrcdRecords: any[];
   specificUser: any;
   specificParent: any;
+  usersrcdTableInfo: any;
+  parentrcdTableInfo: any;
 }
 
-// Debug endpoint to check database contents.
+// Debug endpoint to check database contents and table structure.
 export const debug = api<{ username: string }, DebugResponse>(
   { expose: true, method: "GET", path: "/parent/debug/:username" },
   async ({ username }) => {
@@ -39,6 +41,17 @@ export const debug = api<{ username: string }, DebugResponse>(
         .eq('parentid', username)
         .single();
 
+      // Get table structure information
+      const { data: usersrcdTableInfo, error: usersTableError } = await supabase
+        .rpc('get_table_columns', { table_name: 'usersrcd' })
+        .then(result => result)
+        .catch(() => ({ data: null, error: 'Could not get table info' }));
+
+      const { data: parentrcdTableInfo, error: parentTableError } = await supabase
+        .rpc('get_table_columns', { table_name: 'parentrcd' })
+        .then(result => result)
+        .catch(() => ({ data: null, error: 'Could not get table info' }));
+
       console.log('Debug results:', {
         usersrcdCount: usersrcdRecords?.length || 0,
         parentrcdCount: parentrcdRecords?.length || 0,
@@ -47,14 +60,18 @@ export const debug = api<{ username: string }, DebugResponse>(
         usersError,
         parentError,
         specificError,
-        parentSpecificError
+        parentSpecificError,
+        usersTableError,
+        parentTableError
       });
 
       return {
         usersrcdRecords: usersrcdRecords || [],
         parentrcdRecords: parentrcdRecords || [],
         specificUser: specificUser || null,
-        specificParent: specificParent || null
+        specificParent: specificParent || null,
+        usersrcdTableInfo: usersrcdTableInfo || null,
+        parentrcdTableInfo: parentrcdTableInfo || null
       };
 
     } catch (error) {

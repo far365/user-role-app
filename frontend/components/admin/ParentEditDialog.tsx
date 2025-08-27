@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Save, X, AlertCircle } from "lucide-react";
+import { Save, X, AlertCircle, TestTube } from "lucide-react";
 import backend from "~backend/client";
 import type { Parent } from "~backend/parent/types";
 
@@ -41,6 +41,7 @@ interface ValidationErrors {
 
 export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: ParentEditDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editData, setEditData] = useState<EditableParentData>({
     parentName: parent.parentName,
@@ -113,6 +114,42 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
     setValidationErrors(errors);
     
     return Object.keys(errors).length === 0;
+  };
+
+  const handleTestUserUpdate = async () => {
+    try {
+      setIsTesting(true);
+      
+      const testName = `${editData.parentName}_TEST_${Date.now()}`;
+      const response = await backend.parent.testUserUpdate({
+        username: parent.parentID,
+        newDisplayName: testName,
+      });
+      
+      console.log("Test user update response:", response);
+      
+      if (response.success) {
+        toast({
+          title: "Test Successful",
+          description: `User update test passed. Display name was updated from "${response.beforeUpdate?.displayname}" to "${response.afterUpdate?.displayname}".`,
+        });
+      } else {
+        toast({
+          title: "Test Failed",
+          description: `User update test failed: ${response.error}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Test user update error:", error);
+      toast({
+        title: "Test Error",
+        description: "Failed to run user update test",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   const handleSave = async () => {
@@ -458,15 +495,28 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button onClick={onClose} variant="outline" disabled={isSaving}>
-            <X className="w-4 h-4 mr-2" />
-            Cancel
+        <div className="flex justify-between pt-4 border-t">
+          <Button 
+            onClick={handleTestUserUpdate} 
+            variant="outline" 
+            size="sm"
+            disabled={isTesting || isSaving}
+            className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+          >
+            <TestTube className="w-4 h-4 mr-2" />
+            {isTesting ? 'Testing...' : 'Test User Update'}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
+          
+          <div className="flex space-x-2">
+            <Button onClick={onClose} variant="outline" disabled={isSaving}>
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

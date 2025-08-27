@@ -115,26 +115,47 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
 
       // If parent name was updated, also update the displayname in usersrcd table
       if (updateData.parentName !== undefined) {
-        console.log(`[Parent API] Updating displayname in usersrcd table for username: ${username}`);
+        console.log(`[Parent API] === UPDATING USERSRCD TABLE ===`);
+        console.log(`[Parent API] Username: ${username}`);
         console.log(`[Parent API] New display name: ${updateData.parentName}`);
         
-        const { data: userUpdateData, error: userUpdateError } = await supabase
+        // First, let's check if the user record exists
+        const { data: existingUser, error: checkError } = await supabase
           .from('usersrcd')
-          .update({
-            displayname: updateData.parentName,
-            updatedat: new Date().toISOString()
-          })
+          .select('loginid, displayname')
           .eq('loginid', username)
-          .select('*');
+          .single();
 
-        console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
+        console.log(`[Parent API] Existing user check:`, { existingUser, checkError });
 
-        if (userUpdateError) {
-          console.log(`[Parent API] Warning: Failed to update displayname in usersrcd:`, userUpdateError);
-          // Don't fail the entire operation, just log the warning
-          // The parent record was successfully updated
+        if (checkError) {
+          console.log(`[Parent API] Warning: Could not find user record for loginid: ${username}`, checkError);
+        } else if (existingUser) {
+          console.log(`[Parent API] Found existing user, current displayname: ${existingUser.displayname}`);
+          
+          // Now update the displayname
+          const { data: userUpdateData, error: userUpdateError } = await supabase
+            .from('usersrcd')
+            .update({
+              displayname: updateData.parentName,
+              updatedat: new Date().toISOString()
+            })
+            .eq('loginid', username)
+            .select('loginid, displayname, updatedat');
+
+          console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
+
+          if (userUpdateError) {
+            console.log(`[Parent API] ERROR: Failed to update displayname in usersrcd:`, userUpdateError);
+            // Don't fail the entire operation, but log the error prominently
+            console.error(`[Parent API] CRITICAL: Display name sync failed for user ${username}:`, userUpdateError);
+          } else if (userUpdateData && userUpdateData.length > 0) {
+            console.log(`[Parent API] SUCCESS: Updated displayname in usersrcd table to: ${userUpdateData[0].displayname}`);
+          } else {
+            console.log(`[Parent API] WARNING: Update query succeeded but no data returned`);
+          }
         } else {
-          console.log(`[Parent API] Successfully updated displayname in usersrcd table`);
+          console.log(`[Parent API] WARNING: No user record found with loginid: ${username}`);
         }
       }
 
