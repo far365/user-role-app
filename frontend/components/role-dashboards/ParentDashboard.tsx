@@ -853,11 +853,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <CardContent className="text-blue-800">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <p><strong>Parent ID:</strong> {parentData.parentID}</p>
                   <p><strong>SMS Enabled:</strong> {parentData.sendSMS ? 'Yes' : 'No'}</p>
+                  <p><strong>Gender:</strong> {parentData.gender === 'M' ? 'Male' : parentData.gender === 'F' ? 'Female' : parentData.gender || 'Not specified'}</p>
                 </div>
                 <div>
-                  <p><strong>Gender:</strong> {parentData.gender === 'M' ? 'Male' : parentData.gender === 'F' ? 'Female' : parentData.gender || 'Not specified'}</p>
                   <p><strong>Main Phone:</strong> {parentData.parentPhoneMain || 'N/A'}</p>
                   <p><strong>Vehicle:</strong> {parentData.parentVehicleInfo || 'N/A'}</p>
                 </div>
