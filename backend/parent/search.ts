@@ -1,17 +1,17 @@
-import { api, APIError } from "encore.dev/api";
+import { api, APIError, Query } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 import type { Parent } from "./types";
 
 export interface SearchParentByNameRequest {
-  name: string;
+  name: Query<string>;
 }
 
 export interface SearchParentByPhoneRequest {
-  phone: string;
+  phone: Query<string>;
 }
 
 export interface SearchParentByAlternateNameRequest {
-  alternateName: string;
+  alternateName: Query<string>;
 }
 
 export interface SearchParentResponse {
@@ -27,11 +27,15 @@ export const searchByName = api<SearchParentByNameRequest, SearchParentResponse>
     }
 
     try {
+      console.log(`[Parent Search] Searching by name: "${name}"`);
+      
       const { data: parentRows, error } = await supabase
         .from('parentrcd')
         .select('*')
         .ilike('parentname', `%${name.trim()}%`)
         .order('parentname');
+
+      console.log(`[Parent Search] Query result:`, { parentRows, error });
 
       if (error) {
         console.error("Search by name error:", error);
@@ -62,6 +66,7 @@ export const searchByName = api<SearchParentByNameRequest, SearchParentResponse>
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
 
+      console.log(`[Parent Search] Found ${parents.length} parents`);
       return { parents };
 
     } catch (error) {
@@ -86,11 +91,15 @@ export const searchByPhone = api<SearchParentByPhoneRequest, SearchParentRespons
     }
 
     try {
+      console.log(`[Parent Search] Searching by phone: "${cleanPhone}"`);
+      
       const { data: parentRows, error } = await supabase
         .from('parentrcd')
         .select('*')
         .eq('parentphonemain', cleanPhone)
         .order('parentname');
+
+      console.log(`[Parent Search] Query result:`, { parentRows, error });
 
       if (error) {
         console.error("Search by phone error:", error);
@@ -116,11 +125,14 @@ export const searchByPhone = api<SearchParentByPhoneRequest, SearchParentRespons
         alternate3Name: row.alternate3_name || '',
         alternate3Phone: row.alternate3_phone || '',
         alternate3Relationship: row.alternate3_relationship || '',
-        alternate3VehicleInfo: row.alternate3_vehicleinfo || '',
+        alternate3VehicleInfo: r
+
+ow.alternate3_vehicleinfo || '',
         createdAt: row.created_at ? new Date(row.created_at) : new Date(),
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
 
+      console.log(`[Parent Search] Found ${parents.length} parents`);
       return { parents };
 
     } catch (error) {
@@ -143,6 +155,8 @@ export const searchByAlternateName = api<SearchParentByAlternateNameRequest, Sea
     }
 
     try {
+      console.log(`[Parent Search] Searching by alternate name: "${alternateName}"`);
+      
       const searchTerm = `%${alternateName.trim()}%`;
       
       const { data: parentRows, error } = await supabase
@@ -150,6 +164,8 @@ export const searchByAlternateName = api<SearchParentByAlternateNameRequest, Sea
         .select('*')
         .or(`alternate1_name.ilike.${searchTerm},alternate2_name.ilike.${searchTerm},alternate3_name.ilike.${searchTerm}`)
         .order('parentname');
+
+      console.log(`[Parent Search] Query result:`, { parentRows, error });
 
       if (error) {
         console.error("Search by alternate name error:", error);
@@ -180,6 +196,7 @@ export const searchByAlternateName = api<SearchParentByAlternateNameRequest, Sea
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
 
+      console.log(`[Parent Search] Found ${parents.length} parents`);
       return { parents };
 
     } catch (error) {

@@ -49,13 +49,30 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     setSearchType("name");
     
     try {
-      const response = await backend.parent.searchByName({ name: nameSearch.trim() });
-      setSearchResults(response.parents);
+      console.log("Searching by name:", nameSearch.trim());
+      
+      // Use query parameters for GET request
+      const searchParams = new URLSearchParams({ name: nameSearch.trim() });
+      const response = await fetch(`/api/parent/search/name?${searchParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Search response:", data);
+      
+      setSearchResults(data.parents || []);
       setSelectedParent(null);
       
       toast({
         title: "Search Complete",
-        description: `Found ${response.parents.length} parent(s) matching "${nameSearch}"`,
+        description: `Found ${data.parents?.length || 0} parent(s) matching "${nameSearch}"`,
       });
     } catch (error) {
       console.error("Search by name error:", error);
@@ -86,13 +103,30 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     setSearchType("phone");
     
     try {
-      const response = await backend.parent.searchByPhone({ phone: cleanPhone });
-      setSearchResults(response.parents);
+      console.log("Searching by phone:", cleanPhone);
+      
+      // Use query parameters for GET request
+      const searchParams = new URLSearchParams({ phone: cleanPhone });
+      const response = await fetch(`/api/parent/search/phone?${searchParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Search response:", data);
+      
+      setSearchResults(data.parents || []);
       setSelectedParent(null);
       
       toast({
         title: "Search Complete",
-        description: `Found ${response.parents.length} parent(s) with phone number ${cleanPhone}`,
+        description: `Found ${data.parents?.length || 0} parent(s) with phone number ${cleanPhone}`,
       });
     } catch (error) {
       console.error("Search by phone error:", error);
@@ -121,13 +155,30 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     setSearchType("alternate");
     
     try {
-      const response = await backend.parent.searchByAlternateName({ alternateName: alternateNameSearch.trim() });
-      setSearchResults(response.parents);
+      console.log("Searching by alternate name:", alternateNameSearch.trim());
+      
+      // Use query parameters for GET request
+      const searchParams = new URLSearchParams({ alternateName: alternateNameSearch.trim() });
+      const response = await fetch(`/api/parent/search/alternate-name?${searchParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Search response:", data);
+      
+      setSearchResults(data.parents || []);
       setSelectedParent(null);
       
       toast({
         title: "Search Complete",
-        description: `Found ${response.parents.length} parent(s) with alternate contact "${alternateNameSearch}"`,
+        description: `Found ${data.parents?.length || 0} parent(s) with alternate contact "${alternateNameSearch}"`,
       });
     } catch (error) {
       console.error("Search by alternate name error:", error);
