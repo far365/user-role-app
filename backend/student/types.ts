@@ -1,13 +1,13 @@
 export interface Student {
-  studentID: string;
-  parentID: string;
+  studentId: string;
+  studentStatus: string;
   studentName: string;
-  grade?: string;
-  class?: string;
-  studentStatus?: string;
-  dateOfBirth?: Date;
-  emergencyContact?: string;
-  medicalInfo?: string;
+  grade: string;
+  classBuilding: string;
+  parentId: string;
+  attendanceStatus: string;
+  dismissalInstructions: string;
+  otherNote: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -23,15 +23,15 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
       }
 
       const students: Student[] = (studentRows || []).map(row => ({
-        studentID: row.studentid || row.student_id || '',
-        parentID: row.parentid || row.parent_id || '',
-        studentName: row.studentname || row.student_name || '',
+        studentId: row.studentid || '',
+        studentStatus: row.studentstatus || 'Active',
+        studentName: row.studentname || '',
         grade: row.grade || '',
-        class: row.class || row.classname || '',
-        studentStatus: row.studentstatus || row.student_status || 'Active',
-        dateOfBirth: row.dateofbirth || row.date_of_birth ? new Date(row.dateofbirth || row.date_of_birth) : undefined,
-        emergencyContact: row.emergencycontact || row.emergency_contact || '',
-        medicalInfo: row.medicalinfo || row.medical_info || '',
+        classBuilding: row.classbuilding || '',
+        parentId: row.parentid || '',
+        attendanceStatus: row.attendencestatus || '',
+        dismissalInstructions: row.dismissalinstructions || '',
+        otherNote: row.othernote || '',
         createdAt: row.created_at ? new Date(row.created_at) : new Date(),
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));

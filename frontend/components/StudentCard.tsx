@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Calendar, GraduationCap, AlertCircle, Heart } from "lucide-react";
+import { User, GraduationCap, Building, CheckCircle, AlertTriangle, FileText, StickyNote } from "lucide-react";
 import type { Student } from "~backend/student/types";
 
 interface StudentCardProps {
@@ -8,11 +8,6 @@ interface StudentCardProps {
 }
 
 export function StudentCard({ student }: StudentCardProps) {
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return null;
-    return new Date(date).toLocaleDateString();
-  };
-
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "active":
@@ -21,6 +16,21 @@ export function StudentCard({ student }: StudentCardProps) {
         return "bg-red-100 text-red-800";
       case "transferred":
         return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getAttendanceColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "present":
+        return "bg-green-100 text-green-800";
+      case "absent":
+        return "bg-red-100 text-red-800";
+      case "late":
+        return "bg-yellow-100 text-yellow-800";
+      case "excused":
+        return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -42,53 +52,58 @@ export function StudentCard({ student }: StudentCardProps) {
         </div>
 
         <div className="space-y-2">
-          {student.studentID && (
+          {student.studentId && (
             <div className="flex items-center space-x-2 text-xs text-gray-600">
               <span className="font-medium">ID:</span>
-              <span className="font-mono">{student.studentID}</span>
+              <span className="font-mono">{student.studentId}</span>
             </div>
           )}
 
-          {(student.grade || student.class) && (
+          {student.grade && (
             <div className="flex items-center space-x-2 text-xs">
               <GraduationCap className="w-3 h-3 text-gray-500" />
               <span className="text-gray-600">
-                {student.grade && student.class 
-                  ? `Grade ${student.grade} - ${student.class}`
-                  : student.grade 
-                    ? `Grade ${student.grade}`
-                    : student.class
-                      ? `Class ${student.class}`
-                      : 'Grade/Class not specified'
-                }
+                Grade {student.grade}
               </span>
             </div>
           )}
 
-          {student.dateOfBirth && (
+          {student.classBuilding && (
             <div className="flex items-center space-x-2 text-xs">
-              <Calendar className="w-3 h-3 text-gray-500" />
+              <Building className="w-3 h-3 text-gray-500" />
               <span className="text-gray-600">
-                Born: {formatDate(student.dateOfBirth)}
+                {student.classBuilding}
               </span>
             </div>
           )}
 
-          {student.emergencyContact && (
+          {student.attendanceStatus && (
             <div className="flex items-center space-x-2 text-xs">
-              <AlertCircle className="w-3 h-3 text-orange-500" />
-              <span className="text-gray-600">
-                Emergency: {student.emergencyContact}
-              </span>
+              <CheckCircle className="w-3 h-3 text-gray-500" />
+              <span className="text-gray-600">Attendance:</span>
+              <Badge className={getAttendanceColor(student.attendanceStatus)} variant="outline">
+                {student.attendanceStatus}
+              </Badge>
             </div>
           )}
 
-          {student.medicalInfo && (
-            <div className="flex items-center space-x-2 text-xs">
-              <Heart className="w-3 h-3 text-red-500" />
-              <span className="text-gray-600">
-                Medical: {student.medicalInfo}
-              </span>
+          {student.dismissalInstructions && (
+            <div className="flex items-start space-x-2 text-xs">
+              <FileText className="w-3 h-3 text-orange-500 mt-0.5" />
+              <div className="flex-1">
+                <span className="text-gray-600 font-medium">Dismissal:</span>
+                <p className="text-gray-600 mt-1">{student.dismissalInstructions}</p>
+              </div>
+            </div>
+          )}
+
+          {student.otherNote && (
+            <div className="flex items-start space-x-2 text-xs">
+              <StickyNote className="w-3 h-3 text-purple-500 mt-0.5" />
+              <div className="flex-1">
+                <span className="text-gray-600 font-medium">Note:</span>
+                <p className="text-gray-600 mt-1">{student.otherNote}</p>
+              </div>
             </div>
           )}
         </div>
