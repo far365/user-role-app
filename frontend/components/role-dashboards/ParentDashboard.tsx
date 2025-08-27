@@ -105,7 +105,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           alternate3VehicleInfo: response.parent.alternate3VehicleInfo,
         });
 
-        // Fetch student data
+        // Fetch student data using the correct parentID from the parent record
         await fetchStudentData(response.parent.parentID);
       } catch (error) {
         console.error("Failed to fetch parent data:", error);
@@ -128,6 +128,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsLoadingStudents(true);
       setStudentError(null);
       console.log("Fetching student data for parent ID:", parentID);
+      console.log("This will query studentrcd table where parentid =", parentID);
       
       const response = await backend.student.getByParentID({ parentID });
       console.log("Student data response:", response);
@@ -968,7 +969,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {studentData.map((student) => (
-                    <StudentCard key={student.studentID} student={student} />
+                    <StudentCard key={student.studentId} student={student} />
                   ))}
                 </div>
               )}
