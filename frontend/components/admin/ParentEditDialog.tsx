@@ -146,6 +146,10 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
         if (response.updateQuery) {
           errorDetails += `\n\nSQL attempted: ${response.updateQuery}`;
         }
+
+        if (response.supabaseError) {
+          errorDetails += `\n\nSupabase error details: ${JSON.stringify(response.supabaseError, null, 2)}`;
+        }
         
         toast({
           title: "Test Failed",

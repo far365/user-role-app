@@ -162,24 +162,65 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
             const updateQuery = `UPDATE usersrcd SET ${Object.keys(userUpdatePayload).map(k => `${k} = '${userUpdatePayload[k]}'`).join(', ')} WHERE loginid = '${username}'`;
             console.log(`[Parent API] Equivalent SQL:`, updateQuery);
             
-            // Now update the displayname
-            const { data: userUpdateData, error: userUpdateError } = await supabase
+            // Try multiple update methods to ensure it works
+            let userUpdateSuccess = false;
+            let userUpdateData = null;
+            let userUpdateError = null;
+
+            // Method 1: Standard update with select
+            console.log(`[Parent API] Attempting Method 1: update().select()`);
+            const { data: updateResult1, error: updateError1 } = await supabase
               .from('usersrcd')
               .update(userUpdatePayload)
               .eq('loginid', username)
               .select('*');
 
-            console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
+            console.log(`[Parent API] Method 1 result:`, { updateResult1, updateError1 });
 
-            if (userUpdateError) {
-              console.log(`[Parent API] ERROR: Failed to update displayname in usersrcd:`, userUpdateError);
-              console.error(`[Parent API] CRITICAL: Display name sync failed for user ${username}:`, userUpdateError);
-            } else if (userUpdateData && userUpdateData.length > 0) {
+            if (!updateError1 && updateResult1 && updateResult1.length > 0) {
+              userUpdateSuccess = true;
+              userUpdateData = updateResult1;
+              console.log(`[Parent API] Method 1 succeeded`);
+            } else {
+              console.log(`[Parent API] Method 1 failed, trying Method 2`);
+              
+              // Method 2: Update without select, then fetch separately
+              const { error: updateError2 } = await supabase
+                .from('usersrcd')
+                .update(userUpdatePayload)
+                .eq('loginid', username);
+
+              console.log(`[Parent API] Method 2 update result:`, { updateError2 });
+
+              if (!updateError2) {
+                // Fetch the updated record
+                const { data: fetchResult, error: fetchError } = await supabase
+                  .from('usersrcd')
+                  .select('*')
+                  .eq('loginid', username)
+                  .single();
+
+                console.log(`[Parent API] Method 2 fetch result:`, { fetchResult, fetchError });
+
+                if (!fetchError && fetchResult) {
+                  userUpdateSuccess = true;
+                  userUpdateData = [fetchResult];
+                  console.log(`[Parent API] Method 2 succeeded`);
+                } else {
+                  userUpdateError = fetchError;
+                }
+              } else {
+                userUpdateError = updateError2;
+              }
+            }
+
+            if (userUpdateSuccess && userUpdateData) {
               const updatedDisplayName = userUpdateData[0].displayname || userUpdateData[0].display_name || userUpdateData[0].displayName;
               console.log(`[Parent API] SUCCESS: Updated displayname in usersrcd table to: ${updatedDisplayName}`);
               console.log(`[Parent API] Full updated user record:`, userUpdateData[0]);
             } else {
-              console.log(`[Parent API] WARNING: Update query succeeded but no data returned`);
+              console.log(`[Parent API] ERROR: Failed to update displayname in usersrcd:`, userUpdateError);
+              console.error(`[Parent API] CRITICAL: Display name sync failed for user ${username}:`, userUpdateError);
             }
           }
         } else {

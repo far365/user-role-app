@@ -15,6 +15,7 @@ export interface TestUserUpdateResponse {
   tableSchema?: any;
   availableColumns?: string[];
   updateQuery?: string;
+  supabaseError?: any;
 }
 
 // Test endpoint to verify user table update functionality.
@@ -41,7 +42,8 @@ export const testUserUpdate = api<TestUserUpdateRequest, TestUserUpdateResponse>
           updateResult: null,
           error: `Could not find user: ${beforeError.message}`,
           tableSchema: null,
-          availableColumns: []
+          availableColumns: [],
+          supabaseError: beforeError
         };
       }
 
@@ -77,14 +79,41 @@ export const testUserUpdate = api<TestUserUpdateRequest, TestUserUpdateResponse>
       const updateQuery = `UPDATE usersrcd SET ${Object.keys(updatePayload).map(k => `${k} = '${updatePayload[k]}'`).join(', ')} WHERE loginid = '${username}'`;
       console.log(`[Test] Equivalent SQL:`, updateQuery);
 
-      // Attempt to update
-      const { data: updateResult, error: updateError } = await supabase
+      // Method 1: Try the standard update with select
+      console.log(`[Test] Attempting Method 1: update().select()`);
+      const { data: updateResult1, error: updateError1 } = await supabase
         .from('usersrcd')
         .update(updatePayload)
         .eq('loginid', username)
         .select('*');
 
-      console.log(`[Test] Update result:`, { updateResult, updateError });
+      console.log(`[Test] Method 1 result:`, { updateResult1, updateError1 });
+
+      if (updateError1) {
+        console.log(`[Test] Method 1 failed, trying Method 2`);
+        
+        // Method 2: Try update without select, then fetch separately
+        const { error: updateError2 } = await supabase
+          .from('usersrcd')
+          .update(updatePayload)
+          .eq('loginid', username);
+
+        console.log(`[Test] Method 2 update result:`, { updateError2 });
+
+        if (updateError2) {
+          return {
+            success: false,
+            beforeUpdate: beforeUpdate,
+            afterUpdate: null,
+            updateResult: null,
+            error: `Both update methods failed. Error 1: ${updateError1.message}, Error 2: ${updateError2.message}`,
+            tableSchema: beforeUpdate,
+            availableColumns: availableColumns,
+            updateQuery: updateQuery,
+            supabaseError: { error1: updateError1, error2: updateError2 }
+          };
+        }
+      }
 
       // Get updated user data
       const { data: afterUpdate, error: afterError } = await supabase
@@ -95,15 +124,18 @@ export const testUserUpdate = api<TestUserUpdateRequest, TestUserUpdateResponse>
 
       console.log(`[Test] After update:`, { afterUpdate, afterError });
 
+      const success = !updateError1 && !afterError;
+      
       return {
-        success: !updateError,
+        success: success,
         beforeUpdate: beforeUpdate || null,
         afterUpdate: afterUpdate || null,
-        updateResult: updateResult || null,
-        error: updateError ? updateError.message : undefined,
+        updateResult: updateResult1 || null,
+        error: updateError1 ? updateError1.message : (afterError ? afterError.message : undefined),
         tableSchema: beforeUpdate,
         availableColumns: availableColumns,
-        updateQuery: updateQuery
+        updateQuery: updateQuery,
+        supabaseError: updateError1 || afterError || null
       };
 
     } catch (error) {
@@ -115,7 +147,8 @@ export const testUserUpdate = api<TestUserUpdateRequest, TestUserUpdateResponse>
         updateResult: null,
         error: error instanceof Error ? error.message : "Unknown error",
         tableSchema: null,
-        availableColumns: []
+        availableColumns: [],
+        supabaseError: error
       };
     }
   }
