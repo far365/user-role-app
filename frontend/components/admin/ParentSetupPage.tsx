@@ -167,19 +167,8 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     }
   };
 
-  const handleSelectParent = (parent: Parent) => {
+  const handleEditParent = (parent: Parent) => {
     setSelectedParent(parent);
-  };
-
-  const handleEditParent = () => {
-    if (!selectedParent) {
-      toast({
-        title: "No Parent Selected",
-        description: "Please select a parent record to edit",
-        variant: "destructive",
-      });
-      return;
-    }
     setIsEditDialogOpen(true);
   };
 
@@ -227,15 +216,6 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
         <Button onClick={handleAddParent} className="bg-green-600 hover:bg-green-700">
           <Plus className="w-4 h-4 mr-2" />
           Add Parent
-        </Button>
-        <Button 
-          onClick={handleEditParent} 
-          variant="outline"
-          disabled={!selectedParent}
-          className="border-blue-300 text-blue-700 hover:bg-blue-50"
-        >
-          <Edit className="w-4 h-4 mr-2" />
-          Edit Selected Parent
         </Button>
         <Button 
           onClick={handleDebugSearch} 
@@ -302,19 +282,14 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
         <Card>
           <CardHeader>
             <CardTitle>Search Results ({searchResults.length})</CardTitle>
-            <CardDescription>Click on a parent record to select it for editing</CardDescription>
+            <CardDescription>Parent records found matching your search criteria</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {searchResults.map((parent) => (
                 <div
                   key={parent.parentID}
-                  onClick={() => handleSelectParent(parent)}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                    selectedParent?.parentID === parent.parentID
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className="p-4 border rounded-lg hover:shadow-md transition-all border-gray-200 hover:border-gray-300"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -340,12 +315,18 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
                           <p><strong>Alt Contact 3:</strong> {parent.alternate3Name} - {formatPhone(parent.alternate3Phone)}</p>
                         )}
                       </div>
-                    </div>
-                    {selectedParent?.parentID === parent.parentID && (
-                      <div className="text-blue-600">
-                        <AlertCircle className="w-5 h-5" />
+                      <div className="mt-3">
+                        <Button 
+                          onClick={() => handleEditParent(parent)}
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit Parent
+                        </Button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               ))}
