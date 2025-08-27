@@ -4,13 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X } from "lucide-react";
+import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
+import { StudentCard } from "../StudentCard";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
+import type { Student } from "~backend/student/types";
 
 interface ParentDashboardProps {
   user: User;
@@ -41,8 +43,11 @@ interface ValidationErrors {
 
 export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
+  const [studentData, setStudentData] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -99,6 +104,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           alternate3Relationship: response.parent.alternate3Relationship,
           alternate3VehicleInfo: response.parent.alternate3VehicleInfo,
         });
+
+        // Fetch student data
+        await fetchStudentData(response.parent.parentID);
       } catch (error) {
         console.error("Failed to fetch parent data:", error);
         setError(error instanceof Error ? error.message : "Failed to load parent information");
@@ -114,6 +122,25 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
     fetchParentData();
   }, [user.loginID, toast]);
+
+  const fetchStudentData = async (parentID: string) => {
+    try {
+      setIsLoadingStudents(true);
+      setStudentError(null);
+      console.log("Fetching student data for parent ID:", parentID);
+      
+      const response = await backend.student.getByParentID({ parentID });
+      console.log("Student data response:", response);
+      
+      setStudentData(response.students);
+    } catch (error) {
+      console.error("Failed to fetch student data:", error);
+      setStudentError(error instanceof Error ? error.message : "Failed to load student information");
+      // Don't show toast for student errors as it's not critical
+    } finally {
+      setIsLoadingStudents(false);
+    }
+  };
 
   const validateAlternateContact = (contactNumber: number, data: EditableParentData): string[] => {
     const errors: string[] = [];
@@ -901,6 +928,52 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </CardContent>
             </Card>
           </div>
+
+          {/* Student Information Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <GraduationCap className="w-5 h-5" />
+                <span>My Students</span>
+                {studentData.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {studentData.length}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Information about your enrolled students
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStudents ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  <span className="ml-2 text-gray-600">Loading student information...</span>
+                </div>
+              ) : studentError ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">Unable to load student information</p>
+                  <p className="text-xs text-gray-500">{studentError}</p>
+                </div>
+              ) : studentData.length === 0 ? (
+                <div className="text-center py-8">
+                  <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No students found</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    No student records are currently associated with your parent account.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {studentData.map((student) => (
+                    <StudentCard key={student.studentID} student={student} />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
