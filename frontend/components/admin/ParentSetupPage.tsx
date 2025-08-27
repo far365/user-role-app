@@ -92,7 +92,6 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     try {
       console.log("=== SEARCH DEBUG ===");
       console.log("Searching by name:", nameSearch.trim());
-      console.log("Using backend client:", backend);
       
       // Method 1: Try using the backend client directly
       try {
