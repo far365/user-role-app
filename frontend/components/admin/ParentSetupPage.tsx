@@ -234,16 +234,18 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
+      {/* Back Button */}
+      <div>
         <Button onClick={onBack} variant="outline" size="sm">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Parent Setup</h2>
-          <p className="text-gray-600">Add new parent records or edit existing ones</p>
-        </div>
+      </div>
+
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Parent Setup</h2>
+        <p className="text-gray-600">Add new parent records or edit existing ones</p>
       </div>
 
       {/* Action Buttons */}
