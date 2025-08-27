@@ -132,32 +132,55 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
           console.log(`[Parent API] Warning: Could not find user record for loginid: ${username}`, checkError);
         } else if (existingUser) {
           console.log(`[Parent API] Found existing user, current displayname: ${existingUser.displayname}`);
-          console.log(`[Parent API] Available user columns:`, Object.keys(existingUser));
           
-          // Build update payload for user record - only update displayname
-          const userUpdatePayload = {
-            displayname: updateData.parentName
-          };
-
-          console.log(`[Parent API] User update payload:`, userUpdatePayload);
+          // Get available columns to determine correct column name
+          const availableColumns = Object.keys(existingUser);
+          console.log(`[Parent API] Available user columns:`, availableColumns);
           
-          // Now update the displayname
-          const { data: userUpdateData, error: userUpdateError } = await supabase
-            .from('usersrcd')
-            .update(userUpdatePayload)
-            .eq('loginid', username)
-            .select('loginid, displayname');
-
-          console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
-
-          if (userUpdateError) {
-            console.log(`[Parent API] ERROR: Failed to update displayname in usersrcd:`, userUpdateError);
-            // Don't fail the entire operation, but log the error prominently
-            console.error(`[Parent API] CRITICAL: Display name sync failed for user ${username}:`, userUpdateError);
-          } else if (userUpdateData && userUpdateData.length > 0) {
-            console.log(`[Parent API] SUCCESS: Updated displayname in usersrcd table to: ${userUpdateData[0].displayname}`);
+          // Build update payload for user record - try different possible column names
+          const userUpdatePayload: any = {};
+          
+          if (availableColumns.includes('displayname')) {
+            userUpdatePayload.displayname = updateData.parentName;
+            console.log(`[Parent API] Using 'displayname' column`);
+          } else if (availableColumns.includes('display_name')) {
+            userUpdatePayload.display_name = updateData.parentName;
+            console.log(`[Parent API] Using 'display_name' column`);
+          } else if (availableColumns.includes('displayName')) {
+            userUpdatePayload.displayName = updateData.parentName;
+            console.log(`[Parent API] Using 'displayName' column`);
           } else {
-            console.log(`[Parent API] WARNING: Update query succeeded but no data returned`);
+            console.log(`[Parent API] ERROR: No displayname column found. Available columns: ${availableColumns.join(', ')}`);
+            // Don't fail the entire operation, just log the error
+            console.error(`[Parent API] CRITICAL: No displayname column found for user ${username}`);
+          }
+
+          if (Object.keys(userUpdatePayload).length > 0) {
+            console.log(`[Parent API] User update payload:`, userUpdatePayload);
+            
+            // Create equivalent SQL for debugging
+            const updateQuery = `UPDATE usersrcd SET ${Object.keys(userUpdatePayload).map(k => `${k} = '${userUpdatePayload[k]}'`).join(', ')} WHERE loginid = '${username}'`;
+            console.log(`[Parent API] Equivalent SQL:`, updateQuery);
+            
+            // Now update the displayname
+            const { data: userUpdateData, error: userUpdateError } = await supabase
+              .from('usersrcd')
+              .update(userUpdatePayload)
+              .eq('loginid', username)
+              .select('*');
+
+            console.log(`[Parent API] User update result:`, { userUpdateData, userUpdateError });
+
+            if (userUpdateError) {
+              console.log(`[Parent API] ERROR: Failed to update displayname in usersrcd:`, userUpdateError);
+              console.error(`[Parent API] CRITICAL: Display name sync failed for user ${username}:`, userUpdateError);
+            } else if (userUpdateData && userUpdateData.length > 0) {
+              const updatedDisplayName = userUpdateData[0].displayname || userUpdateData[0].display_name || userUpdateData[0].displayName;
+              console.log(`[Parent API] SUCCESS: Updated displayname in usersrcd table to: ${updatedDisplayName}`);
+              console.log(`[Parent API] Full updated user record:`, userUpdateData[0]);
+            } else {
+              console.log(`[Parent API] WARNING: Update query succeeded but no data returned`);
+            }
           }
         } else {
           console.log(`[Parent API] WARNING: No user record found with loginid: ${username}`);

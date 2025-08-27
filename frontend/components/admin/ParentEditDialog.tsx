@@ -129,14 +129,27 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
       console.log("Test user update response:", response);
       
       if (response.success) {
+        const beforeName = response.beforeUpdate?.displayname || response.beforeUpdate?.display_name || response.beforeUpdate?.displayName || 'N/A';
+        const afterName = response.afterUpdate?.displayname || response.afterUpdate?.display_name || response.afterUpdate?.displayName || 'N/A';
+        
         toast({
           title: "Test Successful",
-          description: `User update test passed. Display name was updated from "${response.beforeUpdate?.displayname}" to "${response.afterUpdate?.displayname}".`,
+          description: `User update test passed. Display name was updated from "${beforeName}" to "${afterName}".`,
         });
       } else {
+        let errorDetails = `User update test failed: ${response.error}`;
+        
+        if (response.availableColumns && response.availableColumns.length > 0) {
+          errorDetails += `\n\nAvailable columns: ${response.availableColumns.join(', ')}`;
+        }
+        
+        if (response.updateQuery) {
+          errorDetails += `\n\nSQL attempted: ${response.updateQuery}`;
+        }
+        
         toast({
           title: "Test Failed",
-          description: `User update test failed: ${response.error}`,
+          description: errorDetails,
           variant: "destructive",
         });
       }
