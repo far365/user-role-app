@@ -7,6 +7,8 @@ export interface StudentDebugResponse {
   specificStudentsForParent: any[];
   tableStructure: any;
   parentID: string;
+  queryTest: any;
+  directQueryResult: any;
 }
 
 // Debug endpoint to check student table contents and structure.
@@ -32,6 +34,12 @@ export const debug = api<{ parentID: string }, StudentDebugResponse>(
         .select('*')
         .eq('parentid', parentID);
 
+      // Test the exact same query that should work
+      const { data: directQueryResult, error: directQueryError } = await supabase
+        .from('studentrcd')
+        .select('*')
+        .eq('parentid', 'p0001');
+
       // Try to get table structure
       let tableStructure = null;
       try {
@@ -51,14 +59,38 @@ export const debug = api<{ parentID: string }, StudentDebugResponse>(
         console.log("Could not get table structure:", err);
       }
 
+      // Test different query approaches
+      let queryTest = null;
+      try {
+        // Test with raw SQL-like approach
+        const { data: testData, error: testError } = await supabase
+          .from('studentrcd')
+          .select('*')
+          .filter('parentid', 'eq', parentID);
+        
+        queryTest = {
+          testData,
+          testError,
+          testMethod: 'filter approach'
+        };
+      } catch (err) {
+        queryTest = {
+          error: err,
+          testMethod: 'filter approach failed'
+        };
+      }
+
       console.log('Student Debug results:', {
         studentrcdCount: studentrcdRecords?.length || 0,
         parentrcdCount: parentrcdRecords?.length || 0,
         specificStudentsCount: specificStudentsForParent?.length || 0,
+        directQueryCount: directQueryResult?.length || 0,
         studentError,
         parentError,
         specificError,
-        tableStructure
+        directQueryError,
+        tableStructure,
+        queryTest
       });
 
       return {
@@ -66,7 +98,9 @@ export const debug = api<{ parentID: string }, StudentDebugResponse>(
         parentrcdRecords: parentrcdRecords || [],
         specificStudentsForParent: specificStudentsForParent || [],
         tableStructure: tableStructure || null,
-        parentID: parentID
+        parentID: parentID,
+        queryTest: queryTest || null,
+        directQueryResult: directQueryResult || []
       };
 
     } catch (error) {

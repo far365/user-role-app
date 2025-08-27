@@ -20,12 +20,11 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
       console.log(`[Student API] Sample of all students in table:`, allStudents);
       console.log(`[Student API] All students query error:`, allError);
 
-      // Now try the specific query
+      // Now try the specific query - make sure we're not ordering by a field that might not exist
       const { data: studentRows, error } = await supabase
         .from('studentrcd')
         .select('*')
-        .eq('parentid', parentID)
-        .order('studentname');
+        .eq('parentid', parentID);
 
       console.log(`[Student API] Specific student query result:`, { 
         studentRows, 
@@ -38,13 +37,22 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
         throw APIError.internal(`Failed to fetch students: ${error.message}`);
       }
 
-      // Log the raw data to see what we're working with
-      if (studentRows && studentRows.length > 0) {
-        console.log(`[Student API] First student raw data:`, studentRows[0]);
-        console.log(`[Student API] Available columns:`, Object.keys(studentRows[0]));
+      // Check if we got any results
+      if (!studentRows) {
+        console.log(`[Student API] No student rows returned (null result)`);
+        return { students: [] };
       }
 
-      const students: Student[] = (studentRows || []).map((row, index) => {
+      if (studentRows.length === 0) {
+        console.log(`[Student API] No students found for parent ID: ${parentID}`);
+        return { students: [] };
+      }
+
+      // Log the raw data to see what we're working with
+      console.log(`[Student API] First student raw data:`, studentRows[0]);
+      console.log(`[Student API] Available columns:`, Object.keys(studentRows[0]));
+
+      const students: Student[] = studentRows.map((row, index) => {
         console.log(`[Student API] Processing student ${index + 1}:`, row);
         
         const student = {
