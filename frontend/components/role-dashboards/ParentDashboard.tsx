@@ -17,6 +17,7 @@ interface ParentDashboardProps {
 }
 
 interface EditableParentData {
+  parentName: string;
   parentPhoneMain: string;
   sendSMS: boolean;
   parentVehicleInfo: string;
@@ -48,6 +49,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editData, setEditData] = useState<EditableParentData>({
+    parentName: '',
     parentPhoneMain: '',
     sendSMS: false,
     parentVehicleInfo: '',
@@ -80,6 +82,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         
         // Initialize edit data
         setEditData({
+          parentName: response.parent.parentName,
           parentPhoneMain: response.parent.parentPhoneMain,
           sendSMS: response.parent.sendSMS,
           parentVehicleInfo: response.parent.parentVehicleInfo,
@@ -138,6 +141,11 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
     
+    // Validate parent name is required
+    if (!editData.parentName.trim()) {
+      errors.parentName = "Parent Name is required";
+    }
+    
     // Validate alternate contacts
     const alternate1Errors = validateAlternateContact(1, editData);
     const alternate2Errors = validateAlternateContact(2, editData);
@@ -184,6 +192,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const handleCancel = () => {
     if (parentData) {
       setEditData({
+        parentName: parentData.parentName,
         parentPhoneMain: parentData.parentPhoneMain,
         sendSMS: parentData.sendSMS,
         parentVehicleInfo: parentData.parentVehicleInfo,
@@ -228,10 +237,18 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsEditing(false);
       setValidationErrors({});
       
-      toast({
-        title: "Success",
-        description: "Parent information updated successfully",
-      });
+      // Show success message with note about display name update if parent name changed
+      if (editData.parentName !== parentData?.parentName) {
+        toast({
+          title: "Success",
+          description: "Parent information updated successfully. Display name has been synchronized across both tables.",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Parent information updated successfully.",
+        });
+      }
     } catch (error) {
       console.error("Failed to update parent data:", error);
       toast({
@@ -460,12 +477,30 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 <CardDescription>Your primary contact details and information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Parent Name</p>
-                    <p className="text-sm text-gray-900">{parentData.parentName || 'Not provided'}</p>
-                  </div>
-                  
+                <div>
+                  <Label htmlFor="parentName" className="text-sm font-medium text-gray-700">Parent Name</Label>
+                  {isEditing ? (
+                    <div>
+                      <Input
+                        id="parentName"
+                        type="text"
+                        value={editData.parentName}
+                        onChange={(e) => handleInputChange('parentName', e.target.value)}
+                        placeholder="Enter parent name"
+                        className={`mt-1 ${validationErrors.parentName ? 'border-red-300' : ''}`}
+                      />
+                      {validationErrors.parentName && (
+                        <p className="text-sm text-red-600 mt-1">{validationErrors.parentName}</p>
+                      )}
+                      {editData.parentName !== parentData.parentName && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          This will also update your display name in the user record.
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1">{parentData.parentName || 'Not provided'}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

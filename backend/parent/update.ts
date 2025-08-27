@@ -109,6 +109,27 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
         throw APIError.notFound("Parent record not found");
       }
 
+      // If parent name was updated, also update the displayname in usersrcd table
+      if (updateData.parentName !== undefined) {
+        console.log(`[Parent API] Updating displayname in usersrcd table for username: ${username}`);
+        
+        const { error: userUpdateError } = await supabase
+          .from('usersrcd')
+          .update({
+            displayname: updateData.parentName,
+            updatedat: new Date().toISOString()
+          })
+          .eq('loginid', username);
+
+        if (userUpdateError) {
+          console.log(`[Parent API] Warning: Failed to update displayname in usersrcd:`, userUpdateError);
+          // Don't fail the entire operation, just log the warning
+          // The parent record was successfully updated
+        } else {
+          console.log(`[Parent API] Successfully updated displayname in usersrcd table`);
+        }
+      }
+
       console.log(`[Parent API] Successfully updated parent data:`, updatedParentRow);
 
       const parent: Parent = {

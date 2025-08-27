@@ -136,6 +136,19 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
       
       onParentUpdated(response.parent);
       
+      // Show success message with note about display name update
+      if (editData.parentName !== parent.parentName) {
+        toast({
+          title: "Success",
+          description: "Parent information updated successfully. Display name has been synchronized across both tables.",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Parent information updated successfully.",
+        });
+      }
+      
     } catch (error) {
       console.error("Failed to update parent data:", error);
       toast({
@@ -177,6 +190,8 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
           <DialogTitle>Edit Parent Record</DialogTitle>
           <DialogDescription>
             Editing information for {parent.parentName} (ID: {parent.parentID})
+            <br />
+            <span className="text-sm text-blue-600">Note: Updating the parent name will also update the display name in the user record.</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -218,6 +233,11 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
                 />
                 {validationErrors.parentName && (
                   <p className="text-sm text-red-600 mt-1">{validationErrors.parentName}</p>
+                )}
+                {editData.parentName !== parent.parentName && (
+                  <p className="text-xs text-blue-600 mt-1">
+                    This will also update the display name in the user record.
+                  </p>
                 )}
               </div>
               
