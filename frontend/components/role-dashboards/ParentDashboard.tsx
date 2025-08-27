@@ -546,6 +546,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       name={parentData.parentName || 'Parent'}
                       phone={parentData.parentPhoneMain || ''}
                       title="Parent Contact"
+                      parentID={parentData.parentID}
                     />
                   </div>
                 )}
@@ -640,6 +641,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       name={parentData.alternate1Name}
                       phone={parentData.alternate1Phone}
                       title="Alternate Contact 1"
+                      parentID={parentData.parentID}
                     />
                   </div>
                 )}
@@ -737,6 +739,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       name={parentData.alternate2Name}
                       phone={parentData.alternate2Phone}
                       title="Alternate Contact 2"
+                      parentID={parentData.parentID}
                     />
                   </div>
                 )}
@@ -831,6 +834,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       name={parentData.alternate3Name}
                       phone={parentData.alternate3Phone}
                       title="Alternate Contact 3"
+                      parentID={parentData.parentID}
                     />
                   </div>
                 )}
@@ -870,6 +874,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     name={parentData.parentName || 'Parent'}
                     phone={parentData.parentPhoneMain || ''}
                     title="Parent Contact Information"
+                    parentID={parentData.parentID}
                   />
                 </div>
               )}

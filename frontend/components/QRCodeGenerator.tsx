@@ -8,9 +8,10 @@ interface QRCodeGeneratorProps {
   name: string;
   phone: string;
   title: string;
+  parentID?: string;
 }
 
-export function QRCodeGenerator({ name, phone, title }: QRCodeGeneratorProps) {
+export function QRCodeGenerator({ name, phone, title, parentID }: QRCodeGeneratorProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +25,11 @@ export function QRCodeGenerator({ name, phone, title }: QRCodeGeneratorProps) {
     
     try {
       const currentDate = new Date().toLocaleDateString();
-      const qrData = `Name: ${name}\nPhone: ${phone}\nDate: ${currentDate}`;
+      let qrData = `Name: ${name}\nPhone: ${phone}\nDate: ${currentDate}`;
+      
+      if (parentID) {
+        qrData = `Name: ${name}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
+      }
       
       const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
         width: 256,
@@ -99,6 +104,7 @@ export function QRCodeGenerator({ name, phone, title }: QRCodeGeneratorProps) {
               <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
                 <p><strong>Name:</strong> {name}</p>
                 <p><strong>Phone:</strong> {phone}</p>
+                {parentID && <p><strong>Parent ID:</strong> {parentID}</p>}
                 <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
               </div>
             </div>
