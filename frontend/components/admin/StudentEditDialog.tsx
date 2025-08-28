@@ -72,19 +72,19 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
         });
         // Fallback grades if API fails
         setAvailableGrades([
-          { id: "K", name: "kindergarten", displayName: "Kindergarten", sortOrder: 0 },
-          { id: "1", name: "1st", displayName: "1st Grade", sortOrder: 1 },
-          { id: "2", name: "2nd", displayName: "2nd Grade", sortOrder: 2 },
-          { id: "3", name: "3rd", displayName: "3rd Grade", sortOrder: 3 },
-          { id: "4", name: "4th", displayName: "4th Grade", sortOrder: 4 },
-          { id: "5", name: "5th", displayName: "5th Grade", sortOrder: 5 },
-          { id: "6", name: "6th", displayName: "6th Grade", sortOrder: 6 },
-          { id: "7", name: "7th", displayName: "7th Grade", sortOrder: 7 },
-          { id: "8", name: "8th", displayName: "8th Grade", sortOrder: 8 },
-          { id: "9", name: "9th", displayName: "9th Grade", sortOrder: 9 },
-          { id: "10", name: "10th", displayName: "10th Grade", sortOrder: 10 },
-          { id: "11", name: "11th", displayName: "11th Grade", sortOrder: 11 },
-          { id: "12", name: "12th", displayName: "12th Grade", sortOrder: 12 },
+          { name: "kindergarten", sortOrder: 0 },
+          { name: "1st", sortOrder: 1 },
+          { name: "2nd", sortOrder: 2 },
+          { name: "3rd", sortOrder: 3 },
+          { name: "4th", sortOrder: 4 },
+          { name: "5th", sortOrder: 5 },
+          { name: "6th", sortOrder: 6 },
+          { name: "7th", sortOrder: 7 },
+          { name: "8th", sortOrder: 8 },
+          { name: "9th", sortOrder: 9 },
+          { name: "10th", sortOrder: 10 },
+          { name: "11th", sortOrder: 11 },
+          { name: "12th", sortOrder: 12 },
         ]);
       } finally {
         setIsLoadingGrades(false);
@@ -335,8 +335,8 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
                       <SelectItem value="loading" disabled>Loading grades...</SelectItem>
                     ) : (
                       availableGrades.map((grade) => (
-                        <SelectItem key={grade.id} value={grade.id}>
-                          {grade.displayName}
+                        <SelectItem key={grade.name} value={grade.name}>
+                          {grade.name}
                         </SelectItem>
                       ))
                     )}
