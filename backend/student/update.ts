@@ -29,31 +29,51 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
     }
 
     // Convert studentId to string if it's a number
-    const studentIdStr = String(studentId);
+    const studentIdStr = String(studentId).trim();
 
     try {
-      console.log(`[Student API] Updating student data for ID: ${studentIdStr}`);
-      console.log(`[Student API] Update data:`, updateData);
+      console.log(`[Student API] === STUDENT UPDATE DEBUG START ===`);
+      console.log(`[Student API] Updating student data for ID: "${studentIdStr}"`);
+      console.log(`[Student API] Update data received:`, updateData);
+      console.log(`[Student API] Original studentId type:`, typeof studentId);
+      console.log(`[Student API] Converted studentId:`, studentIdStr);
       
-      // First, get the current student record to check if parentId is being changed
+      // First, get the current student record to check if it exists and validate parentId changes
+      console.log(`[Student API] Fetching current student record...`);
       const { data: currentStudent, error: fetchError } = await supabase
         .from('studentrcd')
         .select('*')
         .eq('studentid', studentIdStr)
         .single();
 
+      console.log(`[Student API] Current student fetch result:`, { currentStudent, fetchError });
+
       if (fetchError) {
-        console.log(`[Student API] Fetch error:`, fetchError);
-        throw APIError.notFound(`Student not found: ${fetchError.message}`);
+        console.error(`[Student API] Fetch error:`, fetchError);
+        if (fetchError.code === 'PGRST116') {
+          throw APIError.notFound(`Student table does not exist: ${fetchError.message}`);
+        } else if (fetchError.code === '42501') {
+          throw APIError.internal(`Permission denied accessing student table: ${fetchError.message}`);
+        } else {
+          throw APIError.notFound(`Student not found: ${fetchError.message}`);
+        }
       }
 
       if (!currentStudent) {
+        console.log(`[Student API] No student record found for ID: ${studentIdStr}`);
         throw APIError.notFound("Student record not found");
       }
 
+      console.log(`[Student API] Current student record:`, currentStudent);
+      console.log(`[Student API] Available fields in current record:`, Object.keys(currentStudent));
+
       // Check if trying to remove parentId when one already exists
       const currentParentId = currentStudent.parentid || currentStudent.parent_id || '';
+      console.log(`[Student API] Current parent ID: "${currentParentId}"`);
+      console.log(`[Student API] New parent ID: "${updateData.parentId}"`);
+      
       if (currentParentId && updateData.parentId === '') {
+        console.log(`[Student API] Attempting to remove parent ID - this is not allowed`);
         throw APIError.invalidArgument("Cannot remove parent ID from student once assigned. Parent ID is required for all students.");
       }
 
@@ -62,32 +82,37 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
         updated_at: new Date().toISOString()
       };
 
-      if (updateData.studentName !== undefined) {
-        updateFields.studentname = updateData.studentName;
-      }
-      if (updateData.grade !== undefined) {
-        updateFields.grade = updateData.grade;
-      }
-      if (updateData.classBuilding !== undefined) {
-        updateFields.classbuilding = updateData.classBuilding;
-      }
-      if (updateData.parentId !== undefined) {
-        updateFields.parentid = updateData.parentId;
-      }
-      if (updateData.studentStatus !== undefined) {
-        updateFields.studentstatus = updateData.studentStatus;
-      }
-      if (updateData.attendanceStatus !== undefined) {
-        updateFields.attendencestatus = updateData.attendanceStatus;
-      }
-      if (updateData.dismissalInstructions !== undefined) {
-        updateFields.dismissalinstructions = updateData.dismissalInstructions;
-      }
-      if (updateData.otherNote !== undefined) {
-        updateFields.othernote = updateData.otherNote;
-      }
+      // Map the fields carefully, checking what fields exist in the current record
+      const fieldMappings = [
+        { input: 'studentName', dbField: 'studentname', value: updateData.studentName },
+        { input: 'grade', dbField: 'grade', value: updateData.grade },
+        { input: 'classBuilding', dbField: 'classbuilding', value: updateData.classBuilding },
+        { input: 'parentId', dbField: 'parentid', value: updateData.parentId },
+        { input: 'studentStatus', dbField: 'studentstatus', value: updateData.studentStatus },
+        { input: 'attendanceStatus', dbField: 'attendencestatus', value: updateData.attendanceStatus },
+        { input: 'dismissalInstructions', dbField: 'dismissalinstructions', value: updateData.dismissalInstructions },
+        { input: 'otherNote', dbField: 'othernote', value: updateData.otherNote }
+      ];
+
+      console.log(`[Student API] Processing field mappings...`);
+      fieldMappings.forEach(mapping => {
+        if (mapping.value !== undefined) {
+          console.log(`[Student API] Setting ${mapping.dbField} = "${mapping.value}" (from ${mapping.input})`);
+          updateFields[mapping.dbField] = mapping.value;
+        }
+      });
 
       console.log(`[Student API] Final update fields:`, updateFields);
+
+      // Validate that we have at least one field to update besides updated_at
+      const fieldsToUpdate = Object.keys(updateFields).filter(key => key !== 'updated_at');
+      if (fieldsToUpdate.length === 0) {
+        console.log(`[Student API] No fields to update`);
+        throw APIError.invalidArgument("No fields provided for update");
+      }
+
+      console.log(`[Student API] Executing update query...`);
+      console.log(`[Student API] Equivalent SQL: UPDATE studentrcd SET ${Object.keys(updateFields).map(k => `${k} = '${updateFields[k]}'`).join(', ')} WHERE studentid = '${studentIdStr}'`);
 
       // Update the student record
       const { data: updatedStudentRow, error: updateError } = await supabase
@@ -100,17 +125,35 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
       console.log(`[Student API] Update result:`, { updatedStudentRow, updateError });
 
       if (updateError) {
-        console.log(`[Student API] Update error:`, updateError);
-        throw APIError.internal(`Failed to update student record: ${updateError.message}`);
+        console.error(`[Student API] Update error:`, updateError);
+        console.error(`[Student API] Update error code:`, updateError.code);
+        console.error(`[Student API] Update error details:`, updateError.details);
+        console.error(`[Student API] Update error hint:`, updateError.hint);
+        
+        if (updateError.code === 'PGRST116') {
+          throw APIError.internal(`Student table does not exist: ${updateError.message}`);
+        } else if (updateError.code === '42501') {
+          throw APIError.internal(`Permission denied updating student table: ${updateError.message}`);
+        } else if (updateError.code === '23505') {
+          throw APIError.invalidArgument(`Duplicate value constraint violation: ${updateError.message}`);
+        } else if (updateError.code === '23503') {
+          throw APIError.invalidArgument(`Foreign key constraint violation: ${updateError.message}`);
+        } else if (updateError.code === '23514') {
+          throw APIError.invalidArgument(`Check constraint violation: ${updateError.message}`);
+        } else {
+          throw APIError.internal(`Failed to update student record: ${updateError.message} (Code: ${updateError.code})`);
+        }
       }
 
       if (!updatedStudentRow) {
-        console.log(`[Student API] No student row returned after update for ID: ${studentIdStr}`);
-        throw APIError.notFound("Student record not found");
+        console.error(`[Student API] No student row returned after update for ID: ${studentIdStr}`);
+        throw APIError.internal("Update succeeded but no data returned. This may indicate a database configuration issue.");
       }
 
       console.log(`[Student API] Successfully updated student data:`, updatedStudentRow);
+      console.log(`[Student API] Updated record fields:`, Object.keys(updatedStudentRow));
 
+      // Map the database fields back to our Student interface
       const student: Student = {
         studentId: String(updatedStudentRow.studentid || updatedStudentRow.student_id || ''),
         studentStatus: updatedStudentRow.studentstatus || updatedStudentRow.student_status || 'Active',
@@ -125,18 +168,35 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
         updatedAt: updatedStudentRow.updated_at ? new Date(updatedStudentRow.updated_at) : new Date(),
       };
 
-      console.log(`[Student API] Returning updated student data:`, student);
+      console.log(`[Student API] Mapped student response:`, student);
+      console.log(`[Student API] === STUDENT UPDATE DEBUG END ===`);
+      
       return { student };
 
     } catch (error) {
+      console.error(`[Student API] === STUDENT UPDATE ERROR ===`);
+      console.error(`[Student API] Error type:`, typeof error);
+      console.error(`[Student API] Error constructor:`, error?.constructor?.name);
+      console.error(`[Student API] Full error:`, error);
+      
       // Re-throw APIErrors as-is
       if (error instanceof APIError) {
-        console.log(`[Student API] APIError:`, error.message);
+        console.error(`[Student API] Re-throwing APIError:`, error.message);
         throw error;
       }
       
-      console.error("[Student API] Unexpected error updating student data:", error);
-      throw APIError.internal("Failed to update student information");
+      // Handle any other unexpected errors
+      if (error instanceof Error) {
+        console.error(`[Student API] Unexpected Error:`, {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        throw APIError.internal(`Unexpected error during student update: ${error.message}`);
+      }
+      
+      console.error("[Student API] Unknown error type during student update:", error);
+      throw APIError.internal("An unknown error occurred while updating student information");
     }
   }
 );
