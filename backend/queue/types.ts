@@ -42,3 +42,26 @@ export interface DeleteQueueResponse {
 export interface ListQueuesResponse {
   queues: Queue[];
 }
+
+export interface DismissalQueueRecord {
+  queueId: string;
+  classBuilding: string;
+  grade?: string;
+  dismissalQueueStatus: string;
+  parentId?: string;
+  studentId?: string;
+  studentName?: string;
+  parentName?: string;
+  alternateName?: string;
+  qrScannedAt?: Date;
+  addToQueueMethod: string;
+  qrScannedAtBuilding?: string;
+  dismissedAt?: Date;
+  dismissedByName?: string;
+  dismissStatus?: string;
+  studentSelfDismiss?: boolean;
+  dismissIssue?: string;
+  pickupConfirmedDTTM?: Date;
+  pickupConfirmedByName?: string;
+  pickupIssue?: string;
+}
