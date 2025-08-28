@@ -177,7 +177,7 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
         console.log(`[Student API] Processing Supabase student ${index + 1}:`, row);
         
         const student = {
-          studentId: row.studentid || row.student_id || '',
+          studentId: String(row.studentid || row.student_id || ''),
           studentStatus: row.studentstatus || row.student_status || 'Active',
           studentName: row.studentname || row.student_name || '',
           grade: row.grade || '',

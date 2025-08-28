@@ -28,15 +28,18 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
       throw APIError.invalidArgument("Student ID is required");
     }
 
+    // Convert studentId to string if it's a number
+    const studentIdStr = String(studentId);
+
     try {
-      console.log(`[Student API] Updating student data for ID: ${studentId}`);
+      console.log(`[Student API] Updating student data for ID: ${studentIdStr}`);
       console.log(`[Student API] Update data:`, updateData);
       
       // First, get the current student record to check if parentId is being changed
       const { data: currentStudent, error: fetchError } = await supabase
         .from('studentrcd')
         .select('*')
-        .eq('studentid', studentId)
+        .eq('studentid', studentIdStr)
         .single();
 
       if (fetchError) {
@@ -90,7 +93,7 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
       const { data: updatedStudentRow, error: updateError } = await supabase
         .from('studentrcd')
         .update(updateFields)
-        .eq('studentid', studentId)
+        .eq('studentid', studentIdStr)
         .select('*')
         .single();
 
@@ -102,14 +105,14 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
       }
 
       if (!updatedStudentRow) {
-        console.log(`[Student API] No student row returned after update for ID: ${studentId}`);
+        console.log(`[Student API] No student row returned after update for ID: ${studentIdStr}`);
         throw APIError.notFound("Student record not found");
       }
 
       console.log(`[Student API] Successfully updated student data:`, updatedStudentRow);
 
       const student: Student = {
-        studentId: updatedStudentRow.studentid || updatedStudentRow.student_id || '',
+        studentId: String(updatedStudentRow.studentid || updatedStudentRow.student_id || ''),
         studentStatus: updatedStudentRow.studentstatus || updatedStudentRow.student_status || 'Active',
         studentName: updatedStudentRow.studentname || updatedStudentRow.student_name || '',
         grade: updatedStudentRow.grade || '',

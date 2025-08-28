@@ -43,7 +43,7 @@ export const searchByName = api<SearchStudentByNameRequest, SearchStudentRespons
       }
 
       const students: Student[] = (studentRows || []).map(row => ({
-        studentId: row.studentid || row.student_id || '',
+        studentId: String(row.studentid || row.student_id || ''),
         studentStatus: row.studentstatus || row.student_status || 'Active',
         studentName: row.studentname || row.student_name || '',
         grade: row.grade || '',
@@ -95,7 +95,7 @@ export const searchById = api<SearchStudentByIdRequest, SearchStudentResponse>(
       }
 
       const students: Student[] = (studentRows || []).map(row => ({
-        studentId: row.studentid || row.student_id || '',
+        studentId: String(row.studentid || row.student_id || ''),
         studentStatus: row.studentstatus || row.student_status || 'Active',
         studentName: row.studentname || row.student_name || '',
         grade: row.grade || '',
@@ -147,7 +147,7 @@ export const searchByGrade = api<SearchStudentByGradeRequest, SearchStudentRespo
       }
 
       const students: Student[] = (studentRows || []).map(row => ({
-        studentId: row.studentid || row.student_id || '',
+        studentId: String(row.studentid || row.student_id || ''),
         studentStatus: row.studentstatus || row.student_status || 'Active',
         studentName: row.studentname || row.student_name || '',
         grade: row.grade || '',
