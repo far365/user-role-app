@@ -72,19 +72,19 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
         });
         // Fallback grades if API fails
         setAvailableGrades([
-          { name: "kindergarten", sortOrder: 0 },
-          { name: "1st", sortOrder: 1 },
-          { name: "2nd", sortOrder: 2 },
-          { name: "3rd", sortOrder: 3 },
-          { name: "4th", sortOrder: 4 },
-          { name: "5th", sortOrder: 5 },
-          { name: "6th", sortOrder: 6 },
-          { name: "7th", sortOrder: 7 },
-          { name: "8th", sortOrder: 8 },
-          { name: "9th", sortOrder: 9 },
-          { name: "10th", sortOrder: 10 },
-          { name: "11th", sortOrder: 11 },
-          { name: "12th", sortOrder: 12 },
+          { name: "kindergarten", building: "A", sortOrder: 0 },
+          { name: "1st", building: "A", sortOrder: 1 },
+          { name: "2nd", building: "A", sortOrder: 2 },
+          { name: "3rd", building: "A", sortOrder: 3 },
+          { name: "4th", building: "A", sortOrder: 4 },
+          { name: "5th", building: "A", sortOrder: 5 },
+          { name: "6th", building: "A", sortOrder: 6 },
+          { name: "7th", building: "B", sortOrder: 7 },
+          { name: "8th", building: "B", sortOrder: 8 },
+          { name: "9th", building: "B", sortOrder: 9 },
+          { name: "10th", building: "B", sortOrder: 10 },
+          { name: "11th", building: "B", sortOrder: 11 },
+          { name: "12th", building: "B", sortOrder: 12 },
         ]);
       } finally {
         setIsLoadingGrades(false);
@@ -246,6 +246,24 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
     }
   };
 
+  const handleGradeChange = (gradeName: string) => {
+    // Find the selected grade to get its building
+    const selectedGrade = availableGrades.find(grade => grade.name === gradeName);
+    
+    setEditData(prev => ({
+      ...prev,
+      grade: gradeName,
+      classBuilding: selectedGrade ? selectedGrade.building : prev.classBuilding,
+    }));
+    
+    // Clear validation errors for grade when user selects
+    if (gradeName.trim()) {
+      const newErrors = { ...validationErrors };
+      delete newErrors.grade;
+      setValidationErrors(newErrors);
+    }
+  };
+
   const studentStatusOptions = [
     { value: "Active", label: "Active" },
     { value: "Inactive", label: "Inactive" },
@@ -326,7 +344,7 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="grade">Grade</Label>
-                <Select value={editData.grade} onValueChange={(value) => handleInputChange('grade', value)}>
+                <Select value={editData.grade} onValueChange={handleGradeChange}>
                   <SelectTrigger className={validationErrors.grade ? 'border-red-300' : ''}>
                     <SelectValue placeholder={isLoadingGrades ? "Loading grades..." : "Select grade"} />
                   </SelectTrigger>
@@ -336,7 +354,7 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
                     ) : (
                       availableGrades.map((grade) => (
                         <SelectItem key={grade.name} value={grade.name}>
-                          {grade.name}
+                          {grade.name} (Building {grade.building})
                         </SelectItem>
                       ))
                     )}
@@ -356,6 +374,9 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
                   onChange={(e) => handleInputChange('classBuilding', e.target.value)}
                   placeholder="Enter class or building"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Building is automatically set based on grade selection
+                </p>
               </div>
             </div>
 

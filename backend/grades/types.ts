@@ -1,5 +1,6 @@
 export interface Grade {
   name: string;
+  building: string;
   sortOrder: number;
 }
 
