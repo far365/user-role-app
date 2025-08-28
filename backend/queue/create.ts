@@ -59,27 +59,6 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
         throw APIError.internal("Cannot access queuemasterrcd table");
       }
       
-      // Check if there's already an open queue
-      console.log("[Queue API] Checking for existing open queues...");
-      const { data: existingOpenQueue, error: checkError } = await supabase
-        .from('queuemasterrcd')
-        .select('queueid, queuemasterstatus')
-        .eq('queuemasterstatus', 'Open')
-        .single();
-
-      console.log("[Queue API] Existing open queue check:", { existingOpenQueue, checkError });
-
-      // If we get an error other than "no rows found", it's a real error
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error("[Queue API] Error checking for existing queues:", checkError);
-        throw APIError.internal(`Failed to check existing queues: ${checkError.message}`);
-      }
-
-      if (existingOpenQueue) {
-        console.log("[Queue API] Found existing open queue:", existingOpenQueue.queueid);
-        throw APIError.alreadyExists(`A queue is already open with ID: ${existingOpenQueue.queueid}. Only one queue can be open at a time.`);
-      }
-
       // Generate queue ID in YYYYMMDD format
       const now = new Date();
       const year = now.getFullYear();
@@ -89,12 +68,36 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
 
       console.log("[Queue API] Generated queue ID:", queueId);
 
-      // Check if a queue with this ID already exists
+      // Check if there's already an open queue (any queue with status 'Open')
+      console.log("[Queue API] Checking for existing open queues...");
+      const { data: existingOpenQueue, error: checkOpenError } = await supabase
+        .from('queuemasterrcd')
+        .select('queueid, queuemasterstatus')
+        .eq('queuemasterstatus', 'Open')
+        .single();
+
+      console.log("[Queue API] Existing open queue check:", { existingOpenQueue, checkOpenError });
+
+      // If we get an error other than "no rows found", it's a real error
+      if (checkOpenError && checkOpenError.code !== 'PGRST116') {
+        console.error("[Queue API] Error checking for existing open queues:", checkOpenError);
+        throw APIError.internal(`Failed to check existing open queues: ${checkOpenError.message}`);
+      }
+
+      if (existingOpenQueue) {
+        console.log("[Queue API] Found existing open queue:", existingOpenQueue.queueid);
+        throw APIError.alreadyExists(`A queue is already open with ID: ${existingOpenQueue.queueid}. The open queue must be closed before starting a new one.`);
+      }
+
+      // Check if a queue with today's ID already exists (regardless of status)
+      console.log("[Queue API] Checking for existing queue with today's ID...");
       const { data: existingQueue, error: existingError } = await supabase
         .from('queuemasterrcd')
-        .select('queueid')
+        .select('queueid, queuemasterstatus')
         .eq('queueid', queueId)
         .single();
+
+      console.log("[Queue API] Existing queue ID check:", { existingQueue, existingError });
 
       // If we get an error other than "no rows found", it's a real error
       if (existingError && existingError.code !== 'PGRST116') {
@@ -103,8 +106,8 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
       }
 
       if (existingQueue) {
-        console.log("[Queue API] Queue with this ID already exists:", queueId);
-        throw APIError.alreadyExists(`A queue with ID ${queueId} already exists. Only one queue per day is allowed.`);
+        console.log("[Queue API] Queue with this ID already exists:", queueId, "Status:", existingQueue.queuemasterstatus);
+        throw APIError.alreadyExists(`A queue with ID ${queueId} already exists (Status: ${existingQueue.queuemasterstatus}). This queue must be deleted before a new one can be started for today.`);
       }
 
       // Create new queue

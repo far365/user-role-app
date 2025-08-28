@@ -85,9 +85,13 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       let errorMessage = "Failed to start new queue";
       if (error instanceof Error) {
         if (error.message.includes("already open")) {
-          errorMessage = "Cannot start new queue: Another queue is already open";
+          errorMessage = "Cannot start new queue: Another queue is already open. Please close the open queue first.";
         } else if (error.message.includes("already exists")) {
-          errorMessage = "Cannot start new queue: A queue for today already exists";
+          if (error.message.includes("must be deleted")) {
+            errorMessage = "Cannot start new queue: A queue for today already exists and must be deleted before starting a new one.";
+          } else {
+            errorMessage = "Cannot start new queue: A queue for today already exists";
+          }
         } else if (error.message.includes("Table") && error.message.includes("does not exist")) {
           errorMessage = "Database error: The queuemasterrcd table does not exist in your Supabase database";
         } else if (error.message.includes("permission") || error.message.includes("denied")) {
@@ -235,6 +239,45 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     }
   };
 
+  // Check if we can start a new queue
+  const canStartNewQueue = () => {
+    // Can't start if there's already an open queue
+    if (currentQueue) {
+      return false;
+    }
+    
+    // Check if there's already a queue for today (YYYYMMDD format)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayQueueId = `${year}${month}${day}`;
+    
+    const existingTodayQueue = allQueues.find(queue => queue.queueId === todayQueueId);
+    
+    return !existingTodayQueue;
+  };
+
+  const getStartQueueDisabledReason = () => {
+    if (currentQueue) {
+      return "Cannot start new queue while another queue is open";
+    }
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayQueueId = `${year}${month}${day}`;
+    
+    const existingTodayQueue = allQueues.find(queue => queue.queueId === todayQueueId);
+    
+    if (existingTodayQueue) {
+      return `A queue for today (${todayQueueId}) already exists and must be deleted first`;
+    }
+    
+    return null;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -367,15 +410,15 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               </p>
               <Button 
                 onClick={handleStartNewQueue} 
-                disabled={isCreating || !!currentQueue}
+                disabled={isCreating || !canStartNewQueue()}
                 className="w-full"
               >
                 <Play className="w-4 h-4 mr-2" />
                 {isCreating ? 'Starting...' : 'Start New Queue'}
               </Button>
-              {currentQueue && (
+              {!canStartNewQueue() && (
                 <p className="text-xs text-yellow-600">
-                  Cannot start new queue while another queue is open
+                  {getStartQueueDisabledReason()}
                 </p>
               )}
             </div>
