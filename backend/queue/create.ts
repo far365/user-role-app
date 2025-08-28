@@ -246,19 +246,15 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
                 });
               }
 
-              // Prepare dismissal queue records with unique composite keys
-              const dismissalQueueRecords = eligibleStudents.map((student, index) => {
-                // Create a unique identifier for each record since queueid alone can't be the primary key
-                // We'll use a combination of queueid and studentid, or add a sequence number
-                const uniqueKey = `${queueId}_${student.studentid || index}`;
-                
+              // Prepare dismissal queue records using queueid and studentid as composite key
+              const dismissalQueueRecords = eligibleStudents.map((student) => {
                 return {
-                  queueid: uniqueKey, // Use unique key instead of just queueId
+                  queueid: queueId, // Use the actual queue ID
                   classbuilding: student.classbuilding || '',
                   grade: student.grade || '',
                   dismissalqueuestatus: 'Standby',
                   parentid: student.parentid || null,
-                  studentid: student.studentid || null,
+                  studentid: student.studentid || null, // Use the actual student ID
                   studentname: student.studentname || '',
                   parentname: parentNameMap.get(student.parentid) || '',
                   alternatename: null,
@@ -282,6 +278,7 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
               // Insert records into dismissal queue in batches to avoid potential issues
               const batchSize = 100;
               let totalInserted = 0;
+              let totalErrors = 0;
               
               for (let i = 0; i < dismissalQueueRecords.length; i += batchSize) {
                 const batch = dismissalQueueRecords.slice(i, i + batchSize);
@@ -301,15 +298,20 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
                     hint: insertError.hint
                   });
                   
-                  // If it's a primary key violation, let's try a different approach
-                  if (insertError.code === '23505') {
-                    console.log("[Queue API] Primary key violation detected, trying alternative approach...");
+                  // If it's a primary key violation or other constraint issue, try inserting records one by one
+                  if (insertError.code === '23505' || insertError.code === '23503') {
+                    console.log("[Queue API] Constraint violation detected, trying individual inserts...");
                     
-                    // Try inserting records one by one with better unique keys
+                    // Try inserting records one by one to identify problematic records
                     for (let j = 0; j < batch.length; j++) {
-                      const record = { ...batch[j] };
-                      // Use timestamp + index for uniqueness
-                      record.queueid = `${queueId}_${Date.now()}_${i + j}`;
+                      const record = batch[j];
+                      
+                      // Skip records with missing required fields
+                      if (!record.queueid || !record.studentid) {
+                        console.log(`[Queue API] Skipping record ${i + j + 1}: missing queueid or studentid`);
+                        totalErrors++;
+                        continue;
+                      }
                       
                       const { data: singleInsert, error: singleError } = await supabase
                         .from('dismissalqueuercd')
@@ -317,15 +319,18 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
                         .select('*');
                       
                       if (singleError) {
-                        console.error(`[Queue API] Error inserting single record ${i + j}:`, singleError);
+                        console.error(`[Queue API] Error inserting individual record ${i + j + 1}:`, singleError);
+                        console.error(`[Queue API] Problematic record:`, record);
+                        totalErrors++;
                       } else {
                         totalInserted++;
-                        console.log(`[Queue API] Successfully inserted record ${i + j + 1}`);
+                        console.log(`[Queue API] Successfully inserted record ${i + j + 1}: student ${record.studentid}`);
                       }
                     }
                   } else {
                     // For other errors, log and continue
                     console.error("[Queue API] Warning: Batch insert failed, continuing with queue creation");
+                    totalErrors += batch.length;
                   }
                 } else {
                   totalInserted += insertedRecords?.length || 0;
@@ -333,15 +338,21 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
                 }
               }
               
-              console.log(`[Queue API] Total dismissal queue records inserted: ${totalInserted} out of ${dismissalQueueRecords.length}`);
+              console.log(`[Queue API] Dismissal queue population complete:`);
+              console.log(`[Queue API] - Total eligible students: ${dismissalQueueRecords.length}`);
+              console.log(`[Queue API] - Successfully inserted: ${totalInserted}`);
+              console.log(`[Queue API] - Errors/Skipped: ${totalErrors}`);
               
               if (totalInserted === 0) {
                 console.error("[Queue API] WARNING: No dismissal queue records were inserted!");
                 console.error("[Queue API] This could be due to:");
-                console.error("[Queue API] 1. Primary key constraint issues with the dismissalqueuercd table");
-                console.error("[Queue API] 2. Missing required fields in the table schema");
+                console.error("[Queue API] 1. Primary key constraint issues (queueid + studentid combination)");
+                console.error("[Queue API] 2. Missing required fields (queueid or studentid)");
                 console.error("[Queue API] 3. RLS policies blocking the insert");
                 console.error("[Queue API] 4. Table structure mismatch");
+                console.error("[Queue API] 5. Foreign key constraints on parentid or studentid");
+              } else if (totalErrors > 0) {
+                console.log(`[Queue API] WARNING: ${totalErrors} records failed to insert. Check logs for details.`);
               }
             } else {
               console.log("[Queue API] No eligible students found for dismissal queue");

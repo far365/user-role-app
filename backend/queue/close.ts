@@ -39,11 +39,11 @@ export const close = api<CloseQueueRequest, CloseQueueResponse>(
       console.log(`[Queue API] Updating dismissal queue records for queue ${openQueue.queueid}...`);
       
       try {
-        // Since we now use composite keys, we need to find records that start with the queue ID
+        // Update records where queueid matches the open queue ID
         const { data: updatedDismissalRecords, error: dismissalUpdateError } = await supabase
           .from('dismissalqueuercd')
           .update({ dismissalqueuestatus: 'Unknown' })
-          .like('queueid', `${openQueue.queueid}%`)
+          .eq('queueid', openQueue.queueid)
           .eq('dismissalqueuestatus', 'Standby')
           .select('*');
 

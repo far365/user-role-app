@@ -39,11 +39,11 @@ export const deleteQueue = api<DeleteQueueRequest, DeleteQueueResponse>(
       console.log(`[Queue API] Deleting dismissal queue records for queue ${queueId}...`);
       
       try {
-        // Since we now use composite keys, we need to find records that start with the queue ID
+        // Delete records where queueid matches the queue ID
         const { data: deletedDismissalRecords, error: dismissalDeleteError } = await supabase
           .from('dismissalqueuercd')
           .delete()
-          .like('queueid', `${queueId.trim()}%`)
+          .eq('queueid', queueId.trim())
           .select('*');
 
         if (dismissalDeleteError) {
