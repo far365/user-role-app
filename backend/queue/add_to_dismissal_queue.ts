@@ -122,18 +122,43 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
         throw APIError.internal("Cannot access dismissalqueuercd table");
       }
 
-      // Create a unique record ID using timestamp and random component
-      const currentTime = new Date().toISOString();
-      const uniqueRecordId = `${queueId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // If studentId is not provided, we need to generate a unique identifier
+      // since queueid + studentid should be the composite key
+      let finalStudentId = studentId?.trim() || null;
+      
+      // If no studentId is provided, generate a unique one for this record
+      if (!finalStudentId) {
+        finalStudentId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        console.log("[Queue API] No studentId provided, generated temporary ID:", finalStudentId);
+      }
 
-      // Prepare the record data
+      // Check if a record with this queueId + studentId combination already exists
+      console.log("[Queue API] Checking for existing record with queueId:", queueId.trim(), "and studentId:", finalStudentId);
+      const { data: existingRecord, error: checkError } = await supabase
+        .from('dismissalqueuercd')
+        .select('queueid, studentid')
+        .eq('queueid', queueId.trim())
+        .eq('studentid', finalStudentId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("[Queue API] Error checking for existing record:", checkError);
+        // Don't fail here, just log the warning
+        console.log("[Queue API] Warning: Could not check for existing record, proceeding with insert");
+      }
+
+      if (existingRecord) {
+        throw APIError.alreadyExists(`A record already exists for queueId "${queueId}" and studentId "${finalStudentId}"`);
+      }
+
+      // Prepare the record data using the actual queueId from the request
       const recordData = {
-        queueid: uniqueRecordId, // Use unique ID as primary key
+        queueid: queueId.trim(), // Use the actual queueId from the request
         classbuilding: classBuilding.trim(),
         grade: grade?.trim() || null,
         dismissalqueuestatus: dismissalQueueStatus.trim(),
         parentid: parentId?.trim() || null,
-        studentid: studentId?.trim() || null,
+        studentid: finalStudentId,
         studentname: studentName?.trim() || null,
         parentname: parentName?.trim() || null,
         alternatename: alternateName?.trim() || null,
@@ -170,7 +195,7 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
         
         // Handle specific database errors
         if (insertError.code === '23505') {
-          throw APIError.alreadyExists(`Record with this ID already exists: ${insertError.message}`);
+          throw APIError.alreadyExists(`Record with queueId "${queueId}" and studentId "${finalStudentId}" already exists: ${insertError.message}`);
         } else if (insertError.code === '23503') {
           throw APIError.invalidArgument(`Foreign key constraint violation: ${insertError.message}`);
         } else if (insertError.code === '23514') {
@@ -192,9 +217,12 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
       console.log("[Queue API] Successfully inserted dismissal queue record:", insertedRecord);
       console.log("[Queue API] === DISMISSAL QUEUE RECORD INSERTION COMPLETE ===");
 
+      // Return the actual queueId and studentId combination as the record identifier
+      const recordIdentifier = `${queueId.trim()}_${finalStudentId}`;
+
       return {
         success: true,
-        recordId: uniqueRecordId
+        recordId: recordIdentifier
       };
 
     } catch (error) {
