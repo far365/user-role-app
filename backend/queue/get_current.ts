@@ -9,6 +9,38 @@ export const getCurrentQueue = api<void, GetCurrentQueueResponse>(
     try {
       console.log("[Queue API] Getting current open queue");
       
+      // Test Supabase connection first
+      try {
+        const { data: connectionTest, error: connectionError } = await supabase
+          .from('usersrcd')
+          .select('count')
+          .limit(1);
+        
+        if (connectionError) {
+          console.error("[Queue API] Supabase connection failed:", connectionError);
+          return { queue: null };
+        }
+      } catch (connErr) {
+        console.error("[Queue API] Supabase connection test failed:", connErr);
+        return { queue: null };
+      }
+
+      // Test if queuemasterrcd table is accessible
+      try {
+        const { error: tableTestError } = await supabase
+          .from('queuemasterrcd')
+          .select('*')
+          .limit(0);
+        
+        if (tableTestError) {
+          console.error("[Queue API] Table access error:", tableTestError);
+          return { queue: null };
+        }
+      } catch (tableErr) {
+        console.error("[Queue API] Table access failed:", tableErr);
+        return { queue: null };
+      }
+      
       const { data: queueRow, error } = await supabase
         .from('queuemasterrcd')
         .select('*')

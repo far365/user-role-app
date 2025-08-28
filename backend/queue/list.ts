@@ -9,6 +9,45 @@ export const list = api<void, ListQueuesResponse>(
     try {
       console.log("[Queue API] Fetching all queues");
       
+      // Test Supabase connection first
+      try {
+        const { data: connectionTest, error: connectionError } = await supabase
+          .from('usersrcd')
+          .select('count')
+          .limit(1);
+        
+        if (connectionError) {
+          console.error("[Queue API] Supabase connection failed:", connectionError);
+          throw new Error(`Database connection failed: ${connectionError.message}`);
+        }
+      } catch (connErr) {
+        console.error("[Queue API] Supabase connection test failed:", connErr);
+        throw new Error("Database connection failed");
+      }
+
+      // Test if queuemasterrcd table is accessible
+      try {
+        const { error: tableTestError } = await supabase
+          .from('queuemasterrcd')
+          .select('*')
+          .limit(0);
+        
+        if (tableTestError) {
+          console.error("[Queue API] Table access error:", tableTestError);
+          if (tableTestError.code === 'PGRST116') {
+            throw new Error(`Table 'queuemasterrcd' does not exist: ${tableTestError.message}`);
+          } else {
+            throw new Error(`Cannot access queuemasterrcd table: ${tableTestError.message}`);
+          }
+        }
+      } catch (tableErr) {
+        console.error("[Queue API] Table access failed:", tableErr);
+        if (tableErr instanceof Error) {
+          throw tableErr;
+        }
+        throw new Error("Cannot access queuemasterrcd table");
+      }
+      
       const { data: queueRows, error } = await supabase
         .from('queuemasterrcd')
         .select('*')

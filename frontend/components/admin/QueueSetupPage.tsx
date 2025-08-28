@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Bug, Database } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -24,6 +24,8 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
+  const [showDebug, setShowDebug] = useState(false);
   
   const { toast } = useToast();
 
@@ -66,14 +68,86 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     loadData();
   }, []);
 
+  const handleDebugQueue = async () => {
+    try {
+      console.log("=== DEBUG: Testing queue system ===");
+      
+      // Test if we can reach the backend at all
+      const testResponse = await backend.user.list();
+      console.log("Backend connection test successful:", testResponse);
+      
+      let debugSummary = "Backend connection: OK\n";
+      
+      // Test queue endpoints
+      try {
+        const currentQueueResponse = await backend.queue.getCurrentQueue();
+        debugSummary += `Current queue endpoint: OK (${currentQueueResponse.queue ? 'Queue found' : 'No queue'})\n`;
+      } catch (error) {
+        debugSummary += `Current queue endpoint: FAILED - ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+      }
+      
+      try {
+        const listResponse = await backend.queue.list();
+        debugSummary += `List queues endpoint: OK (${listResponse.queues.length} queues found)\n`;
+      } catch (error) {
+        debugSummary += `List queues endpoint: FAILED - ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+      }
+      
+      // Test table structure by trying to create a test entry (but don't actually create it)
+      try {
+        // This will fail but give us information about the table structure
+        await backend.queue.create({
+          queueStartedByUsername: "TEST_USER_DO_NOT_CREATE",
+        });
+        debugSummary += "Create queue test: Unexpectedly succeeded\n";
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("Table") || error.message.includes("does not exist")) {
+            debugSummary += `Create queue test: TABLE ISSUE - ${error.message}\n`;
+          } else if (error.message.includes("permission") || error.message.includes("denied")) {
+            debugSummary += `Create queue test: PERMISSION ISSUE - ${error.message}\n`;
+          } else if (error.message.includes("connection") || error.message.includes("Database")) {
+            debugSummary += `Create queue test: CONNECTION ISSUE - ${error.message}\n`;
+          } else {
+            debugSummary += `Create queue test: OTHER ERROR - ${error.message}\n`;
+          }
+        } else {
+          debugSummary += `Create queue test: UNKNOWN ERROR - ${String(error)}\n`;
+        }
+      }
+      
+      setDebugInfo(debugSummary);
+      setShowDebug(true);
+      
+      toast({
+        title: "Debug Complete",
+        description: "Check debug info below for details",
+      });
+    } catch (error) {
+      console.error("Debug error:", error);
+      setDebugInfo(`Debug failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setShowDebug(true);
+      toast({
+        title: "Debug Failed",
+        description: "Check console for error details",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleStartNewQueue = async () => {
     try {
       setIsCreating(true);
+      
+      console.log("=== FRONTEND: Starting new queue ===");
+      console.log("User login ID:", user.loginID);
       
       const response = await backend.queue.create({
         queueStartedByUsername: user.loginID,
       });
 
+      console.log("=== FRONTEND: Queue creation successful ===", response);
+      
       setCurrentQueue(response.queue);
       await fetchAllQueues(); // Refresh the list
       
@@ -82,14 +156,26 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         description: `New queue ${response.queue.queueId} has been started`,
       });
     } catch (error) {
-      console.error("Failed to create queue:", error);
+      console.error("=== FRONTEND: Queue creation failed ===", error);
       
       let errorMessage = "Failed to start new queue";
       if (error instanceof Error) {
+        console.error("Error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        
         if (error.message.includes("already open")) {
           errorMessage = "Cannot start new queue: Another queue is already open";
         } else if (error.message.includes("already exists")) {
           errorMessage = "Cannot start new queue: A queue for today already exists";
+        } else if (error.message.includes("Table") && error.message.includes("does not exist")) {
+          errorMessage = "Database error: The queuemasterrcd table does not exist in your Supabase database";
+        } else if (error.message.includes("permission") || error.message.includes("denied")) {
+          errorMessage = "Database error: Permission denied accessing the queuemasterrcd table";
+        } else if (error.message.includes("connection") || error.message.includes("Database")) {
+          errorMessage = "Database error: Cannot connect to Supabase database";
         } else {
           errorMessage = `Failed to start queue: ${error.message}`;
         }
@@ -277,11 +363,51 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           <h2 className="text-2xl font-bold text-gray-900">Queue Setup</h2>
           <p className="text-gray-600">Manage pickup queues and monitor queue status</p>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isRefreshing}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={handleDebugQueue} 
+            variant="outline" 
+            size="sm"
+            className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Debug Queue System
+          </Button>
+          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isRefreshing}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
+
+      {/* Debug Information */}
+      {showDebug && debugInfo && (
+        <Card className="border-yellow-200 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-yellow-800">
+              <Database className="w-5 h-5" />
+              <span>Queue System Debug Information</span>
+            </CardTitle>
+            <CardDescription className="text-yellow-700">
+              Diagnostic information for troubleshooting queue creation issues
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs text-yellow-800 whitespace-pre-wrap overflow-auto max-h-40 bg-white p-3 rounded border">
+              {debugInfo}
+            </pre>
+            <div className="mt-3 p-3 bg-white rounded border">
+              <p className="text-sm font-medium text-yellow-800 mb-2">Common Solutions:</p>
+              <ul className="text-xs text-yellow-700 space-y-1">
+                <li>• <strong>Table Issue:</strong> Create the queuemasterrcd table in your Supabase database</li>
+                <li>• <strong>Permission Issue:</strong> Check RLS policies in Supabase for the queuemasterrcd table</li>
+                <li>• <strong>Connection Issue:</strong> Verify Supabase URL and API key in your secrets</li>
+                <li>• <strong>Field Names:</strong> Ensure table has correct column names (queueid, queuemasterstatus, etc.)</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Current Queue Status */}
       <Card>
