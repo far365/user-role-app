@@ -10,6 +10,7 @@ import { Save, X, AlertCircle, Search, User } from "lucide-react";
 import backend from "~backend/client";
 import type { Student } from "~backend/student/types";
 import type { Parent } from "~backend/parent/types";
+import type { Grade } from "~backend/grades/types";
 
 interface StudentEditDialogProps {
   student: Student;
@@ -36,9 +37,11 @@ interface ValidationErrors {
 export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }: StudentEditDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSearchingParents, setIsSearchingParents] = useState(false);
+  const [isLoadingGrades, setIsLoadingGrades] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [parentSearchTerm, setParentSearchTerm] = useState("");
   const [availableParents, setAvailableParents] = useState<Parent[]>([]);
+  const [availableGrades, setAvailableGrades] = useState<Grade[]>([]);
   const [selectedParentName, setSelectedParentName] = useState("");
   const [editData, setEditData] = useState<EditableStudentData>({
     studentName: student.studentName,
@@ -52,6 +55,46 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
   });
   
   const { toast } = useToast();
+
+  // Load grades when dialog opens
+  useEffect(() => {
+    const loadGrades = async () => {
+      try {
+        setIsLoadingGrades(true);
+        const response = await backend.grades.list();
+        setAvailableGrades(response.grades);
+      } catch (error) {
+        console.error("Failed to load grades:", error);
+        toast({
+          title: "Warning",
+          description: "Failed to load grade options. Using fallback grades.",
+          variant: "destructive",
+        });
+        // Fallback grades if API fails
+        setAvailableGrades([
+          { id: "K", name: "kindergarten", displayName: "Kindergarten", sortOrder: 0 },
+          { id: "1", name: "1st", displayName: "1st Grade", sortOrder: 1 },
+          { id: "2", name: "2nd", displayName: "2nd Grade", sortOrder: 2 },
+          { id: "3", name: "3rd", displayName: "3rd Grade", sortOrder: 3 },
+          { id: "4", name: "4th", displayName: "4th Grade", sortOrder: 4 },
+          { id: "5", name: "5th", displayName: "5th Grade", sortOrder: 5 },
+          { id: "6", name: "6th", displayName: "6th Grade", sortOrder: 6 },
+          { id: "7", name: "7th", displayName: "7th Grade", sortOrder: 7 },
+          { id: "8", name: "8th", displayName: "8th Grade", sortOrder: 8 },
+          { id: "9", name: "9th", displayName: "9th Grade", sortOrder: 9 },
+          { id: "10", name: "10th", displayName: "10th Grade", sortOrder: 10 },
+          { id: "11", name: "11th", displayName: "11th Grade", sortOrder: 11 },
+          { id: "12", name: "12th", displayName: "12th Grade", sortOrder: 12 },
+        ]);
+      } finally {
+        setIsLoadingGrades(false);
+      }
+    };
+
+    if (isOpen) {
+      loadGrades();
+    }
+  }, [isOpen, toast]);
 
   // Find parent name when dialog opens or parentId changes
   useEffect(() => {
@@ -218,22 +261,6 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
     { value: "Excused", label: "Excused" },
   ];
 
-  const gradeOptions = [
-    { value: "K", label: "Kindergarten" },
-    { value: "1", label: "1st Grade" },
-    { value: "2", label: "2nd Grade" },
-    { value: "3", label: "3rd Grade" },
-    { value: "4", label: "4th Grade" },
-    { value: "5", label: "5th Grade" },
-    { value: "6", label: "6th Grade" },
-    { value: "7", label: "7th Grade" },
-    { value: "8", label: "8th Grade" },
-    { value: "9", label: "9th Grade" },
-    { value: "10", label: "10th Grade" },
-    { value: "11", label: "11th Grade" },
-    { value: "12", label: "12th Grade" },
-  ];
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -301,14 +328,18 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
                 <Label htmlFor="grade">Grade</Label>
                 <Select value={editData.grade} onValueChange={(value) => handleInputChange('grade', value)}>
                   <SelectTrigger className={validationErrors.grade ? 'border-red-300' : ''}>
-                    <SelectValue placeholder="Select grade" />
+                    <SelectValue placeholder={isLoadingGrades ? "Loading grades..." : "Select grade"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {gradeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    {isLoadingGrades ? (
+                      <SelectItem value="loading" disabled>Loading grades...</SelectItem>
+                    ) : (
+                      availableGrades.map((grade) => (
+                        <SelectItem key={grade.id} value={grade.id}>
+                          {grade.displayName}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {validationErrors.grade && (
