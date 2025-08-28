@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen } from "lucide-react";
 import { ParentSetupPage } from "../admin/ParentSetupPage";
+import { StudentSetupPage } from "../admin/StudentSetupPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -21,6 +22,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   if (currentPage === 'parent-setup') {
     return <ParentSetupPage onBack={handleBackToDashboard} />;
+  }
+
+  if (currentPage === 'student-setup') {
+    return <StudentSetupPage onBack={handleBackToDashboard} />;
   }
 
   return (
