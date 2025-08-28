@@ -211,7 +211,7 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
   ];
 
   const attendanceStatusOptions = [
-    { value: "", label: "Not Set" },
+    { value: "not_set", label: "Not Set" },
     { value: "Present", label: "Present" },
     { value: "Absent", label: "Absent" },
     { value: "Late", label: "Late" },
@@ -347,7 +347,10 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
               
               <div>
                 <Label htmlFor="attendanceStatus">Attendance Status</Label>
-                <Select value={editData.attendanceStatus} onValueChange={(value) => handleInputChange('attendanceStatus', value)}>
+                <Select 
+                  value={editData.attendanceStatus || "not_set"} 
+                  onValueChange={(value) => handleInputChange('attendanceStatus', value === "not_set" ? "" : value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select attendance status" />
                   </SelectTrigger>
