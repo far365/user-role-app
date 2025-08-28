@@ -67,6 +67,12 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
       throw APIError.invalidArgument("Add to queue method is required");
     }
 
+    // Validate addToQueueMethod is one of the allowed values
+    const validMethods = ['Auto', 'Manual', 'QR', 'Phone', 'Walk-in'];
+    if (!validMethods.includes(addToQueueMethod.trim())) {
+      throw APIError.invalidArgument(`Add to queue method must be one of: ${validMethods.join(', ')}`);
+    }
+
     try {
       console.log("[Queue API] === ADDING RECORD TO DISMISSAL QUEUE ===");
       console.log("[Queue API] Request data:", req);
