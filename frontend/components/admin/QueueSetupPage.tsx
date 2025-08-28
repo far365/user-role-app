@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Bug, Database, Search, Table, Code, TestTube } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -24,13 +24,6 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>("");
-  const [showDebug, setShowDebug] = useState(false);
-  const [listError, setListError] = useState<string>("");
-  const [sqlQueries, setSqlQueries] = useState<any[]>([]);
-  const [showSQL, setShowSQL] = useState(false);
-  const [sqlTestResults, setSqlTestResults] = useState<any>(null);
-  const [showSQLTest, setShowSQLTest] = useState(false);
   
   const { toast } = useToast();
 
@@ -38,7 +31,6 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     try {
       const response = await backend.queue.getCurrentQueue();
       setCurrentQueue(response.queue);
-      console.log("Current queue:", response.queue);
     } catch (error) {
       console.error("Failed to fetch current queue:", error);
       setCurrentQueue(null);
@@ -47,33 +39,13 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
 
   const fetchAllQueues = async () => {
     try {
-      console.log("=== FRONTEND: Fetching all queues ===");
-      setListError("");
-      
       const response = await backend.queue.list();
-      console.log("=== FRONTEND: Queue list response ===", response);
-      
       setAllQueues(response.queues);
-      
-      if (response.queues.length === 0) {
-        console.log("=== FRONTEND: No queues returned ===");
-        console.log("This could mean:");
-        console.log("1. The queuemasterrcd table is empty");
-        console.log("2. There's an issue with the database query");
-        console.log("3. RLS policies are blocking access");
-        console.log("4. Field name mismatches");
-        
-        setListError("No queues returned from database. Check debug info for details.");
-      } else {
-        console.log(`=== FRONTEND: Successfully loaded ${response.queues.length} queues ===`);
-      }
     } catch (error) {
-      console.error("=== FRONTEND: Failed to fetch all queues ===", error);
-      setListError(error instanceof Error ? error.message : "Failed to load queue history");
-      
+      console.error("Failed to fetch all queues:", error);
       toast({
         title: "Error",
-        description: "Failed to load queue history. Check debug info for details.",
+        description: "Failed to load queue history",
         variant: "destructive",
       });
     }
@@ -92,152 +64,13 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     loadData();
   }, []);
 
-  const handleShowSQL = async () => {
-    try {
-      console.log("=== FRONTEND: Fetching SQL queries ===");
-      const response = await backend.queue.showSQL();
-      setSqlQueries(response.queries);
-      setShowSQL(true);
-      
-      toast({
-        title: "SQL Queries Loaded",
-        description: `Loaded ${response.queries.length} SQL queries used by the queue system`,
-      });
-    } catch (error) {
-      console.error("Failed to fetch SQL queries:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load SQL queries",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleTestRawSQL = async () => {
-    try {
-      console.log("=== FRONTEND: Testing raw SQL queries ===");
-      const response = await backend.queue.testRawSQL();
-      setSqlTestResults(response);
-      setShowSQLTest(true);
-      
-      toast({
-        title: "SQL Tests Complete",
-        description: `Executed ${response.testResults.length} test queries`,
-      });
-    } catch (error) {
-      console.error("Failed to test raw SQL:", error);
-      toast({
-        title: "Error",
-        description: "Failed to execute SQL tests",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDebugQueue = async () => {
-    try {
-      console.log("=== DEBUG: Testing queue system ===");
-      
-      // Test if we can reach the backend at all
-      const testResponse = await backend.user.list();
-      console.log("Backend connection test successful:", testResponse);
-      
-      let debugSummary = "Backend connection: OK\n";
-      
-      // Test queue endpoints
-      try {
-        const currentQueueResponse = await backend.queue.getCurrentQueue();
-        debugSummary += `Current queue endpoint: OK (${currentQueueResponse.queue ? 'Queue found' : 'No queue'})\n`;
-      } catch (error) {
-        debugSummary += `Current queue endpoint: FAILED - ${error instanceof Error ? error.message : 'Unknown error'}\n`;
-      }
-      
-      try {
-        console.log("=== DEBUG: Testing queue list endpoint ===");
-        const listResponse = await backend.queue.list();
-        console.log("=== DEBUG: Queue list response ===", listResponse);
-        
-        debugSummary += `List queues endpoint: OK (${listResponse.queues.length} queues found)\n`;
-        
-        if (listResponse.queues.length === 0) {
-          debugSummary += `WARNING: No queues returned despite table having records\n`;
-          debugSummary += `Possible issues:\n`;
-          debugSummary += `- RLS (Row Level Security) policies blocking access\n`;
-          debugSummary += `- Field name mismatches in database\n`;
-          debugSummary += `- Query filtering out all records\n`;
-          debugSummary += `- Database connection to wrong table\n`;
-        } else {
-          debugSummary += `Queue details:\n`;
-          listResponse.queues.forEach((queue, index) => {
-            debugSummary += `  ${index + 1}. ID: ${queue.queueId}, Status: ${queue.queueMasterStatus}\n`;
-          });
-        }
-      } catch (error) {
-        debugSummary += `List queues endpoint: FAILED - ${error instanceof Error ? error.message : 'Unknown error'}\n`;
-      }
-      
-      // Test table structure by trying to create a test entry (but don't actually create it)
-      try {
-        // This will fail but give us information about the table structure
-        await backend.queue.create({
-          queueStartedByUsername: "TEST_USER_DO_NOT_CREATE",
-        });
-        debugSummary += "Create queue test: Unexpectedly succeeded\n";
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes("Table") || error.message.includes("does not exist")) {
-            debugSummary += `Create queue test: TABLE ISSUE - ${error.message}\n`;
-          } else if (error.message.includes("permission") || error.message.includes("denied")) {
-            debugSummary += `Create queue test: PERMISSION ISSUE - ${error.message}\n`;
-          } else if (error.message.includes("connection") || error.message.includes("Database")) {
-            debugSummary += `Create queue test: CONNECTION ISSUE - ${error.message}\n`;
-          } else if (error.message.includes("already")) {
-            debugSummary += `Create queue test: VALIDATION ISSUE (expected) - ${error.message}\n`;
-          } else {
-            debugSummary += `Create queue test: OTHER ERROR - ${error.message}\n`;
-          }
-        } else {
-          debugSummary += `Create queue test: UNKNOWN ERROR - ${String(error)}\n`;
-        }
-      }
-      
-      // Add specific debugging for the list issue
-      debugSummary += `\nLIST DEBUGGING:\n`;
-      debugSummary += `Frontend list error: ${listError || 'None'}\n`;
-      debugSummary += `Queues in state: ${allQueues.length}\n`;
-      debugSummary += `Check browser console for detailed backend logs\n`;
-      
-      setDebugInfo(debugSummary);
-      setShowDebug(true);
-      
-      toast({
-        title: "Debug Complete",
-        description: "Check debug info below and browser console for detailed logs",
-      });
-    } catch (error) {
-      console.error("Debug error:", error);
-      setDebugInfo(`Debug failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setShowDebug(true);
-      toast({
-        title: "Debug Failed",
-        description: "Check console for error details",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleStartNewQueue = async () => {
     try {
       setIsCreating(true);
       
-      console.log("=== FRONTEND: Starting new queue ===");
-      console.log("User login ID:", user.loginID);
-      
       const response = await backend.queue.create({
         queueStartedByUsername: user.loginID,
       });
-
-      console.log("=== FRONTEND: Queue creation successful ===", response);
       
       setCurrentQueue(response.queue);
       await fetchAllQueues(); // Refresh the list
@@ -247,16 +80,10 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         description: `New queue ${response.queue.queueId} has been started`,
       });
     } catch (error) {
-      console.error("=== FRONTEND: Queue creation failed ===", error);
+      console.error("Queue creation failed:", error);
       
       let errorMessage = "Failed to start new queue";
       if (error instanceof Error) {
-        console.error("Error details:", {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-        
         if (error.message.includes("already open")) {
           errorMessage = "Cannot start new queue: Another queue is already open";
         } else if (error.message.includes("already exists")) {
@@ -455,196 +282,12 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           <p className="text-gray-600">Manage pickup queues and monitor queue status</p>
         </div>
         <div className="flex space-x-2">
-          <Button 
-            onClick={handleShowSQL} 
-            variant="outline" 
-            size="sm"
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <Code className="w-4 h-4 mr-2" />
-            Show SQL Queries
-          </Button>
-          <Button 
-            onClick={handleTestRawSQL} 
-            variant="outline" 
-            size="sm"
-            className="border-purple-300 text-purple-700 hover:bg-purple-50"
-          >
-            <TestTube className="w-4 h-4 mr-2" />
-            Test Raw SQL
-          </Button>
-          <Button 
-            onClick={handleDebugQueue} 
-            variant="outline" 
-            size="sm"
-            className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-          >
-            <Bug className="w-4 h-4 mr-2" />
-            Debug Queue System
-          </Button>
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isRefreshing}>
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
       </div>
-
-      {/* SQL Queries Display */}
-      {showSQL && sqlQueries.length > 0 && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-blue-800">
-              <Code className="w-5 h-5" />
-              <span>SQL Queries Used by Queue System</span>
-            </CardTitle>
-            <CardDescription className="text-blue-700">
-              These are the SQL queries that Supabase generates for queue operations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {sqlQueries.map((query, index) => (
-                <div key={index} className="bg-white p-4 rounded border">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-blue-900">{query.operation}</h4>
-                    <Badge variant="outline" className="text-xs">{query.table}</Badge>
-                  </div>
-                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto text-gray-800 mb-2">
-                    {query.query}
-                  </pre>
-                  <p className="text-xs text-blue-700">{query.description}</p>
-                </div>
-              ))}
-            </div>
-            <Button 
-              onClick={() => setShowSQL(false)} 
-              variant="outline" 
-              size="sm" 
-              className="mt-4"
-            >
-              Hide SQL Queries
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* SQL Test Results */}
-      {showSQLTest && sqlTestResults && (
-        <Card className="border-purple-200 bg-purple-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-purple-800">
-              <TestTube className="w-5 h-5" />
-              <span>Raw SQL Test Results</span>
-            </CardTitle>
-            <CardDescription className="text-purple-700">
-              Results from testing raw SQL queries against your database
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 p-3 bg-white rounded border">
-              <h4 className="font-medium text-purple-900 mb-2">Summary</h4>
-              <pre className="text-sm text-purple-800 whitespace-pre-wrap">{sqlTestResults.summary}</pre>
-            </div>
-            
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {sqlTestResults.testResults.map((result: any, index: number) => (
-                <div key={index} className="bg-white p-3 rounded border">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant={result.success ? "default" : "destructive"} className="text-xs">
-                      {result.success ? "SUCCESS" : "FAILED"}
-                    </Badge>
-                    {result.rowCount !== undefined && (
-                      <span className="text-xs text-gray-600">{result.rowCount} rows</span>
-                    )}
-                  </div>
-                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto text-gray-800 mb-2">
-                    {result.query}
-                  </pre>
-                  {result.error && (
-                    <p className="text-xs text-red-600 mb-2">Error: {result.error}</p>
-                  )}
-                  {result.result && (
-                    <details className="text-xs">
-                      <summary className="cursor-pointer text-purple-700 hover:text-purple-900">
-                        View Result Data
-                      </summary>
-                      <pre className="mt-2 bg-gray-50 p-2 rounded overflow-x-auto text-gray-700">
-                        {JSON.stringify(result.result, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              ))}
-            </div>
-            <Button 
-              onClick={() => setShowSQLTest(false)} 
-              variant="outline" 
-              size="sm" 
-              className="mt-4"
-            >
-              Hide Test Results
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* List Error Alert */}
-      {listError && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-red-800">
-              <AlertCircle className="w-5 h-5" />
-              <span>Queue List Issue</span>
-            </CardTitle>
-            <CardDescription className="text-red-700">
-              There's an issue loading the queue history
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-red-700 mb-3">{listError}</p>
-            <div className="text-xs text-red-600">
-              <p className="font-medium mb-2">Possible causes:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>RLS (Row Level Security) policies in Supabase are blocking access</li>
-                <li>Field name mismatches between code and database schema</li>
-                <li>Database connection issues</li>
-                <li>Query filtering out all records</li>
-              </ul>
-              <p className="mt-2">Use "Test Raw SQL" button for detailed database analysis.</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Debug Information */}
-      {showDebug && debugInfo && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-yellow-800">
-              <Database className="w-5 h-5" />
-              <span>Queue System Debug Information</span>
-            </CardTitle>
-            <CardDescription className="text-yellow-700">
-              Diagnostic information for troubleshooting queue issues
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs text-yellow-800 whitespace-pre-wrap overflow-auto max-h-40 bg-white p-3 rounded border">
-              {debugInfo}
-            </pre>
-            <div className="mt-3 p-3 bg-white rounded border">
-              <p className="text-sm font-medium text-yellow-800 mb-2">Common Solutions:</p>
-              <ul className="text-xs text-yellow-700 space-y-1">
-                <li>• <strong>No Records Returned:</strong> Check RLS policies in Supabase for queuemasterrcd table</li>
-                <li>• <strong>Table Issue:</strong> Verify queuemasterrcd table exists with correct column names</li>
-                <li>• <strong>Permission Issue:</strong> Ensure API key has read access to queuemasterrcd table</li>
-                <li>• <strong>Connection Issue:</strong> Verify Supabase URL and API key in secrets</li>
-                <li>• <strong>Field Names:</strong> Check column names match: queueid, queuemasterstatus, etc.</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Current Queue Status */}
       <Card>
@@ -836,33 +479,8 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-600 font-medium">No queues found</p>
               <p className="text-sm text-gray-500 mt-1">
-                {listError ? 
-                  "There was an issue loading queue history. Check debug info above." :
-                  "Queue history will appear here once queues are created"
-                }
+                Queue history will appear here once queues are created
               </p>
-              {listError && (
-                <div className="mt-4 space-x-2">
-                  <Button 
-                    onClick={handleTestRawSQL} 
-                    variant="outline" 
-                    size="sm"
-                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                  >
-                    <TestTube className="w-4 h-4 mr-2" />
-                    Test Database
-                  </Button>
-                  <Button 
-                    onClick={handleShowSQL} 
-                    variant="outline" 
-                    size="sm"
-                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                  >
-                    <Code className="w-4 h-4 mr-2" />
-                    View SQL
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
             <div className="space-y-4">
