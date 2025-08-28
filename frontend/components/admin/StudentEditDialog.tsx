@@ -10,7 +10,6 @@ import { Save, X, AlertCircle, Search, User } from "lucide-react";
 import backend from "~backend/client";
 import type { Student } from "~backend/student/types";
 import type { Parent } from "~backend/parent/types";
-import type { Grade } from "~backend/grades/types";
 
 interface StudentEditDialogProps {
   student: Student;
@@ -37,11 +36,9 @@ interface ValidationErrors {
 export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }: StudentEditDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSearchingParents, setIsSearchingParents] = useState(false);
-  const [isLoadingGrades, setIsLoadingGrades] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [parentSearchTerm, setParentSearchTerm] = useState("");
   const [availableParents, setAvailableParents] = useState<Parent[]>([]);
-  const [availableGrades, setAvailableGrades] = useState<Grade[]>([]);
   const [selectedParentName, setSelectedParentName] = useState("");
   const [editData, setEditData] = useState<EditableStudentData>({
     studentName: student.studentName,
@@ -55,46 +52,6 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
   });
   
   const { toast } = useToast();
-
-  // Load grades when dialog opens
-  useEffect(() => {
-    const loadGrades = async () => {
-      try {
-        setIsLoadingGrades(true);
-        const response = await backend.grades.list();
-        setAvailableGrades(response.grades);
-      } catch (error) {
-        console.error("Failed to load grades:", error);
-        toast({
-          title: "Warning",
-          description: "Failed to load grade options. Using fallback grades.",
-          variant: "destructive",
-        });
-        // Fallback grades if API fails
-        setAvailableGrades([
-          { name: "kindergarten", building: "A", sortOrder: 0 },
-          { name: "1st", building: "A", sortOrder: 1 },
-          { name: "2nd", building: "A", sortOrder: 2 },
-          { name: "3rd", building: "A", sortOrder: 3 },
-          { name: "4th", building: "A", sortOrder: 4 },
-          { name: "5th", building: "A", sortOrder: 5 },
-          { name: "6th", building: "A", sortOrder: 6 },
-          { name: "7th", building: "B", sortOrder: 7 },
-          { name: "8th", building: "B", sortOrder: 8 },
-          { name: "9th", building: "B", sortOrder: 9 },
-          { name: "10th", building: "B", sortOrder: 10 },
-          { name: "11th", building: "B", sortOrder: 11 },
-          { name: "12th", building: "B", sortOrder: 12 },
-        ]);
-      } finally {
-        setIsLoadingGrades(false);
-      }
-    };
-
-    if (isOpen) {
-      loadGrades();
-    }
-  }, [isOpen, toast]);
 
   // Find parent name when dialog opens or parentId changes
   useEffect(() => {
@@ -246,24 +203,6 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
     }
   };
 
-  const handleGradeChange = (gradeName: string) => {
-    // Find the selected grade to get its building
-    const selectedGrade = availableGrades.find(grade => grade.name === gradeName);
-    
-    setEditData(prev => ({
-      ...prev,
-      grade: gradeName,
-      classBuilding: selectedGrade ? selectedGrade.building : prev.classBuilding,
-    }));
-    
-    // Clear validation errors for grade when user selects
-    if (gradeName.trim()) {
-      const newErrors = { ...validationErrors };
-      delete newErrors.grade;
-      setValidationErrors(newErrors);
-    }
-  };
-
   const studentStatusOptions = [
     { value: "Active", label: "Active" },
     { value: "Inactive", label: "Inactive" },
@@ -344,25 +283,20 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="grade">Grade</Label>
-                <Select value={editData.grade} onValueChange={handleGradeChange}>
-                  <SelectTrigger className={validationErrors.grade ? 'border-red-300' : ''}>
-                    <SelectValue placeholder={isLoadingGrades ? "Loading grades..." : "Select grade"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingGrades ? (
-                      <SelectItem value="loading" disabled>Loading grades...</SelectItem>
-                    ) : (
-                      availableGrades.map((grade) => (
-                        <SelectItem key={grade.name} value={grade.name}>
-                          {grade.name} (Building {grade.building})
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="grade"
+                  type="text"
+                  value={editData.grade}
+                  onChange={(e) => handleInputChange('grade', e.target.value)}
+                  placeholder="Enter grade (e.g., kindergarten, 1st, 2nd, etc.)"
+                  className={validationErrors.grade ? 'border-red-300' : ''}
+                />
                 {validationErrors.grade && (
                   <p className="text-sm text-red-600 mt-1">{validationErrors.grade}</p>
                 )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter the grade level (will be updated to dropdown later)
+                </p>
               </div>
               
               <div>
@@ -374,9 +308,6 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
                   onChange={(e) => handleInputChange('classBuilding', e.target.value)}
                   placeholder="Enter class or building"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Building is automatically set based on grade selection
-                </p>
               </div>
             </div>
 
