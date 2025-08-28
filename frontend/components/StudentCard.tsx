@@ -37,7 +37,7 @@ export function StudentCard({ student }: StudentCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200 border-l-4 border-l-blue-500">
+    <Card className="hover:shadow-md transition-all duration-200 border-l-4 border-l-blue-500 border-2 border-gray-300 hover:border-gray-400">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1">
