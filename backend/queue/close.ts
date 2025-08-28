@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 import type { Queue, CloseQueueRequest, CloseQueueResponse } from "./types";
 
-// Closes the currently open queue.
+// Closes the currently open queue and updates dismissal queue statuses.
 export const close = api<CloseQueueRequest, CloseQueueResponse>(
   { expose: true, method: "PUT", path: "/queue/close" },
   async ({ queueClosedByUsername }) => {
@@ -32,6 +32,31 @@ export const close = api<CloseQueueRequest, CloseQueueResponse>(
 
       if (!openQueue) {
         throw APIError.notFound("No open queue found to close");
+      }
+
+      // Update dismissal queue records - change 'Standby' to 'Unknown'
+      console.log("[Queue API] === UPDATING DISMISSAL QUEUE ON CLOSE ===");
+      console.log(`[Queue API] Updating dismissal queue records for queue ${openQueue.queueid}...`);
+      
+      try {
+        const { data: updatedDismissalRecords, error: dismissalUpdateError } = await supabase
+          .from('dismissalqueuercd')
+          .update({ dismissalqueuestatus: 'Unknown' })
+          .eq('queueid', openQueue.queueid)
+          .eq('dismissalqueuestatus', 'Standby')
+          .select('*');
+
+        if (dismissalUpdateError) {
+          console.error("[Queue API] Error updating dismissal queue records:", dismissalUpdateError);
+          // Don't fail the queue closure, but log the error
+          console.error("[Queue API] Warning: Queue will be closed but dismissal queue update failed");
+        } else {
+          console.log(`[Queue API] Successfully updated ${updatedDismissalRecords?.length || 0} dismissal queue records from 'Standby' to 'Unknown'`);
+        }
+      } catch (dismissalError) {
+        console.error("[Queue API] Error during dismissal queue update:", dismissalError);
+        // Don't fail the queue closure, just log the error
+        console.error("[Queue API] Warning: Queue will be closed but dismissal queue update failed");
       }
 
       // Close the queue

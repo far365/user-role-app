@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 import type { Queue, CreateQueueRequest, CreateQueueResponse } from "./types";
 
-// Creates a new queue with YYYYMMDD format ID.
+// Creates a new queue with YYYYMMDD format ID and populates dismissal queue.
 export const create = api<CreateQueueRequest, CreateQueueResponse>(
   { expose: true, method: "POST", path: "/queue/create" },
   async ({ queueStartedByUsername }) => {
@@ -171,6 +171,104 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
       }
 
       console.log("[Queue API] Successfully created queue:", newQueue);
+
+      // Now populate the dismissal queue with eligible students
+      console.log("[Queue API] === POPULATING DISMISSAL QUEUE ===");
+      
+      try {
+        // Get all eligible students (Active status and Present attendance)
+        console.log("[Queue API] Fetching eligible students...");
+        const { data: eligibleStudents, error: studentsError } = await supabase
+          .from('studentrcd')
+          .select(`
+            studentid,
+            studentname,
+            grade,
+            classbuilding,
+            parentid,
+            studentstatus,
+            attendencestatus
+          `)
+          .eq('studentstatus', 'Active')
+          .eq('attendencestatus', 'Present');
+
+        if (studentsError) {
+          console.error("[Queue API] Error fetching eligible students:", studentsError);
+          // Don't fail the queue creation, but log the error
+          console.error("[Queue API] Warning: Could not populate dismissal queue with students");
+        } else {
+          console.log(`[Queue API] Found ${eligibleStudents?.length || 0} eligible students`);
+          
+          if (eligibleStudents && eligibleStudents.length > 0) {
+            // Get parent names for the students
+            const parentIds = [...new Set(eligibleStudents.map(s => s.parentid).filter(Boolean))];
+            console.log(`[Queue API] Fetching parent names for ${parentIds.length} unique parents...`);
+            
+            const { data: parents, error: parentsError } = await supabase
+              .from('parentrcd')
+              .select('parentid, parentname')
+              .in('parentid', parentIds);
+
+            if (parentsError) {
+              console.error("[Queue API] Error fetching parent names:", parentsError);
+            }
+
+            // Create a map of parentid to parentname
+            const parentNameMap = new Map();
+            if (parents) {
+              parents.forEach(parent => {
+                parentNameMap.set(parent.parentid, parent.parentname);
+              });
+            }
+
+            // Prepare dismissal queue records
+            const dismissalQueueRecords = eligibleStudents.map(student => ({
+              queueid: queueId,
+              classbuilding: student.classbuilding || '',
+              grade: student.grade || '',
+              dismissalqueuestatus: 'Standby',
+              parentid: student.parentid || null,
+              studentid: student.studentid || null,
+              studentname: student.studentname || '',
+              parentname: parentNameMap.get(student.parentid) || '',
+              alternatename: null,
+              qrscanedat: null,
+              addtoqueuemethod: 'Auto',
+              qrscannedatbuilding: null,
+              dismissedat: null,
+              dismissedbyname: null,
+              dismissstatus: null,
+              studntselfdismiss: false,
+              dismississue: null,
+              pickupconfirmeddttm: null,
+              pickupconfirmedbyname: null,
+              pickuissue: null
+            }));
+
+            console.log(`[Queue API] Inserting ${dismissalQueueRecords.length} records into dismissal queue...`);
+            
+            // Insert records into dismissal queue
+            const { data: insertedRecords, error: insertError } = await supabase
+              .from('dismissalqueuercd')
+              .insert(dismissalQueueRecords)
+              .select('*');
+
+            if (insertError) {
+              console.error("[Queue API] Error inserting dismissal queue records:", insertError);
+              // Don't fail the queue creation, but log the error
+              console.error("[Queue API] Warning: Queue created but dismissal queue population failed");
+            } else {
+              console.log(`[Queue API] Successfully inserted ${insertedRecords?.length || 0} dismissal queue records`);
+            }
+          } else {
+            console.log("[Queue API] No eligible students found for dismissal queue");
+          }
+        }
+      } catch (dismissalError) {
+        console.error("[Queue API] Error during dismissal queue population:", dismissalError);
+        // Don't fail the queue creation, just log the error
+        console.error("[Queue API] Warning: Queue created but dismissal queue population failed");
+      }
 
       const queue: Queue = {
         queueId: newQueue.queueid,

@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 import type { DeleteQueueRequest, DeleteQueueResponse } from "./types";
 
-// Deletes a queue by queue ID.
+// Deletes a queue by queue ID and removes all associated dismissal queue records.
 export const deleteQueue = api<DeleteQueueRequest, DeleteQueueResponse>(
   { expose: true, method: "DELETE", path: "/queue/delete" },
   async ({ queueId }) => {
@@ -32,6 +32,30 @@ export const deleteQueue = api<DeleteQueueRequest, DeleteQueueResponse>(
 
       if (!existingQueue) {
         throw APIError.notFound(`Queue with ID "${queueId}" not found`);
+      }
+
+      // Delete dismissal queue records first
+      console.log("[Queue API] === DELETING DISMISSAL QUEUE RECORDS ===");
+      console.log(`[Queue API] Deleting dismissal queue records for queue ${queueId}...`);
+      
+      try {
+        const { data: deletedDismissalRecords, error: dismissalDeleteError } = await supabase
+          .from('dismissalqueuercd')
+          .delete()
+          .eq('queueid', queueId.trim())
+          .select('*');
+
+        if (dismissalDeleteError) {
+          console.error("[Queue API] Error deleting dismissal queue records:", dismissalDeleteError);
+          // Don't fail the queue deletion, but log the error
+          console.error("[Queue API] Warning: Queue will be deleted but dismissal queue cleanup failed");
+        } else {
+          console.log(`[Queue API] Successfully deleted ${deletedDismissalRecords?.length || 0} dismissal queue records`);
+        }
+      } catch (dismissalError) {
+        console.error("[Queue API] Error during dismissal queue deletion:", dismissalError);
+        // Don't fail the queue deletion, just log the error
+        console.error("[Queue API] Warning: Queue will be deleted but dismissal queue cleanup failed");
       }
 
       // Delete the queue

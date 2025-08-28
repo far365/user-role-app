@@ -225,6 +225,7 @@ export namespace parent {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { addToDismissalQueue as api_queue_add_to_dismissal_queue_addToDismissalQueue } from "~backend/queue/add_to_dismissal_queue";
 import { close as api_queue_close_close } from "~backend/queue/close";
 import { create as api_queue_create_create } from "~backend/queue/create";
 import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
@@ -241,6 +242,7 @@ export namespace queue {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.addToDismissalQueue = this.addToDismissalQueue.bind(this)
             this.close = this.close.bind(this)
             this.create = this.create.bind(this)
             this.debugTable = this.debugTable.bind(this)
@@ -252,7 +254,16 @@ export namespace queue {
         }
 
         /**
-         * Closes the currently open queue.
+         * Adds a new record to the dismissal queue.
+         */
+        public async addToDismissalQueue(params: RequestType<typeof api_queue_add_to_dismissal_queue_addToDismissalQueue>): Promise<ResponseType<typeof api_queue_add_to_dismissal_queue_addToDismissalQueue>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/add-to-dismissal-queue`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_add_to_dismissal_queue_addToDismissalQueue>
+        }
+
+        /**
+         * Closes the currently open queue and updates dismissal queue statuses.
          */
         public async close(params: RequestType<typeof api_queue_close_close>): Promise<ResponseType<typeof api_queue_close_close>> {
             // Now make the actual call to the API
@@ -261,7 +272,7 @@ export namespace queue {
         }
 
         /**
-         * Creates a new queue with YYYYMMDD format ID.
+         * Creates a new queue with YYYYMMDD format ID and populates dismissal queue.
          */
         public async create(params: RequestType<typeof api_queue_create_create>): Promise<ResponseType<typeof api_queue_create_create>> {
             // Now make the actual call to the API
@@ -279,7 +290,7 @@ export namespace queue {
         }
 
         /**
-         * Deletes a queue by queue ID.
+         * Deletes a queue by queue ID and removes all associated dismissal queue records.
          */
         public async deleteQueue(params: RequestType<typeof api_queue_delete_deleteQueue>): Promise<ResponseType<typeof api_queue_delete_deleteQueue>> {
             // Convert our params into the objects we need for the request
