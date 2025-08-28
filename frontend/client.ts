@@ -227,9 +227,12 @@ export namespace parent {
  */
 import { close as api_queue_close_close } from "~backend/queue/close";
 import { create as api_queue_create_create } from "~backend/queue/create";
+import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
 import { deleteQueue as api_queue_delete_deleteQueue } from "~backend/queue/delete";
 import { getCurrentQueue as api_queue_get_current_getCurrentQueue } from "~backend/queue/get_current";
 import { list as api_queue_list_list } from "~backend/queue/list";
+import { showSQL as api_queue_show_sql_showSQL } from "~backend/queue/show_sql";
+import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/test_raw_sql";
 
 export namespace queue {
 
@@ -240,9 +243,12 @@ export namespace queue {
             this.baseClient = baseClient
             this.close = this.close.bind(this)
             this.create = this.create.bind(this)
+            this.debugTable = this.debugTable.bind(this)
             this.deleteQueue = this.deleteQueue.bind(this)
             this.getCurrentQueue = this.getCurrentQueue.bind(this)
             this.list = this.list.bind(this)
+            this.showSQL = this.showSQL.bind(this)
+            this.testRawSQL = this.testRawSQL.bind(this)
         }
 
         /**
@@ -261,6 +267,15 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/create`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_create_create>
+        }
+
+        /**
+         * Debug endpoint to thoroughly inspect the queuemasterrcd table
+         */
+        public async debugTable(): Promise<ResponseType<typeof api_queue_debug_table_debugTable>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/debug-table`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_debug_table_debugTable>
         }
 
         /**
@@ -293,6 +308,24 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/list`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_list_list>
+        }
+
+        /**
+         * Shows the actual SQL queries used by the queue operations
+         */
+        public async showSQL(): Promise<ResponseType<typeof api_queue_show_sql_showSQL>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/show-sql`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_show_sql_showSQL>
+        }
+
+        /**
+         * Tests raw SQL queries to understand what's happening with the queuemasterrcd table
+         */
+        public async testRawSQL(): Promise<ResponseType<typeof api_queue_test_raw_sql_testRawSQL>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/test-raw-sql`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_test_raw_sql_testRawSQL>
         }
     }
 }

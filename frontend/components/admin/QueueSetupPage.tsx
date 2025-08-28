@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Bug, Database } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Bug, Database, Search, Table } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -26,6 +26,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
   const [showDebug, setShowDebug] = useState(false);
+  const [listError, setListError] = useState<string>("");
   
   const { toast } = useToast();
 
@@ -42,14 +43,33 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
 
   const fetchAllQueues = async () => {
     try {
+      console.log("=== FRONTEND: Fetching all queues ===");
+      setListError("");
+      
       const response = await backend.queue.list();
+      console.log("=== FRONTEND: Queue list response ===", response);
+      
       setAllQueues(response.queues);
-      console.log("All queues:", response.queues);
+      
+      if (response.queues.length === 0) {
+        console.log("=== FRONTEND: No queues returned ===");
+        console.log("This could mean:");
+        console.log("1. The queuemasterrcd table is empty");
+        console.log("2. There's an issue with the database query");
+        console.log("3. RLS policies are blocking access");
+        console.log("4. Field name mismatches");
+        
+        setListError("No queues returned from database. Check debug info for details.");
+      } else {
+        console.log(`=== FRONTEND: Successfully loaded ${response.queues.length} queues ===`);
+      }
     } catch (error) {
-      console.error("Failed to fetch all queues:", error);
+      console.error("=== FRONTEND: Failed to fetch all queues ===", error);
+      setListError(error instanceof Error ? error.message : "Failed to load queue history");
+      
       toast({
         title: "Error",
-        description: "Failed to load queue history",
+        description: "Failed to load queue history. Check debug info for details.",
         variant: "destructive",
       });
     }
@@ -87,8 +107,25 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       }
       
       try {
+        console.log("=== DEBUG: Testing queue list endpoint ===");
         const listResponse = await backend.queue.list();
+        console.log("=== DEBUG: Queue list response ===", listResponse);
+        
         debugSummary += `List queues endpoint: OK (${listResponse.queues.length} queues found)\n`;
+        
+        if (listResponse.queues.length === 0) {
+          debugSummary += `WARNING: No queues returned despite table having records\n`;
+          debugSummary += `Possible issues:\n`;
+          debugSummary += `- RLS (Row Level Security) policies blocking access\n`;
+          debugSummary += `- Field name mismatches in database\n`;
+          debugSummary += `- Query filtering out all records\n`;
+          debugSummary += `- Database connection to wrong table\n`;
+        } else {
+          debugSummary += `Queue details:\n`;
+          listResponse.queues.forEach((queue, index) => {
+            debugSummary += `  ${index + 1}. ID: ${queue.queueId}, Status: ${queue.queueMasterStatus}\n`;
+          });
+        }
       } catch (error) {
         debugSummary += `List queues endpoint: FAILED - ${error instanceof Error ? error.message : 'Unknown error'}\n`;
       }
@@ -108,6 +145,8 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
             debugSummary += `Create queue test: PERMISSION ISSUE - ${error.message}\n`;
           } else if (error.message.includes("connection") || error.message.includes("Database")) {
             debugSummary += `Create queue test: CONNECTION ISSUE - ${error.message}\n`;
+          } else if (error.message.includes("already")) {
+            debugSummary += `Create queue test: VALIDATION ISSUE (expected) - ${error.message}\n`;
           } else {
             debugSummary += `Create queue test: OTHER ERROR - ${error.message}\n`;
           }
@@ -116,12 +155,18 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         }
       }
       
+      // Add specific debugging for the list issue
+      debugSummary += `\nLIST DEBUGGING:\n`;
+      debugSummary += `Frontend list error: ${listError || 'None'}\n`;
+      debugSummary += `Queues in state: ${allQueues.length}\n`;
+      debugSummary += `Check browser console for detailed backend logs\n`;
+      
       setDebugInfo(debugSummary);
       setShowDebug(true);
       
       toast({
         title: "Debug Complete",
-        description: "Check debug info below for details",
+        description: "Check debug info below and browser console for detailed logs",
       });
     } catch (error) {
       console.error("Debug error:", error);
@@ -380,6 +425,34 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         </div>
       </div>
 
+      {/* List Error Alert */}
+      {listError && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-red-800">
+              <AlertCircle className="w-5 h-5" />
+              <span>Queue List Issue</span>
+            </CardTitle>
+            <CardDescription className="text-red-700">
+              There's an issue loading the queue history
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-red-700 mb-3">{listError}</p>
+            <div className="text-xs text-red-600">
+              <p className="font-medium mb-2">Possible causes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>RLS (Row Level Security) policies in Supabase are blocking access</li>
+                <li>Field name mismatches between code and database schema</li>
+                <li>Database connection issues</li>
+                <li>Query filtering out all records</li>
+              </ul>
+              <p className="mt-2">Use "Debug Queue System" button for detailed analysis.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Debug Information */}
       {showDebug && debugInfo && (
         <Card className="border-yellow-200 bg-yellow-50">
@@ -389,7 +462,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <span>Queue System Debug Information</span>
             </CardTitle>
             <CardDescription className="text-yellow-700">
-              Diagnostic information for troubleshooting queue creation issues
+              Diagnostic information for troubleshooting queue issues
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -399,10 +472,11 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
             <div className="mt-3 p-3 bg-white rounded border">
               <p className="text-sm font-medium text-yellow-800 mb-2">Common Solutions:</p>
               <ul className="text-xs text-yellow-700 space-y-1">
-                <li>• <strong>Table Issue:</strong> Create the queuemasterrcd table in your Supabase database</li>
-                <li>• <strong>Permission Issue:</strong> Check RLS policies in Supabase for the queuemasterrcd table</li>
-                <li>• <strong>Connection Issue:</strong> Verify Supabase URL and API key in your secrets</li>
-                <li>• <strong>Field Names:</strong> Ensure table has correct column names (queueid, queuemasterstatus, etc.)</li>
+                <li>• <strong>No Records Returned:</strong> Check RLS policies in Supabase for queuemasterrcd table</li>
+                <li>• <strong>Table Issue:</strong> Verify queuemasterrcd table exists with correct column names</li>
+                <li>• <strong>Permission Issue:</strong> Ensure API key has read access to queuemasterrcd table</li>
+                <li>• <strong>Connection Issue:</strong> Verify Supabase URL and API key in secrets</li>
+                <li>• <strong>Field Names:</strong> Check column names match: queueid, queuemasterstatus, etc.</li>
               </ul>
             </div>
           </CardContent>
@@ -580,7 +654,15 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       {/* Queue History */}
       <Card>
         <CardHeader>
-          <CardTitle>Queue History</CardTitle>
+          <CardTitle className="flex items-center space-x-2">
+            <Table className="w-5 h-5" />
+            <span>Queue History</span>
+            {allQueues.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {allQueues.length}
+              </Badge>
+            )}
+          </CardTitle>
           <CardDescription>
             All queues ordered by creation date (most recent first)
           </CardDescription>
@@ -591,8 +673,24 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-600 font-medium">No queues found</p>
               <p className="text-sm text-gray-500 mt-1">
-                Queue history will appear here once queues are created
+                {listError ? 
+                  "There was an issue loading queue history. Check debug info above." :
+                  "Queue history will appear here once queues are created"
+                }
               </p>
+              {listError && (
+                <div className="mt-4">
+                  <Button 
+                    onClick={handleDebugQueue} 
+                    variant="outline" 
+                    size="sm"
+                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Debug Queue List Issue
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
