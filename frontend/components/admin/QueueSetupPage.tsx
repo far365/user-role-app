@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Bug, Database, Search, Table } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Bug, Database, Search, Table, Code, TestTube } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -27,6 +27,10 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [debugInfo, setDebugInfo] = useState<string>("");
   const [showDebug, setShowDebug] = useState(false);
   const [listError, setListError] = useState<string>("");
+  const [sqlQueries, setSqlQueries] = useState<any[]>([]);
+  const [showSQL, setShowSQL] = useState(false);
+  const [sqlTestResults, setSqlTestResults] = useState<any>(null);
+  const [showSQLTest, setShowSQLTest] = useState(false);
   
   const { toast } = useToast();
 
@@ -87,6 +91,48 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleShowSQL = async () => {
+    try {
+      console.log("=== FRONTEND: Fetching SQL queries ===");
+      const response = await backend.queue.showSQL();
+      setSqlQueries(response.queries);
+      setShowSQL(true);
+      
+      toast({
+        title: "SQL Queries Loaded",
+        description: `Loaded ${response.queries.length} SQL queries used by the queue system`,
+      });
+    } catch (error) {
+      console.error("Failed to fetch SQL queries:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load SQL queries",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTestRawSQL = async () => {
+    try {
+      console.log("=== FRONTEND: Testing raw SQL queries ===");
+      const response = await backend.queue.testRawSQL();
+      setSqlTestResults(response);
+      setShowSQLTest(true);
+      
+      toast({
+        title: "SQL Tests Complete",
+        description: `Executed ${response.testResults.length} test queries`,
+      });
+    } catch (error) {
+      console.error("Failed to test raw SQL:", error);
+      toast({
+        title: "Error",
+        description: "Failed to execute SQL tests",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDebugQueue = async () => {
     try {
@@ -410,6 +456,24 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         </div>
         <div className="flex space-x-2">
           <Button 
+            onClick={handleShowSQL} 
+            variant="outline" 
+            size="sm"
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Code className="w-4 h-4 mr-2" />
+            Show SQL Queries
+          </Button>
+          <Button 
+            onClick={handleTestRawSQL} 
+            variant="outline" 
+            size="sm"
+            className="border-purple-300 text-purple-700 hover:bg-purple-50"
+          >
+            <TestTube className="w-4 h-4 mr-2" />
+            Test Raw SQL
+          </Button>
+          <Button 
             onClick={handleDebugQueue} 
             variant="outline" 
             size="sm"
@@ -424,6 +488,105 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           </Button>
         </div>
       </div>
+
+      {/* SQL Queries Display */}
+      {showSQL && sqlQueries.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-blue-800">
+              <Code className="w-5 h-5" />
+              <span>SQL Queries Used by Queue System</span>
+            </CardTitle>
+            <CardDescription className="text-blue-700">
+              These are the SQL queries that Supabase generates for queue operations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {sqlQueries.map((query, index) => (
+                <div key={index} className="bg-white p-4 rounded border">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-blue-900">{query.operation}</h4>
+                    <Badge variant="outline" className="text-xs">{query.table}</Badge>
+                  </div>
+                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto text-gray-800 mb-2">
+                    {query.query}
+                  </pre>
+                  <p className="text-xs text-blue-700">{query.description}</p>
+                </div>
+              ))}
+            </div>
+            <Button 
+              onClick={() => setShowSQL(false)} 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+            >
+              Hide SQL Queries
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* SQL Test Results */}
+      {showSQLTest && sqlTestResults && (
+        <Card className="border-purple-200 bg-purple-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-purple-800">
+              <TestTube className="w-5 h-5" />
+              <span>Raw SQL Test Results</span>
+            </CardTitle>
+            <CardDescription className="text-purple-700">
+              Results from testing raw SQL queries against your database
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 p-3 bg-white rounded border">
+              <h4 className="font-medium text-purple-900 mb-2">Summary</h4>
+              <pre className="text-sm text-purple-800 whitespace-pre-wrap">{sqlTestResults.summary}</pre>
+            </div>
+            
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {sqlTestResults.testResults.map((result: any, index: number) => (
+                <div key={index} className="bg-white p-3 rounded border">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant={result.success ? "default" : "destructive"} className="text-xs">
+                      {result.success ? "SUCCESS" : "FAILED"}
+                    </Badge>
+                    {result.rowCount !== undefined && (
+                      <span className="text-xs text-gray-600">{result.rowCount} rows</span>
+                    )}
+                  </div>
+                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto text-gray-800 mb-2">
+                    {result.query}
+                  </pre>
+                  {result.error && (
+                    <p className="text-xs text-red-600 mb-2">Error: {result.error}</p>
+                  )}
+                  {result.result && (
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-purple-700 hover:text-purple-900">
+                        View Result Data
+                      </summary>
+                      <pre className="mt-2 bg-gray-50 p-2 rounded overflow-x-auto text-gray-700">
+                        {JSON.stringify(result.result, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              ))}
+            </div>
+            <Button 
+              onClick={() => setShowSQLTest(false)} 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+            >
+              Hide Test Results
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* List Error Alert */}
       {listError && (
@@ -447,7 +610,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 <li>Database connection issues</li>
                 <li>Query filtering out all records</li>
               </ul>
-              <p className="mt-2">Use "Debug Queue System" button for detailed analysis.</p>
+              <p className="mt-2">Use "Test Raw SQL" button for detailed database analysis.</p>
             </div>
           </CardContent>
         </Card>
@@ -679,15 +842,24 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 }
               </p>
               {listError && (
-                <div className="mt-4">
+                <div className="mt-4 space-x-2">
                   <Button 
-                    onClick={handleDebugQueue} 
+                    onClick={handleTestRawSQL} 
                     variant="outline" 
                     size="sm"
-                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
                   >
-                    <Search className="w-4 h-4 mr-2" />
-                    Debug Queue List Issue
+                    <TestTube className="w-4 h-4 mr-2" />
+                    Test Database
+                  </Button>
+                  <Button 
+                    onClick={handleShowSQL} 
+                    variant="outline" 
+                    size="sm"
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    <Code className="w-4 h-4 mr-2" />
+                    View SQL
                   </Button>
                 </div>
               )}
