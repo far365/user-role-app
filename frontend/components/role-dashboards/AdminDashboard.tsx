@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen } from "lucide-react";
 import { ParentSetupPage } from "../admin/ParentSetupPage";
 import { StudentSetupPage } from "../admin/StudentSetupPage";
+import { QueueSetupPage } from "../admin/QueueSetupPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -19,6 +20,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const handleBackToDashboard = () => {
     setCurrentPage('dashboard');
   };
+
+  if (currentPage === 'queue-setup') {
+    return <QueueSetupPage user={user} onBack={handleBackToDashboard} />;
+  }
 
   if (currentPage === 'parent-setup') {
     return <ParentSetupPage onBack={handleBackToDashboard} />;
