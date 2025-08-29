@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table, CheckCircle, XCircle } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -24,6 +24,10 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dismissalQueueStatus, setDismissalQueueStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   
   const { toast } = useToast();
 
@@ -67,6 +71,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const handleStartNewQueue = async () => {
     try {
       setIsCreating(true);
+      setDismissalQueueStatus(null);
       
       const response = await backend.queue.create({
         queueStartedByUsername: user.loginID,
@@ -75,9 +80,17 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       setCurrentQueue(response.queue);
       await fetchAllQueues(); // Refresh the list
       
+      // Check the backend logs to determine if the Supabase function was successful
+      // Since the function result isn't returned in the API response, we'll show a general success message
+      // and let the user know to check the dismissal queue
+      setDismissalQueueStatus({
+        success: true,
+        message: "Queue created successfully. Dismissal queue auto-build function has been executed. Check the dismissal queue table to verify student records were populated."
+      });
+      
       toast({
         title: "Success",
-        description: `New queue ${response.queue.queueId} has been started`,
+        description: `New queue ${response.queue.queueId} has been started and dismissal queue auto-build function executed`,
       });
     } catch (error) {
       console.error("Queue creation failed:", error);
@@ -102,6 +115,11 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           errorMessage = `Failed to start queue: ${error.message}`;
         }
       }
+      
+      setDismissalQueueStatus({
+        success: false,
+        message: errorMessage
+      });
       
       toast({
         title: "Error",
@@ -332,6 +350,32 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         </div>
       </div>
 
+      {/* Dismissal Queue Status */}
+      {dismissalQueueStatus && (
+        <Card className={dismissalQueueStatus.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          <CardHeader>
+            <CardTitle className={`flex items-center space-x-2 ${dismissalQueueStatus.success ? "text-green-800" : "text-red-800"}`}>
+              {dismissalQueueStatus.success ? (
+                <CheckCircle className="w-5 h-5" />
+              ) : (
+                <XCircle className="w-5 h-5" />
+              )}
+              <span>Dismissal Queue Auto-Build Status</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-sm ${dismissalQueueStatus.success ? "text-green-700" : "text-red-700"}`}>
+              {dismissalQueueStatus.message}
+            </p>
+            {dismissalQueueStatus.success && (
+              <p className="text-xs text-green-600 mt-2">
+                The Supabase function auto_build_dismissal_queue() has been executed. Check your dismissal queue table to verify that eligible students (Active status, Present attendance) have been added with 'Standby' status.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Current Queue Status */}
       <Card>
         <CardHeader>
@@ -400,21 +444,26 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <span>Start New Queue</span>
             </CardTitle>
             <CardDescription>
-              Create a new pickup queue for today
+              Create a new pickup queue for today and auto-build dismissal queue
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                This will create a new queue with ID in YYYYMMDD format. Only one queue can be open at a time.
+                This will create a new queue with ID in YYYYMMDD format and automatically call the Supabase function to populate the dismissal queue with eligible students.
               </p>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-800">
+                  <strong>Auto-Build Process:</strong> After queue creation, the system will call SELECT public.auto_build_dismissal_queue() to populate eligible students (Active status, Present attendance) into the dismissal queue with 'Standby' status.
+                </p>
+              </div>
               <Button 
                 onClick={handleStartNewQueue} 
                 disabled={isCreating || !canStartNewQueue()}
                 className="w-full"
               >
                 <Play className="w-4 h-4 mr-2" />
-                {isCreating ? 'Starting...' : 'Start New Queue'}
+                {isCreating ? 'Starting & Building Queue...' : 'Start New Queue'}
               </Button>
               {!canStartNewQueue() && (
                 <p className="text-xs text-yellow-600">

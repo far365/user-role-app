@@ -172,202 +172,37 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
 
       console.log("[Queue API] Successfully created queue:", newQueue);
 
-      // Now populate the dismissal queue with eligible students
-      console.log("[Queue API] === POPULATING DISMISSAL QUEUE ===");
+      // Now call the Supabase function to build the dismissal queue
+      console.log("[Queue API] === CALLING SUPABASE FUNCTION TO BUILD DISMISSAL QUEUE ===");
       
       try {
-        // First, check if dismissalqueuercd table exists and is accessible
-        console.log("[Queue API] Testing dismissalqueuercd table access...");
-        const { error: dismissalTableTestError } = await supabase
-          .from('dismissalqueuercd')
-          .select('*')
-          .limit(0);
+        console.log("[Queue API] Calling auto_build_dismissal_queue() function...");
         
-        if (dismissalTableTestError) {
-          console.error("[Queue API] Dismissal table access error:", dismissalTableTestError);
-          console.error("[Queue API] Warning: Cannot access dismissalqueuercd table, skipping dismissal queue population");
+        const { data: functionResult, error: functionError } = await supabase
+          .rpc('auto_build_dismissal_queue');
+
+        console.log("[Queue API] Supabase function result:", { functionResult, functionError });
+
+        if (functionError) {
+          console.error("[Queue API] Supabase function error:", functionError);
+          console.error("[Queue API] Function error details:", {
+            code: functionError.code,
+            message: functionError.message,
+            details: functionError.details,
+            hint: functionError.hint
+          });
+          
+          // Log the error but don't fail the queue creation
+          console.error("[Queue API] WARNING: Queue created successfully but dismissal queue auto-build failed");
+          console.error("[Queue API] Function error:", functionError.message);
         } else {
-          console.log("[Queue API] Dismissal table access: OK");
-          
-          // Clear any existing records for this queue ID first (in case of retry)
-          console.log("[Queue API] Clearing any existing dismissal queue records for queue:", queueId);
-          const { error: clearError } = await supabase
-            .from('dismissalqueuercd')
-            .delete()
-            .eq('queueid', queueId);
-          
-          if (clearError) {
-            console.error("[Queue API] Error clearing existing dismissal queue records:", clearError);
-          } else {
-            console.log("[Queue API] Successfully cleared any existing dismissal queue records");
-          }
-
-          // Get all eligible students (Active status and Present attendance)
-          console.log("[Queue API] Fetching eligible students...");
-          const { data: eligibleStudents, error: studentsError } = await supabase
-            .from('studentrcd')
-            .select(`
-              studentid,
-              studentname,
-              grade,
-              classbuilding,
-              parentid,
-              studentstatus,
-              attendencestatus
-            `)
-            .eq('studentstatus', 'Active')
-            .eq('attendencestatus', 'Present');
-
-          if (studentsError) {
-            console.error("[Queue API] Error fetching eligible students:", studentsError);
-            console.error("[Queue API] Warning: Could not populate dismissal queue with students");
-          } else {
-            console.log(`[Queue API] Found ${eligibleStudents?.length || 0} eligible students`);
-            
-            if (eligibleStudents && eligibleStudents.length > 0) {
-              // Get parent names for the students
-              const parentIds = [...new Set(eligibleStudents.map(s => s.parentid).filter(Boolean))];
-              console.log(`[Queue API] Fetching parent names for ${parentIds.length} unique parents...`);
-              
-              const { data: parents, error: parentsError } = await supabase
-                .from('parentrcd')
-                .select('parentid, parentname')
-                .in('parentid', parentIds);
-
-              if (parentsError) {
-                console.error("[Queue API] Error fetching parent names:", parentsError);
-              }
-
-              // Create a map of parentid to parentname
-              const parentNameMap = new Map();
-              if (parents) {
-                parents.forEach(parent => {
-                  parentNameMap.set(parent.parentid, parent.parentname);
-                });
-              }
-
-              // Prepare dismissal queue records using queueid and studentid as composite key
-              const dismissalQueueRecords = eligibleStudents.map((student) => {
-                return {
-                  queueid: queueId, // Use the actual queue ID
-                  classbuilding: student.classbuilding || '',
-                  grade: student.grade || '',
-                  dismissalqueuestatus: 'Standby',
-                  parentid: student.parentid || null,
-                  studentid: student.studentid || null, // Use the actual student ID
-                  studentname: student.studentname || '',
-                  parentname: parentNameMap.get(student.parentid) || '',
-                  alternatename: null,
-                  qrscanedat: null,
-                  addtoqueuemethod: 'Auto',
-                  qrscannedatbuilding: null,
-                  dismissedat: null,
-                  dismissedbyname: null,
-                  dismissstatus: null,
-                  studntselfdismiss: false,
-                  dismississue: null,
-                  pickupconfirmeddttm: null,
-                  pickupconfirmedbyname: null,
-                  pickuissue: null
-                };
-              });
-
-              console.log(`[Queue API] Inserting ${dismissalQueueRecords.length} records into dismissal queue...`);
-              console.log("[Queue API] Sample dismissal queue record:", dismissalQueueRecords[0]);
-              
-              // Insert records into dismissal queue in batches to avoid potential issues
-              const batchSize = 100;
-              let totalInserted = 0;
-              let totalErrors = 0;
-              
-              for (let i = 0; i < dismissalQueueRecords.length; i += batchSize) {
-                const batch = dismissalQueueRecords.slice(i, i + batchSize);
-                console.log(`[Queue API] Inserting batch ${Math.floor(i / batchSize) + 1} (${batch.length} records)...`);
-                
-                const { data: insertedRecords, error: insertError } = await supabase
-                  .from('dismissalqueuercd')
-                  .insert(batch)
-                  .select('*');
-
-                if (insertError) {
-                  console.error(`[Queue API] Error inserting batch ${Math.floor(i / batchSize) + 1}:`, insertError);
-                  console.error("[Queue API] Error details:", {
-                    code: insertError.code,
-                    message: insertError.message,
-                    details: insertError.details,
-                    hint: insertError.hint
-                  });
-                  
-                  // If it's a primary key violation or other constraint issue, try inserting records one by one
-                  if (insertError.code === '23505' || insertError.code === '23503') {
-                    console.log("[Queue API] Constraint violation detected, trying individual inserts...");
-                    
-                    // Try inserting records one by one to identify problematic records
-                    for (let j = 0; j < batch.length; j++) {
-                      const record = batch[j];
-                      
-                      // Skip records with missing required fields
-                      if (!record.queueid || !record.studentid) {
-                        console.log(`[Queue API] Skipping record ${i + j + 1}: missing queueid or studentid`);
-                        totalErrors++;
-                        continue;
-                      }
-                      
-                      const { data: singleInsert, error: singleError } = await supabase
-                        .from('dismissalqueuercd')
-                        .insert(record)
-                        .select('*');
-                      
-                      if (singleError) {
-                        console.error(`[Queue API] Error inserting individual record ${i + j + 1}:`, singleError);
-                        console.error(`[Queue API] Problematic record:`, record);
-                        totalErrors++;
-                      } else {
-                        totalInserted++;
-                        console.log(`[Queue API] Successfully inserted record ${i + j + 1}: student ${record.studentid}`);
-                      }
-                    }
-                  } else {
-                    // For other errors, log and continue
-                    console.error("[Queue API] Warning: Batch insert failed, continuing with queue creation");
-                    totalErrors += batch.length;
-                  }
-                } else {
-                  totalInserted += insertedRecords?.length || 0;
-                  console.log(`[Queue API] Successfully inserted batch ${Math.floor(i / batchSize) + 1}: ${insertedRecords?.length || 0} records`);
-                }
-              }
-              
-              console.log(`[Queue API] Dismissal queue population complete:`);
-              console.log(`[Queue API] - Total eligible students: ${dismissalQueueRecords.length}`);
-              console.log(`[Queue API] - Successfully inserted: ${totalInserted}`);
-              console.log(`[Queue API] - Errors/Skipped: ${totalErrors}`);
-              
-              if (totalInserted === 0) {
-                console.error("[Queue API] WARNING: No dismissal queue records were inserted!");
-                console.error("[Queue API] This could be due to:");
-                console.error("[Queue API] 1. Primary key constraint issues (queueid + studentid combination)");
-                console.error("[Queue API] 2. Missing required fields (queueid or studentid)");
-                console.error("[Queue API] 3. RLS policies blocking the insert");
-                console.error("[Queue API] 4. Table structure mismatch");
-                console.error("[Queue API] 5. Foreign key constraints on parentid or studentid");
-              } else if (totalErrors > 0) {
-                console.log(`[Queue API] WARNING: ${totalErrors} records failed to insert. Check logs for details.`);
-              }
-            } else {
-              console.log("[Queue API] No eligible students found for dismissal queue");
-            }
-          }
+          console.log("[Queue API] SUCCESS: auto_build_dismissal_queue() completed successfully");
+          console.log("[Queue API] Function result:", functionResult);
         }
-      } catch (dismissalError) {
-        console.error("[Queue API] Error during dismissal queue population:", dismissalError);
-        console.error("[Queue API] Dismissal error details:", {
-          name: dismissalError instanceof Error ? dismissalError.name : 'Unknown',
-          message: dismissalError instanceof Error ? dismissalError.message : String(dismissalError),
-          stack: dismissalError instanceof Error ? dismissalError.stack : 'No stack trace'
-        });
-        // Don't fail the queue creation, just log the error
-        console.error("[Queue API] Warning: Queue created but dismissal queue population failed");
+      } catch (functionCallError) {
+        console.error("[Queue API] Error calling Supabase function:", functionCallError);
+        console.error("[Queue API] WARNING: Queue created successfully but dismissal queue auto-build failed");
+        console.error("[Queue API] Function call error:", functionCallError instanceof Error ? functionCallError.message : String(functionCallError));
       }
 
       const queue: Queue = {
