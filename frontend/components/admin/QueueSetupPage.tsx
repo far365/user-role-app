@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
+import { ArrowLeft, Play, StopCircle, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -536,11 +536,11 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           </CardContent>
         </Card>
 
-        {/* Close Queue */}
+        {/* Close Queue - Using StopCircle icon instead of Square */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Square className="w-5 h-5" />
+              <StopCircle className="w-5 h-5" />
               <span>Close Open Queue</span>
             </CardTitle>
             <CardDescription>
@@ -563,7 +563,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 variant="outline"
                 className="w-full"
               >
-                <Square className="w-4 h-4 mr-2" />
+                <StopCircle className="w-4 h-4 mr-2" />
                 {isClosing ? 'Closing with Supabase...' : 'Close Open Queue'}
               </Button>
               {!currentQueue && (
