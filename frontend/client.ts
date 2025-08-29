@@ -263,7 +263,7 @@ export namespace queue {
         }
 
         /**
-         * Closes the currently open queue and updates dismissal queue statuses.
+         * Closes the currently open queue using Supabase function.
          */
         public async close(params: RequestType<typeof api_queue_close_close>): Promise<ResponseType<typeof api_queue_close_close>> {
             // Now make the actual call to the API

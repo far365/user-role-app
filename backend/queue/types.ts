@@ -29,6 +29,8 @@ export interface CloseQueueRequest {
 
 export interface CloseQueueResponse {
   queue: Queue;
+  status?: string;
+  message?: string;
 }
 
 export interface DeleteQueueRequest {

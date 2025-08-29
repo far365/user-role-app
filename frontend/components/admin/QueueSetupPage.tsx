@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Play, Square, Trash2, RefreshCw, Clock, User, Calendar, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -27,6 +27,11 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [dismissalQueueStatus, setDismissalQueueStatus] = useState<{
     success: boolean;
     message: string;
+  } | null>(null);
+  const [closeQueueStatus, setCloseQueueStatus] = useState<{
+    success: boolean;
+    message: string;
+    details?: string;
   } | null>(null);
   
   const { toast } = useToast();
@@ -72,6 +77,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     try {
       setIsCreating(true);
       setDismissalQueueStatus(null);
+      setCloseQueueStatus(null);
       
       const response = await backend.queue.create({
         queueStartedByUsername: user.loginID,
@@ -143,29 +149,54 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
 
     try {
       setIsClosing(true);
+      setCloseQueueStatus(null);
+      setDismissalQueueStatus(null);
       
+      console.log("[Frontend] Calling close queue with Supabase function");
       const response = await backend.queue.close({
         queueClosedByUsername: user.loginID,
       });
 
+      console.log("[Frontend] Close queue response:", response);
+
       setCurrentQueue(null); // No more open queue
       await fetchAllQueues(); // Refresh the list
       
+      // Show success status with details about the Supabase function
+      setCloseQueueStatus({
+        success: true,
+        message: `Queue ${response.queue.queueId} has been closed successfully using Supabase function.`,
+        details: "The close_currently_open_queue() function was executed successfully. All dismissal queue records with 'Standby' status have been updated to 'Unknown'."
+      });
+      
       toast({
         title: "Success",
-        description: `Queue ${response.queue.queueId} has been closed`,
+        description: `Queue ${response.queue.queueId} has been closed using Supabase function`,
       });
     } catch (error) {
       console.error("Failed to close queue:", error);
       
       let errorMessage = "Failed to close queue";
+      let errorDetails = "";
+      
       if (error instanceof Error) {
         if (error.message.includes("not found")) {
           errorMessage = "No open queue found to close";
+          errorDetails = "The Supabase function could not find an open queue to close.";
+        } else if (error.message.includes("User not found")) {
+          errorMessage = "User not found in database";
+          errorDetails = "Could not find user record to determine userid for the Supabase function.";
         } else {
           errorMessage = `Failed to close queue: ${error.message}`;
+          errorDetails = "The Supabase close_currently_open_queue() function encountered an error.";
         }
       }
+      
+      setCloseQueueStatus({
+        success: false,
+        message: errorMessage,
+        details: errorDetails
+      });
       
       toast({
         title: "Error",
@@ -376,6 +407,37 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         </Card>
       )}
 
+      {/* Close Queue Status */}
+      {closeQueueStatus && (
+        <Card className={closeQueueStatus.success ? "border-blue-200 bg-blue-50" : "border-red-200 bg-red-50"}>
+          <CardHeader>
+            <CardTitle className={`flex items-center space-x-2 ${closeQueueStatus.success ? "text-blue-800" : "text-red-800"}`}>
+              {closeQueueStatus.success ? (
+                <Database className="w-5 h-5" />
+              ) : (
+                <XCircle className="w-5 h-5" />
+              )}
+              <span>Supabase Queue Close Status</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-sm ${closeQueueStatus.success ? "text-blue-700" : "text-red-700"}`}>
+              {closeQueueStatus.message}
+            </p>
+            {closeQueueStatus.details && (
+              <p className={`text-xs mt-2 ${closeQueueStatus.success ? "text-blue-600" : "text-red-600"}`}>
+                {closeQueueStatus.details}
+              </p>
+            )}
+            {closeQueueStatus.success && (
+              <p className="text-xs text-blue-600 mt-2">
+                The Supabase function close_currently_open_queue(userid) was executed successfully. This function handles both closing the queue and updating dismissal queue statuses automatically.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Current Queue Status */}
       <Card>
         <CardHeader>
@@ -482,14 +544,19 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <span>Close Open Queue</span>
             </CardTitle>
             <CardDescription>
-              Close the currently active queue
+              Close the currently active queue using Supabase function
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                This will close the currently open queue and mark it as completed.
+                This will call the Supabase function close_currently_open_queue() to close the queue and update dismissal statuses.
               </p>
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-xs text-purple-800">
+                  <strong>Supabase Function:</strong> Calls close_currently_open_queue(userid) which automatically closes the queue and updates all 'Standby' dismissal records to 'Unknown' status.
+                </p>
+              </div>
               <Button 
                 onClick={handleCloseQueue} 
                 disabled={isClosing || !currentQueue}
@@ -497,7 +564,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
                 className="w-full"
               >
                 <Square className="w-4 h-4 mr-2" />
-                {isClosing ? 'Closing...' : 'Close Open Queue'}
+                {isClosing ? 'Closing with Supabase...' : 'Close Open Queue'}
               </Button>
               {!currentQueue && (
                 <p className="text-xs text-gray-500">
