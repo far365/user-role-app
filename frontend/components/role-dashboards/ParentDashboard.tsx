@@ -3,12 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Phone, Mail, MapPin, UserCheck, AlertCircle, Bug, Car, Users, MessageSquare, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Bug, Car, Users, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
-import { StudentCard } from "../StudentCard";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -19,9 +17,7 @@ interface ParentDashboardProps {
 }
 
 interface EditableParentData {
-  parentName: string;
   parentPhoneMain: string;
-  sendSMS: boolean;
   parentVehicleInfo: string;
   alternate1Name: string;
   alternate1Phone: string;
@@ -56,9 +52,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editData, setEditData] = useState<EditableParentData>({
-    parentName: '',
     parentPhoneMain: '',
-    sendSMS: false,
     parentVehicleInfo: '',
     alternate1Name: '',
     alternate1Phone: '',
@@ -87,11 +81,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         
         setParentData(response.parent);
         
-        // Initialize edit data
+        // Initialize edit data with only editable fields
         setEditData({
-          parentName: response.parent.parentName,
           parentPhoneMain: response.parent.parentPhoneMain,
-          sendSMS: response.parent.sendSMS,
           parentVehicleInfo: response.parent.parentVehicleInfo,
           alternate1Name: response.parent.alternate1Name,
           alternate1Phone: response.parent.alternate1Phone,
@@ -229,11 +221,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
     
-    // Validate parent name is required
-    if (!editData.parentName.trim()) {
-      errors.parentName = "Parent Name is required";
-    }
-    
     // Validate alternate contacts
     const alternate1Errors = validateAlternateContact(1, editData);
     const alternate2Errors = validateAlternateContact(2, editData);
@@ -280,9 +267,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const handleCancel = () => {
     if (parentData) {
       setEditData({
-        parentName: parentData.parentName,
         parentPhoneMain: parentData.parentPhoneMain,
-        sendSMS: parentData.sendSMS,
         parentVehicleInfo: parentData.parentVehicleInfo,
         alternate1Name: parentData.alternate1Name,
         alternate1Phone: parentData.alternate1Phone,
@@ -336,20 +321,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsEditing(false);
       setValidationErrors({});
       
-      // Show success message with note about display name update if parent name changed
-      if (editData.parentName !== parentData?.parentName) {
-        console.log("Parent name changed, showing sync message");
-        toast({
-          title: "Success",
-          description: "Parent information updated successfully. Display name has been synchronized across both tables.",
-        });
-      } else {
-        console.log("Parent name unchanged, showing standard message");
-        toast({
-          title: "Success",
-          description: "Parent information updated successfully.",
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Parent information updated successfully.",
+      });
     } catch (error) {
       console.error("=== SAVE OPERATION ERROR ===");
       console.error("Failed to update parent data:", error);
@@ -376,7 +351,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     }
   };
 
-  const handleInputChange = (field: keyof EditableParentData, value: string | boolean) => {
+  const handleInputChange = (field: keyof EditableParentData, value: string) => {
     console.log(`Input change: ${field} = ${value}`);
     setEditData(prev => ({
       ...prev,
@@ -384,7 +359,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     }));
     
     // Clear validation errors for this field when user starts typing
-    if (typeof value === 'string' && value.trim()) {
+    if (value.trim()) {
       const newErrors = { ...validationErrors };
       Object.keys(newErrors).forEach(key => {
         if (key.includes(field)) {
@@ -399,11 +374,23 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return Object.values(validationErrors).some(error => error.includes(fieldName));
   };
 
+  const handleSubmitQRCode = () => {
+    toast({
+      title: "QR Code Submitted",
+      description: "QR Code submission simulated for testing purposes.",
+    });
+  };
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return "Never";
+    return new Date(date).toLocaleString();
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent: Loading...</h2>
           <p className="text-gray-600">Loading your information...</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -427,8 +414,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h2>
-          <p className="text-gray-600">{user.displayName}!</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent: {user.displayName}</h2>
         </div>
         
         <Card className="border-red-200 bg-red-50">
@@ -521,39 +507,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
-        {parentData && (
-          <div className="flex items-center justify-between mb-2">
-            <Badge 
-              variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
-              className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-            >
-              {parentData.parentRecordStatus || 'Unknown'}
-            </Badge>
-            <div className="flex space-x-2">
-              {!isEditing ? (
-                <Button onClick={handleEdit} variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-              ) : (
-                <>
-                  <Button onClick={handleSave} disabled={isSaving} size="sm">
-                    <Save className="w-4 h-4 mr-2" />
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                  <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-        <p className="text-sm text-gray-600">
-          Stay connected with your child's activities and important updates.
-        </p>
+        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent: {parentData?.parentName || user.displayName}</h3>
         
         {Object.keys(validationErrors).length > 0 && (
           <Card className="border-red-200 bg-red-50">
@@ -582,114 +536,21 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
       {parentData && (
         <div className="space-y-6">
-          {/* Main Parent Information */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <UserCheck className="w-5 h-5" />
-                  <span>Parent Information</span>
-                </CardTitle>
-                <CardDescription>Your primary contact details and information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          {/* Non-Editable Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <UserCheck className="w-5 h-5" />
+                <span>Parent Information</span>
+              </CardTitle>
+              <CardDescription>Your account details and status</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="parentName" className="text-sm font-medium text-gray-700">Parent Name</Label>
-                  {isEditing ? (
-                    <div>
-                      <Input
-                        id="parentName"
-                        type="text"
-                        value={editData.parentName}
-                        onChange={(e) => handleInputChange('parentName', e.target.value)}
-                        placeholder="Enter parent name"
-                        className={`mt-1 ${validationErrors.parentName ? 'border-red-300' : ''}`}
-                      />
-                      {validationErrors.parentName && (
-                        <p className="text-sm text-red-600 mt-1">{validationErrors.parentName}</p>
-                      )}
-                      {editData.parentName !== parentData.parentName && (
-                        <p className="text-xs text-blue-600 mt-1">
-                          This will also update your display name in the user record.
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-900 mt-1">{parentData.parentName || 'Not provided'}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Gender</p>
-                    <p className="text-sm text-gray-900">{parentData.gender === 'M' ? 'Male' : parentData.gender === 'F' ? 'Female' : parentData.gender || 'Not specified'}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="parentPhoneMain" className="text-sm font-medium text-gray-700">Main Phone Number</Label>
-                    {isEditing ? (
-                      <Input
-                        id="parentPhoneMain"
-                        type="tel"
-                        value={editData.parentPhoneMain}
-                        onChange={(e) => handleInputChange('parentPhoneMain', e.target.value)}
-                        placeholder="Enter phone number"
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm text-gray-900 mt-1">{parentData.parentPhoneMain || 'Not provided'}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label className="text-sm font-medium text-gray-700">SMS Notifications</Label>
-                    {isEditing ? (
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Switch
-                          checked={editData.sendSMS}
-                          onCheckedChange={(checked) => handleInputChange('sendSMS', checked)}
-                        />
-                        <span className="text-sm text-gray-600">
-                          {editData.sendSMS ? 'Enabled' : 'Disabled'}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <Badge variant={parentData.sendSMS ? 'default' : 'secondary'}>
-                          {parentData.sendSMS ? 'Enabled' : 'Disabled'}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="parentVehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
-                    {isEditing ? (
-                      <Input
-                        id="parentVehicleInfo"
-                        type="text"
-                        value={editData.parentVehicleInfo}
-                        onChange={(e) => handleInputChange('parentVehicleInfo', e.target.value)}
-                        placeholder="Enter vehicle information"
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="text-sm text-gray-900 mt-1">{parentData.parentVehicleInfo || 'Not provided'}</p>
-                    )}
-                  </div>
-                </div>
-
-                {!isEditing && (
-                  <div className="pt-2 border-t">
+                  <Label className="text-sm font-medium text-gray-700">Parent Name</Label>
+                  <p className="text-sm text-gray-900 mt-1">{parentData.parentName || 'Not provided'}</p>
+                  <div className="mt-2">
                     <QRCodeGenerator
                       name={parentData.parentName || 'Parent'}
                       phone={parentData.parentPhoneMain || ''}
@@ -697,39 +558,157 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       parentID={parentData.parentID}
                     />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className={getFieldError('Alternate Contact 1') ? 'border-red-300' : ''}>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="w-5 h-5" />
-                  <span>Alternate Contact 1</span>
-                </CardTitle>
-                <CardDescription>Primary alternate contact information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                </div>
+                
                 <div>
-                  <Label htmlFor="alternate1Name" className="text-sm font-medium text-gray-700">Name</Label>
+                  <Label className="text-sm font-medium text-gray-700">Account Status</Label>
+                  <div className="mt-1">
+                    <Badge 
+                      variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
+                      className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+                    >
+                      {parentData.parentRecordStatus || 'Unknown'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Last Login</Label>
+                <p className="text-sm text-gray-900 mt-1">{formatDate(user.lastLoginDTTM)}</p>
+              </div>
+
+              {/* Student Information - Simple one line format */}
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Students</Label>
+                {isLoadingStudents ? (
+                  <p className="text-sm text-gray-600 mt-1">Loading students...</p>
+                ) : studentError ? (
+                  <p className="text-sm text-red-600 mt-1">Unable to load student information</p>
+                ) : studentData.length === 0 ? (
+                  <p className="text-sm text-gray-600 mt-1">No students found</p>
+                ) : (
+                  <div className="mt-1 space-y-1">
+                    {studentData.map((student, index) => (
+                      <p key={student.studentId} className="text-sm text-gray-900">
+                        {student.studentName} - Grade {student.grade} - {student.classBuilding}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-2">
+                  <Button 
+                    onClick={handleStudentDebug} 
+                    variant="outline" 
+                    size="sm"
+                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                  >
+                    <TestTube className="w-4 h-4 mr-2" />
+                    Debug Students
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Editable Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-5 h-5" />
+                  <span>Editable Information</span>
+                </div>
+                <div className="flex space-x-2">
+                  {!isEditing ? (
+                    <Button onClick={handleEdit} variant="outline" size="sm">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Record
+                    </Button>
+                  ) : (
+                    <>
+                      <Button onClick={handleSave} disabled={isSaving} size="sm">
+                        <Save className="w-4 h-4 mr-2" />
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                      <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardTitle>
+              <CardDescription>Update your contact information and vehicle details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Primary Phone and Vehicle Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="parentPhoneMain" className="text-sm font-medium text-gray-700">Primary Phone</Label>
                   {isEditing ? (
                     <Input
-                      id="alternate1Name"
-                      type="text"
-                      value={editData.alternate1Name}
-                      onChange={(e) => handleInputChange('alternate1Name', e.target.value)}
-                      placeholder="Enter contact name"
-                      className={`mt-1 ${getFieldError('Alternate Contact 1 Name') ? 'border-red-300' : ''}`}
+                      id="parentPhoneMain"
+                      type="tel"
+                      value={editData.parentPhoneMain}
+                      onChange={(e) => handleInputChange('parentPhoneMain', e.target.value)}
+                      placeholder="Enter phone number"
+                      className="mt-1"
                     />
                   ) : (
-                    <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Name || 'Not provided'}</p>
+                    <p className="text-sm text-gray-900 mt-1">{parentData.parentPhoneMain || 'Not provided'}</p>
                   )}
                 </div>
                 
-                <div className="flex items-start space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="alternate1Phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                <div>
+                  <Label htmlFor="parentVehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                  {isEditing ? (
+                    <Input
+                      id="parentVehicleInfo"
+                      type="text"
+                      value={editData.parentVehicleInfo}
+                      onChange={(e) => handleInputChange('parentVehicleInfo', e.target.value)}
+                      placeholder="Enter vehicle information"
+                      className="mt-1"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-900 mt-1">{parentData.parentVehicleInfo || 'Not provided'}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Alternate Contact 1 */}
+              <div className={`p-4 border rounded-lg ${getFieldError('Alternate Contact 1') ? 'border-red-300 bg-red-50' : 'bg-gray-50'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Alternate Contact 1</h4>
+                  {!isEditing && parentData.alternate1Name && parentData.alternate1Phone && (
+                    <QRCodeGenerator
+                      name={parentData.alternate1Name}
+                      phone={parentData.alternate1Phone}
+                      title="Alternate Contact 1"
+                      parentID={parentData.parentID}
+                    />
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="alternate1Name" className="text-sm font-medium text-gray-700">Name</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate1Name"
+                        type="text"
+                        value={editData.alternate1Name}
+                        onChange={(e) => handleInputChange('alternate1Name', e.target.value)}
+                        placeholder="Enter contact name"
+                        className={`mt-1 ${getFieldError('Alternate Contact 1 Name') ? 'border-red-300' : ''}`}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Name || 'Not provided'}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="alternate1Phone" className="text-sm font-medium text-gray-700">Phone</Label>
                     {isEditing ? (
                       <Input
                         id="alternate1Phone"
@@ -743,11 +722,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Phone || 'Not provided'}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <User className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
+                  
+                  <div>
                     <Label htmlFor="alternate1Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
                     {isEditing ? (
                       <Input
@@ -762,12 +738,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Relationship || 'Not provided'}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="alternate1VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                  
+                  <div>
+                    <Label htmlFor="alternate1VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Info</Label>
                     {isEditing ? (
                       <Input
                         id="alternate1VehicleInfo"
@@ -782,52 +755,40 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
+              </div>
 
-                {!isEditing && parentData.alternate1Name && parentData.alternate1Phone && (
-                  <div className="pt-2 border-t">
+              {/* Alternate Contact 2 */}
+              <div className={`p-4 border rounded-lg ${getFieldError('Alternate Contact 2') ? 'border-red-300 bg-red-50' : 'bg-gray-50'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Alternate Contact 2</h4>
+                  {!isEditing && parentData.alternate2Name && parentData.alternate2Phone && (
                     <QRCodeGenerator
-                      name={parentData.alternate1Name}
-                      phone={parentData.alternate1Phone}
-                      title="Alternate Contact 1"
+                      name={parentData.alternate2Name}
+                      phone={parentData.alternate2Phone}
+                      title="Alternate Contact 2"
                       parentID={parentData.parentID}
                     />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Alternate Contacts 2 & 3 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className={getFieldError('Alternate Contact 2') ? 'border-red-300' : ''}>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="w-5 h-5" />
-                  <span>Alternate Contact 2</span>
-                </CardTitle>
-                <CardDescription>Secondary alternate contact information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="alternate2Name" className="text-sm font-medium text-gray-700">Name</Label>
-                  {isEditing ? (
-                    <Input
-                      id="alternate2Name"
-                      type="text"
-                      value={editData.alternate2Name}
-                      onChange={(e) => handleInputChange('alternate2Name', e.target.value)}
-                      placeholder="Enter contact name"
-                      className={`mt-1 ${getFieldError('Alternate Contact 2 Name') ? 'border-red-300' : ''}`}
-                    />
-                  ) : (
-                    <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Name || 'Not provided'}</p>
                   )}
                 </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="alternate2Phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="alternate2Name" className="text-sm font-medium text-gray-700">Name</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate2Name"
+                        type="text"
+                        value={editData.alternate2Name}
+                        onChange={(e) => handleInputChange('alternate2Name', e.target.value)}
+                        placeholder="Enter contact name"
+                        className={`mt-1 ${getFieldError('Alternate Contact 2 Name') ? 'border-red-300' : ''}`}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Name || 'Not provided'}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="alternate2Phone" className="text-sm font-medium text-gray-700">Phone</Label>
                     {isEditing ? (
                       <Input
                         id="alternate2Phone"
@@ -841,11 +802,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Phone || 'Not provided'}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <User className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
+                  
+                  <div>
                     <Label htmlFor="alternate2Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
                     {isEditing ? (
                       <Input
@@ -860,12 +818,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Relationship || 'Not provided'}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="alternate2VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                  
+                  <div>
+                    <Label htmlFor="alternate2VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Info</Label>
                     {isEditing ? (
                       <Input
                         id="alternate2VehicleInfo"
@@ -880,49 +835,40 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
+              </div>
 
-                {!isEditing && parentData.alternate2Name && parentData.alternate2Phone && (
-                  <div className="pt-2 border-t">
+              {/* Alternate Contact 3 */}
+              <div className={`p-4 border rounded-lg ${getFieldError('Alternate Contact 3') ? 'border-red-300 bg-red-50' : 'bg-gray-50'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900">Alternate Contact 3</h4>
+                  {!isEditing && parentData.alternate3Name && parentData.alternate3Phone && (
                     <QRCodeGenerator
-                      name={parentData.alternate2Name}
-                      phone={parentData.alternate2Phone}
-                      title="Alternate Contact 2"
+                      name={parentData.alternate3Name}
+                      phone={parentData.alternate3Phone}
+                      title="Alternate Contact 3"
                       parentID={parentData.parentID}
                     />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className={getFieldError('Alternate Contact 3') ? 'border-red-300' : ''}>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="w-5 h-5" />
-                  <span>Alternate Contact 3</span>
-                </CardTitle>
-                <CardDescription>Third alternate contact information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="alternate3Name" className="text-sm font-medium text-gray-700">Name</Label>
-                  {isEditing ? (
-                    <Input
-                      id="alternate3Name"
-                      type="text"
-                      value={editData.alternate3Name}
-                      onChange={(e) => handleInputChange('alternate3Name', e.target.value)}
-                      placeholder="Enter contact name"
-                      className={`mt-1 ${getFieldError('Alternate Contact 3 Name') ? 'border-red-300' : ''}`}
-                    />
-                  ) : (
-                    <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Name || 'Not provided'}</p>
-                    )}
+                  )}
                 </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Phone className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="alternate3Phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="alternate3Name" className="text-sm font-medium text-gray-700">Name</Label>
+                    {isEditing ? (
+                      <Input
+                        id="alternate3Name"
+                        type="text"
+                        value={editData.alternate3Name}
+                        onChange={(e) => handleInputChange('alternate3Name', e.target.value)}
+                        placeholder="Enter contact name"
+                        className={`mt-1 ${getFieldError('Alternate Contact 3 Name') ? 'border-red-300' : ''}`}
+                      />
+                    ) : (
+                      <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Name || 'Not provided'}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="alternate3Phone" className="text-sm font-medium text-gray-700">Phone</Label>
                     {isEditing ? (
                       <Input
                         id="alternate3Phone"
@@ -936,11 +882,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Phone || 'Not provided'}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <User className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
+                  
+                  <div>
                     <Label htmlFor="alternate3Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
                     {isEditing ? (
                       <Input
@@ -955,12 +898,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Relationship || 'Not provided'}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="flex items-start space-x-2">
-                  <Car className="w-4 h-4 text-gray-500 mt-0.5" />
-                  <div className="flex-1">
-                    <Label htmlFor="alternate3VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
+                  
+                  <div>
+                    <Label htmlFor="alternate3VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Info</Label>
                     {isEditing ? (
                       <Input
                         id="alternate3VehicleInfo"
@@ -975,93 +915,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     )}
                   </div>
                 </div>
-
-                {!isEditing && parentData.alternate3Name && parentData.alternate3Phone && (
-                  <div className="pt-2 border-t">
-                    <QRCodeGenerator
-                      name={parentData.alternate3Name}
-                      phone={parentData.alternate3Phone}
-                      title="Alternate Contact 3"
-                      parentID={parentData.parentID}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Student Information Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <GraduationCap className="w-5 h-5" />
-                <span>My Students</span>
-                {studentData.length > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {studentData.length}
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                Information about your enrolled students from Supabase
-              </CardDescription>
-              <div className="flex space-x-2 pt-2">
-                <Button 
-                  onClick={handleStudentDebug} 
-                  variant="outline" 
-                  size="sm"
-                  className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-                >
-                  <TestTube className="w-4 h-4 mr-2" />
-                  Debug Supabase Students
-                </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              {isLoadingStudents ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                  <span className="ml-2 text-gray-600">Loading student information from Supabase...</span>
-                </div>
-              ) : studentError ? (
-                <div className="text-center py-8">
-                  <AlertCircle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">Unable to load student information from Supabase</p>
-                  <p className="text-xs text-gray-500">{studentError}</p>
-                </div>
-              ) : studentData.length === 0 ? (
-                <div className="text-center py-8">
-                  <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">No students found in Supabase</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    No student records are currently associated with your parent account in the Supabase database.
-                  </p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Parent ID: {parentData.parentID} • Use "Debug Supabase Students" to troubleshoot
-                  </p>
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center space-x-2 text-yellow-800">
-                      <Cloud className="w-4 h-4" />
-                      <span className="font-medium text-sm">Possible Supabase Issues:</span>
-                    </div>
-                    <ul className="text-xs text-yellow-700 mt-2 space-y-1 text-left">
-                      <li>• The studentrcd table in Supabase might be empty</li>
-                      <li>• No students have parentid = "{parentData.parentID}" in Supabase</li>
-                      <li>• RLS (Row Level Security) policies in Supabase are blocking access</li>
-                      <li>• API is connecting to wrong Supabase project</li>
-                      <li>• Field name mismatches in the Supabase table</li>
-                    </ul>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {studentData.map((student) => (
-                    <StudentCard key={student.studentId} student={student} />
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
+
+          {/* Submit QR Code Button */}
+          <div className="flex justify-center">
+            <Button 
+              onClick={handleSubmitQRCode}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <QrCode className="w-4 h-4 mr-2" />
+              Submit QR Code
+            </Button>
+          </div>
 
           {/* Student Debug Information */}
           {showStudentDebug && studentDebugData && (
@@ -1085,46 +952,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                         <p><strong>Connection Error:</strong> {studentDebugData.connectionTest.error}</p>
                       )}
                     </div>
-                  </div>
-
-                  <div>
-                    <p className="font-medium">Supabase Table Status:</p>
-                    <div className="bg-white p-2 rounded text-xs">
-                      <p><strong>Table Exists:</strong> {studentDebugData.tableExists ? '✅ YES' : '❌ NO'}</p>
-                      {studentDebugData.rawTableInfo?.testError && (
-                        <>
-                          <p><strong>Table Error:</strong> {studentDebugData.rawTableInfo.testError}</p>
-                          <p><strong>Error Code:</strong> {studentDebugData.rawTableInfo.errorCode || 'N/A'}</p>
-                          <p><strong>Error Details:</strong> {studentDebugData.rawTableInfo.errorDetails || 'N/A'}</p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="font-medium">RLS (Row Level Security) Status:</p>
-                    <div className="bg-white p-2 rounded text-xs">
-                      <p><strong>Direct Test Success:</strong> {studentDebugData.rlsStatus?.directTestSuccess ? '✅ YES' : '❌ NO'}</p>
-                      <p><strong>Direct Test Records:</strong> {studentDebugData.rlsStatus?.directTestRecordCount || 0}</p>
-                      {studentDebugData.rlsStatus?.directTestError && (
-                        <p><strong>RLS Error:</strong> {studentDebugData.rlsStatus.directTestError}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="font-medium">Search Parameters:</p>
-                    <div className="bg-white p-2 rounded text-xs">
-                      <p><strong>Parent ID:</strong> {studentDebugData.parentID}</p>
-                      <p><strong>Supabase Query:</strong> SELECT * FROM studentrcd WHERE parentid = '{studentDebugData.parentID}'</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="font-medium">Supabase Table Structure:</p>
-                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-32">
-                      {JSON.stringify(studentDebugData.tableStructure, null, 2)}
-                    </pre>
                   </div>
 
                   <div>
@@ -1164,46 +991,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                             <p className="text-gray-500">... and {studentDebugData.studentrcdRecords.length - 10} more</p>
                           )}
                         </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="font-medium">Supabase Query Test Results:</p>
-                    <div className="bg-white p-2 rounded text-xs">
-                      {studentDebugData.queryTest && (
-                        <>
-                          <p><strong>Filter Approach:</strong> {studentDebugData.queryTest.filterApproach?.count || 0} results</p>
-                          <p><strong>iLike Approach:</strong> {studentDebugData.queryTest.ilikeApproach?.count || 0} results</p>
-                          <p><strong>Contains Approach:</strong> {studentDebugData.queryTest.containsApproach?.count || 0} results</p>
-                          {studentDebugData.queryTest.rawSqlResult && (
-                            <p><strong>Raw SQL:</strong> {studentDebugData.queryTest.rawSqlResult.rawData?.length || 0} results</p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="font-medium">Supabase Diagnosis:</p>
-                    <div className="bg-white p-2 rounded text-xs">
-                      {studentDebugData.studentrcdRecords.length === 0 ? (
-                        <div className="text-red-600">
-                          <p><strong>❌ ISSUE IDENTIFIED:</strong> The studentrcd table in Supabase is completely empty!</p>
-                          <p className="mt-1"><strong>Solution:</strong> You need to add student data to the studentrcd table in your Supabase database.</p>
-                          <p className="mt-1"><strong>Expected format:</strong> Records with parentid = "{studentDebugData.parentID}" to link to this parent.</p>
-                          <p className="mt-1"><strong>Check:</strong> Go to your Supabase dashboard → Table Editor → studentrcd table</p>
-                        </div>
-                      ) : studentDebugData.specificStudentsForParent.length === 0 ? (
-                        <div className="text-orange-600">
-                          <p><strong>⚠️ ISSUE IDENTIFIED:</strong> Students exist in Supabase, but none have parentid = "{studentDebugData.parentID}"</p>
-                          <p className="mt-1"><strong>Solution:</strong> Check that student records in Supabase have the correct parentid value.</p>
-                          <p className="mt-1"><strong>Check:</strong> Verify the parentid field values in your Supabase studentrcd table.</p>
-                        </div>
-                      ) : (
-                        <div className="text-green-600">
-                          <p><strong>✅ NO ISSUES:</strong> Students found successfully in Supabase!</p>
-                        </div>
                       )}
                     </div>
                   </div>
