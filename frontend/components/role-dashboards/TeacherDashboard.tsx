@@ -308,7 +308,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Teacher: {user.displayName}</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Teacher Dashboard</h3>
         <div className="flex items-center justify-between mb-2">
           <Badge 
             variant={user.userStatus === 'Active' ? 'default' : 'destructive'}
