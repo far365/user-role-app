@@ -16,13 +16,25 @@ interface TeacherDashboardProps {
 
 interface DismissalQueueRecord {
   queueId: string;
-  studentId: string;
-  studentName: string;
-  dismissalQueueStatus: string;
   classBuilding: string;
   grade: string;
+  dismissalQueueStatus: string;
+  parentId?: string;
+  studentId?: string;
+  studentName?: string;
   parentName?: string;
   alternateName?: string;
+  qrScannedAt?: Date;
+  addToQueueMethod: string;
+  qrScannedAtBuilding?: string;
+  dismissedAt?: Date;
+  dismissedByName?: string;
+  dismissStatus?: string;
+  studentSelfDismiss?: boolean;
+  dismissIssue?: string;
+  pickupConfirmedDTTM?: Date;
+  pickupConfirmedByName?: string;
+  pickupIssue?: string;
 }
 
 interface StatusCounts {
@@ -53,6 +65,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<DismissalQueueRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentQueueId, setCurrentQueueId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Auto-refresh every 5 seconds
@@ -93,75 +106,40 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const loadDismissalQueue = async (grade: string) => {
     setIsLoading(true);
     try {
-      // Note: This would need to be implemented in the backend
-      // For now, we'll simulate the data structure
       console.log(`Loading dismissal queue for grade: ${grade}`);
       
-      // TODO: Implement backend endpoint to get dismissal queue records
-      // const response = await backend.queue.getDismissalQueueByGrade({ grade });
+      const response = await backend.queue.getQueueListByGrade({ grade });
+      console.log("Dismissal queue response:", response);
       
-      // Simulated data for now
-      const mockRecords: DismissalQueueRecord[] = [
-        {
-          queueId: "20241201",
-          studentId: "s001",
-          studentName: "John Smith",
-          dismissalQueueStatus: "Standby",
-          classBuilding: "A",
-          grade: grade,
-          parentName: "Jane Smith"
-        },
-        {
-          queueId: "20241201",
-          studentId: "s002",
-          studentName: "Emily Johnson",
-          dismissalQueueStatus: "InQueue",
-          classBuilding: "A",
-          grade: grade,
-          parentName: "Mike Johnson"
-        },
-        {
-          queueId: "20241201",
-          studentId: "s003",
-          studentName: "Michael Brown",
-          dismissalQueueStatus: "Released",
-          classBuilding: "A",
-          grade: grade,
-          parentName: "Sarah Brown"
-        },
-        {
-          queueId: "20241201",
-          studentId: "s004",
-          studentName: "Sarah Davis",
-          dismissalQueueStatus: "Collected",
-          classBuilding: "A",
-          grade: grade,
-          parentName: "Tom Davis"
-        },
-        {
-          queueId: "20241201",
-          studentId: "s005",
-          studentName: "David Wilson",
-          dismissalQueueStatus: "Standby",
-          classBuilding: "A",
-          grade: grade,
-          parentName: "Lisa Wilson"
-        }
-      ];
-
-      setDismissalRecords(mockRecords);
-      calculateStatusCounts(mockRecords);
+      setDismissalRecords(response.records);
+      setCurrentQueueId(response.queueId);
+      calculateStatusCounts(response.records);
       setLastRefresh(new Date());
       
       toast({
         title: "Queue Loaded",
-        description: `Loaded dismissal queue for ${grade}`,
+        description: `Loaded dismissal queue for ${grade} (${response.totalCount} students)`,
       });
     } catch (error) {
       console.error("Failed to load dismissal queue:", error);
+      
+      // Clear data on error
+      setDismissalRecords([]);
+      setCurrentQueueId(null);
+      calculateStatusCounts([]);
+      
+      let errorMessage = "Failed to load dismissal queue";
+      if (error instanceof Error) {
+        if (error.message.includes("No open queue")) {
+          errorMessage = "No open queue found. Please ensure a queue is started.";
+        } else {
+          errorMessage = `Failed to load dismissal queue: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to load dismissal queue",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -365,6 +343,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             <div className="flex items-center space-x-2">
               <GraduationCap className="w-5 h-5" />
               <CardTitle>Status Count</CardTitle>
+              {currentQueueId && (
+                <Badge variant="secondary" className="ml-2">
+                  Queue: {currentQueueId}
+                </Badge>
+              )}
             </div>
             {selectedGrade && (
               <Button 
@@ -410,7 +393,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 disabled={statusCounts.total === 0}
               >
                 <div>
-                  <div className="font-semibold">Full Grade</div>
+                  <div className="font-semibold">Full Roster</div>
                   <div className="text-lg">{statusCounts.total}</div>
                 </div>
               </button>
@@ -523,15 +506,15 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               {/* Student Rows */}
               {filteredRecords.map((record) => (
                 <div 
-                  key={record.studentId}
+                  key={`${record.queueId}-${record.studentId}`}
                   className="grid grid-cols-4 gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div>
                     <div className="font-medium text-gray-900">
-                      {record.studentName}
+                      {record.studentName || 'Unknown Student'}
                     </div>
                     <Button
-                      onClick={() => handleEditStudent(record.studentId)}
+                      onClick={() => handleEditStudent(record.studentId || '')}
                       variant="outline"
                       size="sm"
                       className="mt-1 h-6 px-2 text-xs bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300"
@@ -554,7 +537,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   <div>
                     {record.dismissalQueueStatus === 'Standby' && (
                       <Button
-                        onClick={() => handleReleaseStudent(record.studentId)}
+                        onClick={() => handleReleaseStudent(record.studentId || '')}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 h-7"
                       >
@@ -563,7 +546,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                     )}
                     {record.dismissalQueueStatus === 'InQueue' && (
                       <Button
-                        onClick={() => handleReleaseStudent(record.studentId)}
+                        onClick={() => handleReleaseStudent(record.studentId || '')}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 h-7"
                       >
