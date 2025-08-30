@@ -37,7 +37,7 @@ export const login = api<LoginRequest, LoginResponse>(
       const { data: updatedUser, error: updateError } = await supabase
         .from('usersrcd')
         .update({
-          lastlogindttm: new Date().toISOString() //,
+          lastlogindttm: new Date().toISOString() //, 
           //lastdeviceid: deviceID || null,
           //updatedat: new Date().toISOString()
         })
