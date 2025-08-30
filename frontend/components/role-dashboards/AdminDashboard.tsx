@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode } from "lucide-react";
+import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode, ClipboardList } from "lucide-react";
 import { ParentSetupPage } from "../admin/ParentSetupPage";
 import { StudentSetupPage } from "../admin/StudentSetupPage";
 import { QueueSetupPage } from "../admin/QueueSetupPage";
 import { QRScanPage } from "../admin/QRScanPage";
+import { FullDismissalQueuePage } from "../admin/FullDismissalQueuePage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -38,6 +39,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     return <StudentSetupPage onBack={handleBackToDashboard} />;
   }
 
+  if (currentPage === 'full-dismissal-queue') {
+    return <FullDismissalQueuePage user={user} onBack={handleBackToDashboard} />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -64,6 +69,15 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         >
           <List className="h-5 w-5 mr-3" />
           Queue Setup
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
+          onClick={() => handleNavigate('full-dismissal-queue')}
+        >
+          <ClipboardList className="h-5 w-5 mr-3" />
+          Full Dismissal Queue by Grade
         </Button>
 
         <Button 
