@@ -506,8 +506,23 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Status and Last Login Header */}
+      {parentData && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Badge 
+              variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
+              className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {parentData.parentRecordStatus || 'Unknown'}
+            </Badge>
+            <span className="text-sm text-gray-600">Last Login: {formatDate(user.lastLoginDTTM)}</span>
+          </div>
+        </div>
+      )}
+
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent: {parentData?.parentName || user.displayName}</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
         
         {Object.keys(validationErrors).length > 0 && (
           <Card className="border-red-200 bg-red-50">
@@ -559,23 +574,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     />
                   </div>
                 </div>
-                
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Account Status</Label>
-                  <div className="mt-1">
-                    <Badge 
-                      variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
-                      className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-                    >
-                      {parentData.parentRecordStatus || 'Unknown'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Last Login</Label>
-                <p className="text-sm text-gray-900 mt-1">{formatDate(user.lastLoginDTTM)}</p>
               </div>
 
               {/* Student Information - Simple one line format */}
