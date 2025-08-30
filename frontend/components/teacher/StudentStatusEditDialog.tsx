@@ -34,7 +34,7 @@ const dismissalStatuses = [
   { value: "NoShow", label: "No Show", description: "Parent/guardian did not arrive for pickup" },
   { value: "EarlyDismissal", label: "Early Dismissal", description: "Student was dismissed early" },
   { value: "BusRider", label: "Bus Rider", description: "Student takes the bus home" },
-  { value: "Walker", label: "Walker", description: "Student walks home" },
+  { value: "LatePickup", label: "Late Pickup", description: "Student will be or was picked up late" },
   { value: "AfterCare", label: "After Care", description: "Student goes to after-school care" }
 ];
 
