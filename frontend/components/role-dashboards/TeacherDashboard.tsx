@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit } from "lucide-react";
+import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
@@ -305,17 +305,59 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     return `${baseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-50`;
   };
 
+  const getStatusIcon = () => {
+    switch (user.userStatus) {
+      case 'Active':
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'Inactive':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'Pending':
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      default:
+        return <XCircle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const formatLastLogin = (lastLogin: Date | null) => {
+    if (!lastLogin) return 'Never';
+    
+    const now = new Date();
+    const diffMs = now.getTime() - lastLogin.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      if (diffHours === 0) {
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
+      }
+      return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return lastLogin.toLocaleDateString();
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Teacher Dashboard</h3>
-        <div className="flex items-center justify-between mb-2">
-          <Badge 
-            variant={user.userStatus === 'Active' ? 'default' : 'destructive'}
-            className={user.userStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-          >
-            {user.userStatus}
-          </Badge>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            {getStatusIcon()}
+            <span className="text-sm font-medium text-gray-600">{user.userStatus}</span>
+            <span className="text-sm text-gray-500">
+              Last login: {formatLastLogin(user.lastLoginDTTM)}
+            </span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Teacher Dashboard</h3>
+          <p className="text-sm text-gray-600">
+            Manage student dismissal queue and track pickup status.
+          </p>
+        </div>
+        <div className="text-right">
           {lastRefresh && (
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Clock className="w-4 h-4" />
@@ -323,9 +365,6 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </div>
           )}
         </div>
-        <p className="text-sm text-gray-600">
-          Manage student dismissal queue and track pickup status.
-        </p>
       </div>
 
       {/* Status Count Section */}
