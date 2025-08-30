@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
+import { SlideReleaseButton } from "../teacher/SlideReleaseButton";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -620,23 +621,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   </div>
                   
                   <div>
-                    {record.dismissalQueueStatus === 'Standby' && (
-                      <Button
-                        onClick={() => handleReleaseStudent(record.studentId || '')}
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 h-7"
-                      >
-                        Release
-                      </Button>
-                    )}
-                    {record.dismissalQueueStatus === 'InQueue' && (
-                      <Button
-                        onClick={() => handleReleaseStudent(record.studentId || '')}
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 h-7"
-                      >
-                        Release
-                      </Button>
+                    {(record.dismissalQueueStatus === 'Standby' || record.dismissalQueueStatus === 'InQueue') && (
+                      <SlideReleaseButton
+                        onRelease={() => handleReleaseStudent(record.studentId || '')}
+                        studentName={record.studentName}
+                      />
                     )}
                     {(record.dismissalQueueStatus === 'Released' || record.dismissalQueueStatus === 'Collected') && (
                       <span className="text-sm text-gray-500">Complete</span>
