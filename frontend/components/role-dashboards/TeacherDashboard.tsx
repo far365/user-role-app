@@ -409,17 +409,17 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Last Updated and Auto-refresh controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {lastRefresh && (
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Clock className="w-4 h-4" />
-                  <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
-                </div>
-              )}
-            </div>
+          <div className="space-y-3">
+            {/* Last Updated on its own line */}
+            {lastRefresh && (
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <Clock className="w-4 h-4" />
+                <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
+              </div>
+            )}
             
-            <div className="flex items-center space-x-4">
+            {/* Auto-refresh controls on separate line */}
+            <div className="flex items-center justify-end space-x-4">
               {/* Auto-refresh controls */}
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
