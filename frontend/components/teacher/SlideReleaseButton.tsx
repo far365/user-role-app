@@ -183,12 +183,6 @@ export function SlideReleaseButton({ onRelease, disabled = false, studentName }:
           )}
         </Button>
       </div>
-      
-      {studentName && (
-        <div className="text-xs text-gray-500 mt-1 text-center">
-          {studentName}
-        </div>
-      )}
     </div>
   );
 }
