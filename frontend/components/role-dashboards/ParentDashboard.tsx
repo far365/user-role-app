@@ -580,7 +580,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
               {/* Student Information - Simple one line format */}
               <div>
-                <Label className="text-sm font-medium text-gray-700">Students</Label>
+                <Label className="text-sm font-bold text-blue-600">Students</Label>
                 {isLoadingStudents ? (
                   <p className="text-sm text-gray-600 mt-1">Loading students...</p>
                 ) : studentError ? (
