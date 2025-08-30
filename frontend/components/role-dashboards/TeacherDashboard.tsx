@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
+import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit } from "lucide-react";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -251,6 +251,15 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     }
   };
 
+  const handleEditStudent = (studentId: string) => {
+    const student = dismissalRecords.find(r => r.studentId === studentId);
+    toast({
+      title: "Edit Student",
+      description: `Opening edit dialog for ${student?.studentName}`,
+    });
+    // TODO: Implement edit student dialog/functionality
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Standby':
@@ -472,8 +481,19 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   key={record.studentId}
                   className="grid grid-cols-4 gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="font-medium text-gray-900">
-                    {record.studentName}
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {record.studentName}
+                    </div>
+                    <Button
+                      onClick={() => handleEditStudent(record.studentId)}
+                      variant="outline"
+                      size="sm"
+                      className="mt-1 h-6 px-2 text-xs bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 hover:border-blue-300"
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Edit
+                    </Button>
                   </div>
                   
                   <div>
