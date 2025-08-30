@@ -414,7 +414,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent: {user.displayName}</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h2>
         </div>
         
         <Card className="border-red-200 bg-red-50">
