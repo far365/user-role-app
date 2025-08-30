@@ -264,30 +264,64 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   };
 
   const handleReleaseStudent = async (studentId: string) => {
-    try {
-      // TODO: Implement backend endpoint to update student status
-      // await backend.queue.updateDismissalStatus({ studentId, status: 'Released' });
-      
-      // For now, update locally
-      const updatedRecords = dismissalRecords.map(record => 
-        record.studentId === studentId 
-          ? { ...record, dismissalQueueStatus: 'Released' }
-          : record
-      );
-      
-      setDismissalRecords(updatedRecords);
-      calculateStatusCounts(updatedRecords);
-      
-      const student = dismissalRecords.find(r => r.studentId === studentId);
-      toast({
-        title: "Student Released",
-        description: `${student?.studentName} has been marked as released`,
-      });
-    } catch (error) {
-      console.error("Failed to release student:", error);
+    if (!currentQueueId) {
       toast({
         title: "Error",
-        description: "Failed to update student status",
+        description: "No active queue found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log(`Releasing student ${studentId} in queue ${currentQueueId}`);
+      
+      const response = await backend.queue.updateDismissalStatusByStudent({
+        studentId: studentId,
+        queueId: currentQueueId,
+        newStatus: "Released",
+        dismissedByName: user.displayName
+      });
+
+      console.log("Release student response:", response);
+
+      if (response.success) {
+        // Update the local state with the new status
+        const updatedRecords = dismissalRecords.map(record => 
+          record.studentId === studentId 
+            ? { 
+                ...record, 
+                dismissalQueueStatus: "Released",
+                dismissedAt: response.updatedRecord.dismissedAt,
+                dismissedByName: response.updatedRecord.dismissedByName
+              }
+            : record
+        );
+        
+        setDismissalRecords(updatedRecords);
+        calculateStatusCounts(updatedRecords);
+        
+        const student = dismissalRecords.find(r => r.studentId === studentId);
+        toast({
+          title: "Student Released",
+          description: `${student?.studentName || 'Student'} has been marked as released`,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to release student:", error);
+      
+      let errorMessage = "Failed to update student status";
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          errorMessage = "Student record not found in dismissal queue";
+        } else {
+          errorMessage = `Failed to release student: ${error.message}`;
+        }
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -301,17 +335,71 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     }
   };
 
-  const handleStatusUpdated = (studentId: string, newStatus: string) => {
-    const updatedRecords = dismissalRecords.map(record => 
-      record.studentId === studentId 
-        ? { ...record, dismissalQueueStatus: newStatus }
-        : record
-    );
-    
-    setDismissalRecords(updatedRecords);
-    calculateStatusCounts(updatedRecords);
-    setIsEditDialogOpen(false);
-    setSelectedStudent(null);
+  const handleStatusUpdated = async (studentId: string, newStatus: string) => {
+    if (!currentQueueId) {
+      toast({
+        title: "Error",
+        description: "No active queue found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log(`Updating student ${studentId} status to ${newStatus} in queue ${currentQueueId}`);
+      
+      const response = await backend.queue.updateDismissalStatusByStudent({
+        studentId: studentId,
+        queueId: currentQueueId,
+        newStatus: newStatus,
+        dismissedByName: user.displayName
+      });
+
+      console.log("Update student status response:", response);
+
+      if (response.success) {
+        // Update the local state with the new status
+        const updatedRecords = dismissalRecords.map(record => 
+          record.studentId === studentId 
+            ? { 
+                ...record, 
+                dismissalQueueStatus: newStatus,
+                dismissedAt: response.updatedRecord.dismissedAt,
+                dismissedByName: response.updatedRecord.dismissedByName
+              }
+            : record
+        );
+        
+        setDismissalRecords(updatedRecords);
+        calculateStatusCounts(updatedRecords);
+        setIsEditDialogOpen(false);
+        setSelectedStudent(null);
+        
+        toast({
+          title: "Status Updated",
+          description: `Student status has been updated to ${newStatus}`,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update student status:", error);
+      
+      let errorMessage = "Failed to update student status";
+      if (error instanceof Error) {
+        if (error.message.includes("not found")) {
+          errorMessage = "Student record not found in dismissal queue";
+        } else if (error.message.includes("Invalid status")) {
+          errorMessage = "Invalid status value provided";
+        } else {
+          errorMessage = `Failed to update status: ${error.message}`;
+        }
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {

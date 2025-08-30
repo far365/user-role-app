@@ -236,6 +236,7 @@ import { getQueueListByGrade as api_queue_get_queue_list_by_grade_getQueueListBy
 import { list as api_queue_list_list } from "~backend/queue/list";
 import { showSQL as api_queue_show_sql_showSQL } from "~backend/queue/show_sql";
 import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/test_raw_sql";
+import { updateDismissalStatusByStudent as api_queue_update_dismissal_status_updateDismissalStatusByStudent } from "~backend/queue/update_dismissal_status";
 
 export namespace queue {
 
@@ -255,6 +256,7 @@ export namespace queue {
             this.list = this.list.bind(this)
             this.showSQL = this.showSQL.bind(this)
             this.testRawSQL = this.testRawSQL.bind(this)
+            this.updateDismissalStatusByStudent = this.updateDismissalStatusByStudent.bind(this)
         }
 
         /**
@@ -369,6 +371,15 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/test-raw-sql`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_test_raw_sql_testRawSQL>
+        }
+
+        /**
+         * Updates the dismissal queue status for a specific student in a specific queue.
+         */
+        public async updateDismissalStatusByStudent(params: RequestType<typeof api_queue_update_dismissal_status_updateDismissalStatusByStudent>): Promise<ResponseType<typeof api_queue_update_dismissal_status_updateDismissalStatusByStudent>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/update-dismissal-status`, {method: "PUT", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_update_dismissal_status_updateDismissalStatusByStudent>
         }
     }
 }

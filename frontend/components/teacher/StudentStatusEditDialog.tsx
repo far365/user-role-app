@@ -22,7 +22,7 @@ interface StudentStatusEditDialogProps {
   student: DismissalQueueRecord;
   isOpen: boolean;
   onClose: () => void;
-  onStatusUpdated: (studentId: string, newStatus: string) => void;
+  onStatusUpdated: (studentId: string, newStatus: string) => Promise<void>;
 }
 
 const dismissalStatuses = [
@@ -56,31 +56,13 @@ export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpda
     try {
       setIsSaving(true);
       
-      // TODO: Implement backend endpoint to update dismissal queue status
-      // await backend.queue.updateDismissalStatus({ 
-      //   studentId: student.studentId, 
-      //   queueId: student.queueId,
-      //   status: selectedStatus 
-      // });
-      
-      // For now, simulate the API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      onStatusUpdated(student.studentId, selectedStatus);
-      
-      toast({
-        title: "Status Updated",
-        description: `${student.studentName}'s status has been changed to ${selectedStatus}`,
-      });
+      // Call the parent component's status update function
+      await onStatusUpdated(student.studentId, selectedStatus);
       
       onClose();
     } catch (error) {
       console.error("Failed to update student status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update student status. Please try again.",
-        variant: "destructive",
-      });
+      // Error handling is done in the parent component
     } finally {
       setIsSaving(false);
     }
