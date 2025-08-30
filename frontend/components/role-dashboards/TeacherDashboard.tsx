@@ -387,39 +387,6 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             Manage student dismissal queue and track pickup status.
           </p>
         </div>
-        <div className="text-right space-y-2">
-          {lastRefresh && (
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Clock className="w-4 h-4" />
-              <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
-            </div>
-          )}
-          
-          {/* Auto-refresh controls */}
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="auto-refresh"
-                checked={autoRefreshEnabled}
-                onCheckedChange={handleAutoRefreshToggle}
-              />
-              <Label htmlFor="auto-refresh" className="text-sm text-gray-600">
-                Auto-refresh
-              </Label>
-            </div>
-            
-            {autoRefreshEnabled && selectedGrade && (
-              <div className="flex items-center space-x-1 text-sm text-gray-500">
-                {isRefreshing ? (
-                  <Pause className="w-4 h-4" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )}
-                <span>Next: {countdown}s</span>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Status Count Section */}
@@ -435,23 +402,63 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 </Badge>
               )}
             </div>
-            {selectedGrade && (
-              <Button 
-                onClick={handleRefresh} 
-                variant="outline" 
-                size="sm"
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh Now
-              </Button>
-            )}
           </div>
           <CardDescription>
             Select a class/grade to monitor and filter students by status
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Last Updated and Auto-refresh controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {lastRefresh && (
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <Clock className="w-4 h-4" />
+                  <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {/* Auto-refresh controls */}
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="auto-refresh"
+                    checked={autoRefreshEnabled}
+                    onCheckedChange={handleAutoRefreshToggle}
+                  />
+                  <Label htmlFor="auto-refresh" className="text-sm text-gray-600">
+                    Auto-refresh
+                  </Label>
+                </div>
+                
+                {autoRefreshEnabled && selectedGrade && (
+                  <div className="flex items-center space-x-1 text-sm text-gray-500">
+                    {isRefreshing ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                    <span>Next: {countdown}s</span>
+                  </div>
+                )}
+              </div>
+
+              {selectedGrade && (
+                <Button 
+                  onClick={handleRefresh} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Refresh Now
+                </Button>
+              )}
+            </div>
+          </div>
+
           {/* Grade Selection */}
           <div className="flex items-center space-x-4">
             <div className="flex-1">
