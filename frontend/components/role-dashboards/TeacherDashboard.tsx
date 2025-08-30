@@ -281,6 +281,12 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     return `${baseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-50`;
   };
 
+  const getSelectedGradeInfo = () => {
+    if (!selectedGrade) return null;
+    const grade = grades.find(g => g.name === selectedGrade);
+    return grade ? `${grade.name} - Building ${grade.building}` : selectedGrade;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -311,6 +317,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             <div className="flex items-center space-x-2">
               <GraduationCap className="w-5 h-5" />
               <CardTitle>Status Count</CardTitle>
+              {selectedGrade && (
+                <span className="text-lg font-bold text-green-600">
+                  - {getSelectedGradeInfo()}
+                </span>
+              )}
             </div>
             {selectedGrade && (
               <Button 
