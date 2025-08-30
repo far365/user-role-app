@@ -307,10 +307,23 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {/* Status Count Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <GraduationCap className="w-5 h-5" />
-            <span>Status Count</span>
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <GraduationCap className="w-5 h-5" />
+              <CardTitle>Status Count</CardTitle>
+            </div>
+            {selectedGrade && (
+              <Button 
+                onClick={handleRefresh} 
+                variant="outline" 
+                size="sm"
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            )}
+          </div>
           <CardDescription>
             Select a class/grade to monitor and filter students by status
           </CardDescription>
@@ -332,17 +345,6 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 </SelectContent>
               </Select>
             </div>
-            {selectedGrade && (
-              <Button 
-                onClick={handleRefresh} 
-                variant="outline" 
-                size="sm"
-                disabled={isRefreshing}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            )}
           </div>
 
           {/* Status Filter Buttons */}
