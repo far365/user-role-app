@@ -459,7 +459,10 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               <div className="grid grid-cols-4 gap-4 p-3 bg-gray-50 rounded-lg font-medium text-sm text-gray-700">
                 <div>Student Name</div>
                 <div>Status</div>
-                <div>Parent/Contact</div>
+                <div>
+                  <div>Parent/</div>
+                  <div>Contact</div>
+                </div>
                 <div>Action</div>
               </div>
               
