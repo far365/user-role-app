@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle } from "lucide-react";
+import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
@@ -66,18 +68,61 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [selectedStudent, setSelectedStudent] = useState<DismissalQueueRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentQueueId, setCurrentQueueId] = useState<string | null>(null);
+  
+  // Auto-refresh state
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [countdown, setCountdown] = useState(10);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  
   const { toast } = useToast();
 
-  // Auto-refresh every 5 seconds
+  // Auto-refresh countdown and refresh logic
   useEffect(() => {
-    if (selectedGrade) {
-      const interval = setInterval(() => {
-        handleRefresh();
-      }, 5000);
+    if (selectedGrade && autoRefreshEnabled) {
+      // Clear any existing interval
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
 
-      return () => clearInterval(interval);
+      // Start countdown from 10 seconds
+      setCountdown(10);
+      
+      const newIntervalId = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            // Time to refresh
+            handleRefresh();
+            return 10; // Reset countdown
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      setIntervalId(newIntervalId);
+
+      return () => {
+        if (newIntervalId) {
+          clearInterval(newIntervalId);
+        }
+      };
+    } else {
+      // Clear interval if auto-refresh is disabled or no grade selected
+      if (intervalId) {
+        clearInterval(intervalId);
+        setIntervalId(null);
+      }
+      setCountdown(10);
     }
-  }, [selectedGrade]);
+  }, [selectedGrade, autoRefreshEnabled]);
+
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [intervalId]);
 
   // Load grades on component mount
   useEffect(() => {
@@ -116,10 +161,12 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       calculateStatusCounts(response.records);
       setLastRefresh(new Date());
       
-      toast({
-        title: "Queue Loaded",
-        description: `Loaded dismissal queue for ${grade} (${response.totalCount} students)`,
-      });
+      if (!isRefreshing) {
+        toast({
+          title: "Queue Loaded",
+          description: `Loaded dismissal queue for ${grade} (${response.totalCount} students)`,
+        });
+      }
     } catch (error) {
       console.error("Failed to load dismissal queue:", error);
       
@@ -137,11 +184,13 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         }
       }
       
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      if (!isRefreshing) {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -197,8 +246,19 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     setIsRefreshing(true);
     try {
       await loadDismissalQueue(selectedGrade);
+      // Reset countdown after manual refresh
+      if (autoRefreshEnabled) {
+        setCountdown(10);
+      }
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleAutoRefreshToggle = (enabled: boolean) => {
+    setAutoRefreshEnabled(enabled);
+    if (enabled) {
+      setCountdown(10);
     }
   };
 
@@ -326,13 +386,38 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             Manage student dismissal queue and track pickup status.
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-right space-y-2">
           {lastRefresh && (
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Clock className="w-4 h-4" />
               <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
             </div>
           )}
+          
+          {/* Auto-refresh controls */}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="auto-refresh"
+                checked={autoRefreshEnabled}
+                onCheckedChange={handleAutoRefreshToggle}
+              />
+              <Label htmlFor="auto-refresh" className="text-sm text-gray-600">
+                Auto-refresh
+              </Label>
+            </div>
+            
+            {autoRefreshEnabled && selectedGrade && (
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                {isRefreshing ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+                <span>Next: {countdown}s</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -357,7 +442,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 disabled={isRefreshing}
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
+                Refresh Now
               </Button>
             )}
           </div>
