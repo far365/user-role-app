@@ -67,3 +67,15 @@ export interface DismissalQueueRecord {
   pickupConfirmedByName?: string;
   pickupIssue?: string;
 }
+
+export interface QueueStatusCount {
+  dismissalQueueStatus: string;
+  count: number;
+}
+
+export interface GetQueueCountByGradeResponse {
+  grade: string;
+  queueId: string | null;
+  statusCounts: QueueStatusCount[];
+  totalCount: number;
+}

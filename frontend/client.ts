@@ -231,6 +231,7 @@ import { create as api_queue_create_create } from "~backend/queue/create";
 import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
 import { deleteQueue as api_queue_delete_deleteQueue } from "~backend/queue/delete";
 import { getCurrentQueue as api_queue_get_current_getCurrentQueue } from "~backend/queue/get_current";
+import { getQueueCountByGrade as api_queue_get_queue_count_by_grade_getQueueCountByGrade } from "~backend/queue/get_queue_count_by_grade";
 import { list as api_queue_list_list } from "~backend/queue/list";
 import { showSQL as api_queue_show_sql_showSQL } from "~backend/queue/show_sql";
 import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/test_raw_sql";
@@ -248,6 +249,7 @@ export namespace queue {
             this.debugTable = this.debugTable.bind(this)
             this.deleteQueue = this.deleteQueue.bind(this)
             this.getCurrentQueue = this.getCurrentQueue.bind(this)
+            this.getQueueCountByGrade = this.getQueueCountByGrade.bind(this)
             this.list = this.list.bind(this)
             this.showSQL = this.showSQL.bind(this)
             this.testRawSQL = this.testRawSQL.bind(this)
@@ -310,6 +312,20 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/current`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_current_getCurrentQueue>
+        }
+
+        /**
+         * Retrieves dismissal queue status counts for a specific grade in the currently open queue.
+         */
+        public async getQueueCountByGrade(params: RequestType<typeof api_queue_get_queue_count_by_grade_getQueueCountByGrade>): Promise<ResponseType<typeof api_queue_get_queue_count_by_grade_getQueueCountByGrade>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                grade: params.grade,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/count-by-grade`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_queue_count_by_grade_getQueueCountByGrade>
         }
 
         /**
