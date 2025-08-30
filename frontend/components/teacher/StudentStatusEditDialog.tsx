@@ -33,7 +33,7 @@ const dismissalStatuses = [
   { value: "Unknown", label: "Unknown", description: "Status is unclear or needs verification" },
   { value: "NoShow", label: "No Show", description: "Parent/guardian did not arrive for pickup" },
   { value: "EarlyDismissal", label: "Early Dismissal", description: "Student was dismissed early" },
-  { value: "BusRider", label: "Bus Rider", description: "Student takes the bus home" },
+  { value: "DirectPickup", label: "Direct Pickup", description: "Student was picked up directly from classroom" },
   { value: "LatePickup", label: "Late Pickup", description: "Student will be or was picked up late" },
   { value: "AfterCare", label: "After Care", description: "Student goes to after-school care" }
 ];
@@ -89,9 +89,9 @@ export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpda
         return 'bg-orange-100 text-orange-800';
       case 'EarlyDismissal':
         return 'bg-purple-100 text-purple-800';
-      case 'BusRider':
+      case 'DirectPickup':
         return 'bg-indigo-100 text-indigo-800';
-      case 'Walker':
+      case 'LatePickup':
         return 'bg-teal-100 text-teal-800';
       case 'AfterCare':
         return 'bg-pink-100 text-pink-800';

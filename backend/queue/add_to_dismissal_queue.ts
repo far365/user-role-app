@@ -106,20 +106,20 @@ export const addToDismissalQueue = api<AddToDismissalQueueRequest, AddToDismissa
         if (tableTestError) {
           console.error("[Queue API] Dismissal table access error:", tableTestError);
           if (tableTestError.code === 'PGRST116') {
-            throw APIError.internal(`Table 'dismissalqueuercd' does not exist: ${tableTestError.message}`);
+            throw APIError.internal(`Table 'dismissalqueuercd' does not exist in Supabase database`);
           } else if (tableTestError.code === '42501') {
-            throw APIError.internal(`Permission denied accessing 'dismissalqueuercd' table: ${tableTestError.message}`);
+            throw APIError.internal(`Permission denied accessing 'dismissalqueuercd' table in Supabase. Check RLS policies.`);
           } else {
-            throw APIError.internal(`Cannot access dismissalqueuercd table: ${tableTestError.message}`);
+            throw APIError.internal(`Cannot access dismissalqueuercd table in Supabase: ${tableTestError.message}`);
           }
         }
-        console.log("[Queue API] Dismissal table access: OK");
+        console.log("[Queue API] Supabase table access: OK");
       } catch (tableErr) {
-        console.error("[Queue API] Dismissal table access failed:", tableErr);
+        console.error("[Queue API] Supabase table access failed:", tableErr);
         if (tableErr instanceof APIError) {
           throw tableErr;
         }
-        throw APIError.internal("Cannot access dismissalqueuercd table");
+        throw APIError.internal("Cannot access dismissalqueuercd table in Supabase");
       }
 
       // If studentId is not provided, we need to generate a unique identifier

@@ -40,7 +40,7 @@ export const updateDismissalStatusByStudent = api<UpdateDismissalStatusRequest, 
     // Validate status values
     const validStatuses = [
       'Standby', 'InQueue', 'Released', 'Collected', 'Unknown', 
-      'NoShow', 'EarlyDismissal', 'BusRider', 'LatePickup', 'AfterCare'
+      'NoShow', 'EarlyDismissal', 'DirectPickup', 'LatePickup', 'AfterCare'
     ];
     
     if (!validStatuses.includes(newStatus.trim())) {
@@ -85,7 +85,7 @@ export const updateDismissalStatusByStudent = api<UpdateDismissalStatusRequest, 
       };
 
       // Set dismissedAt timestamp for certain statuses
-      if (['Released', 'Collected', 'NoShow', 'EarlyDismissal'].includes(newStatus.trim())) {
+      if (['Released', 'Collected', 'NoShow', 'EarlyDismissal', 'DirectPickup'].includes(newStatus.trim())) {
         updateFields.dismissedat = new Date().toISOString();
       }
 
