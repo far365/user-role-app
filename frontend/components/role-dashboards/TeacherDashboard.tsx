@@ -499,9 +499,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       <Button
                         onClick={() => handleReleaseStudent(record.studentId)}
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 h-7"
+                        className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 h-7"
                       >
-                        <CheckCircle className="w-3 h-3 mr-1" />
                         Release
                       </Button>
                     )}
@@ -509,9 +508,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       <Button
                         onClick={() => handleReleaseStudent(record.studentId)}
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 h-7"
+                        className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 h-7"
                       >
-                        <CheckCircle className="w-3 h-3 mr-1" />
                         Release
                       </Button>
                     )}
