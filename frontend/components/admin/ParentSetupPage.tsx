@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Plus, Search, Edit, User, AlertCircle, Bug, Phone, Users, GraduationCap, Building, FileText, StickyNote } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, User, AlertCircle, Bug, Phone, Users, GraduationCap, Building, FileText, StickyNote, Baby } from "lucide-react";
 import { ParentEditDialog } from "./ParentEditDialog";
 import backend from "~backend/client";
 import type { Parent } from "~backend/parent/types";
@@ -125,7 +125,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     }
   };
 
-  const performSearch = async (type: 'name' | 'phone' | 'alternate') => {
+  const performSearch = async (type: 'name' | 'phone' | 'alternate' | 'child') => {
     const trimmedTerm = searchTerm.trim();
     
     // Validation based on search type
@@ -159,6 +159,15 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       return;
     }
 
+    if (type === 'child' && trimmedTerm.length < 3) {
+      toast({
+        title: "Invalid Search",
+        description: "Child name must be at least 3 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSearching(true);
     setSearchType(type);
     setDebugInfo("");
@@ -168,46 +177,88 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       console.log("Searching for:", trimmedTerm);
       
       let response;
+      let parentsWithStudents: ParentWithStudents[] = [];
       
-      switch (type) {
-        case 'name':
-          response = await backend.parent.searchByName({ name: trimmedTerm });
-          break;
-        case 'phone':
-          response = await backend.parent.searchByPhone({ phone: trimmedTerm });
-          break;
-        case 'alternate':
-          response = await backend.parent.searchByAlternateName({ alternateName: trimmedTerm });
-          break;
-        default:
-          throw new Error("Invalid search type");
+      if (type === 'child') {
+        // First search for students by name
+        const studentResponse = await backend.student.searchByName({ name: trimmedTerm });
+        console.log("Student search response:", studentResponse);
+        
+        // Get unique parent IDs from the students
+        const parentIds = [...new Set(studentResponse.students.map(student => student.parentId).filter(Boolean))];
+        console.log("Found parent IDs:", parentIds);
+        
+        // Fetch parent data for each unique parent ID
+        const parentPromises = parentIds.map(async (parentId) => {
+          try {
+            const parentResponse = await backend.parent.getByUsername({ username: parentId });
+            return parentResponse.parent;
+          } catch (error) {
+            console.error(`Failed to fetch parent ${parentId}:`, error);
+            return null;
+          }
+        });
+        
+        const parents = (await Promise.all(parentPromises)).filter(Boolean) as Parent[];
+        
+        // Convert to ParentWithStudents and add the matching students
+        parentsWithStudents = parents.map(parent => {
+          const matchingStudents = studentResponse.students.filter(student => student.parentId === parent.parentID);
+          return {
+            ...parent,
+            students: matchingStudents,
+            isLoadingStudents: false,
+            studentError: undefined
+          };
+        });
+        
+        console.log("Parents found through child search:", parentsWithStudents);
+      } else {
+        // Regular parent search
+        switch (type) {
+          case 'name':
+            response = await backend.parent.searchByName({ name: trimmedTerm });
+            break;
+          case 'phone':
+            response = await backend.parent.searchByPhone({ phone: trimmedTerm });
+            break;
+          case 'alternate':
+            response = await backend.parent.searchByAlternateName({ alternateName: trimmedTerm });
+            break;
+          default:
+            throw new Error("Invalid search type");
+        }
+        
+        console.log("Search response:", response);
+        
+        // Convert parents to ParentWithStudents and fetch students for each
+        parentsWithStudents = response.parents.map(parent => ({
+          ...parent,
+          students: undefined,
+          isLoadingStudents: false,
+          studentError: undefined
+        }));
+        
+        // Automatically fetch students for each parent
+        parentsWithStudents.forEach(parent => {
+          fetchStudentsForParent(parent);
+        });
       }
-      
-      console.log("Search response:", response);
-      
-      // Convert parents to ParentWithStudents and fetch students for each
-      const parentsWithStudents: ParentWithStudents[] = response.parents.map(parent => ({
-        ...parent,
-        students: undefined,
-        isLoadingStudents: false,
-        studentError: undefined
-      }));
       
       setSearchResults(parentsWithStudents);
       setSelectedParent(null);
       
-      // Automatically fetch students for each parent
-      parentsWithStudents.forEach(parent => {
-        fetchStudentsForParent(parent);
-      });
+      const searchTypeLabel = type === 'name' ? 'name' : 
+                             type === 'phone' ? 'phone number' : 
+                             type === 'alternate' ? 'alternate contact name' : 
+                             'child name';
       
-      const searchTypeLabel = type === 'name' ? 'name' : type === 'phone' ? 'phone number' : 'alternate contact name';
       toast({
         title: "Search Complete",
-        description: `Found ${response.parents?.length || 0} parent(s) matching ${searchTypeLabel} "${trimmedTerm}"`,
+        description: `Found ${parentsWithStudents.length} parent(s) matching ${searchTypeLabel} "${trimmedTerm}"`,
       });
       
-      setDebugInfo(`${type} search: SUCCESS\nFound: ${response.parents?.length || 0} results`);
+      setDebugInfo(`${type} search: SUCCESS\nFound: ${parentsWithStudents.length} results`);
       
     } catch (error) {
       console.error(`=== SEARCH ERROR (${type.toUpperCase()}) ===`);
@@ -255,7 +306,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
     return phone;
   };
 
-  const isSearchDisabled = (type: 'name' | 'phone' | 'alternate') => {
+  const isSearchDisabled = (type: 'name' | 'phone' | 'alternate' | 'child') => {
     const trimmedTerm = searchTerm.trim();
     
     if (isSearching) return true;
@@ -267,6 +318,8 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       case 'phone':
         const cleanPhone = trimmedTerm.replace(/\D/g, '');
         return cleanPhone.length !== 10;
+      case 'child':
+        return trimmedTerm.length < 3;
       default:
         return true;
     }
@@ -354,7 +407,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
             <span>Search Parents</span>
           </CardTitle>
           <CardDescription>
-            Enter a search term and choose how to search: by name (min 4 chars), phone number (10 digits), or alternate contact name (min 4 chars)
+            Enter a search term and choose how to search: by parent name (min 4 chars), phone number (10 digits), alternate contact name (min 4 chars), or child name (min 3 chars)
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -363,7 +416,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
             <Input
               id="searchTerm"
               type="text"
-              placeholder="Enter name, phone number, or alternate contact name..."
+              placeholder="Enter parent name, phone number, alternate contact name, or child name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => {
@@ -408,11 +461,22 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
               <Users className="w-4 h-4 mr-2" />
               {isSearching && searchType === "alternate" ? "Searching..." : "Search by Alt Contact"}
             </Button>
+            
+            <Button 
+              onClick={() => performSearch('child')} 
+              disabled={isSearchDisabled('child')}
+              variant="outline"
+              className="border-orange-300 text-orange-700 hover:bg-orange-50"
+            >
+              <Baby className="w-4 h-4 mr-2" />
+              {isSearching && searchType === "child" ? "Searching..." : "Search by Child Name"}
+            </Button>
           </div>
           
           <div className="text-xs text-gray-500 space-y-1">
-            <p><strong>Name/Alt Contact:</strong> Minimum 4 characters required</p>
+            <p><strong>Parent Name/Alt Contact:</strong> Minimum 4 characters required</p>
             <p><strong>Phone:</strong> Must be exactly 10 digits (formatting will be ignored)</p>
+            <p><strong>Child Name:</strong> Minimum 3 characters required</p>
           </div>
         </CardContent>
       </Card>
@@ -442,6 +506,11 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
                         >
                           {parent.parentRecordStatus}
                         </Badge>
+                        {searchType === 'child' && (
+                          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                            Found via child
+                          </Badge>
+                        )}
                       </div>
                       <div className="mt-1 text-sm text-gray-600">
                         <p><strong>Parent ID:</strong> {parent.parentID}</p>
