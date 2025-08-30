@@ -305,19 +305,6 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     return `${baseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-50`;
   };
 
-  const getStatusIcon = () => {
-    switch (user.userStatus) {
-      case 'Active':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'Inactive':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'Pending':
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <XCircle className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
   const formatLastLogin = (lastLogin: Date | null) => {
     if (!lastLogin) return 'Never';
     
@@ -346,8 +333,12 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            {getStatusIcon()}
-            <span className="text-sm font-medium text-gray-600">{user.userStatus}</span>
+            <Badge 
+              variant={user.userStatus === 'Active' ? 'default' : 'destructive'}
+              className={user.userStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            >
+              {user.userStatus}
+            </Badge>
             <span className="text-sm text-gray-500">
               Last login: {formatLastLogin(user.lastLoginDTTM)}
             </span>
