@@ -37,9 +37,15 @@ interface ValidationErrors {
   [key: string]: string;
 }
 
+interface StudentWithDismissalStatus extends Student {
+  dismissalStatus?: string;
+  isLoadingDismissalStatus?: boolean;
+  dismissalStatusError?: string;
+}
+
 export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
-  const [studentData, setStudentData] = useState<Student[]>([]);
+  const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +134,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       const response = await backend.student.getByParentID({ parentID });
       console.log("=== FRONTEND: Student data response from Supabase ===", response);
       
-      setStudentData(response.students);
+      // Convert students to include dismissal status fields
+      const studentsWithDismissalStatus: StudentWithDismissalStatus[] = response.students.map(student => ({
+        ...student,
+        dismissalStatus: undefined,
+        isLoadingDismissalStatus: false,
+        dismissalStatusError: undefined
+      }));
+      
+      setStudentData(studentsWithDismissalStatus);
+      
+      // Fetch dismissal status for each student
+      studentsWithDismissalStatus.forEach(student => {
+        fetchDismissalStatusForStudent(student);
+      });
       
       if (response.students.length === 0) {
         console.log("=== FRONTEND: No students found in Supabase ===");
@@ -145,6 +164,99 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       // Don't show toast for student errors as it's not critical
     } finally {
       setIsLoadingStudents(false);
+    }
+  };
+
+  const fetchDismissalStatusForStudent = async (student: StudentWithDismissalStatus) => {
+    if (!student.studentId) {
+      // Update student to show no ID available
+      setStudentData(prev => 
+        prev.map(s => 
+          s.studentId === student.studentId 
+            ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "No student ID" }
+            : s
+        )
+      );
+      return;
+    }
+
+    try {
+      // Update student to show loading state
+      setStudentData(prev => 
+        prev.map(s => 
+          s.studentId === student.studentId 
+            ? { ...s, isLoadingDismissalStatus: true, dismissalStatusError: undefined }
+            : s
+        )
+      );
+
+      console.log(`Fetching dismissal status for student ${student.studentId} in grade ${student.grade}`);
+      
+      // Get the dismissal queue list for this student's grade
+      const response = await backend.queue.getQueueListByGrade({ grade: student.grade });
+      console.log(`Dismissal queue response for grade ${student.grade}:`, response);
+      
+      if (!response.queueId) {
+        // No open queue
+        setStudentData(prev => 
+          prev.map(s => 
+            s.studentId === student.studentId 
+              ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "Queue info not available" }
+              : s
+          )
+        );
+        return;
+      }
+      
+      // Find this student in the dismissal queue records
+      const studentRecord = response.records.find(record => record.studentId === student.studentId);
+      
+      if (studentRecord) {
+        // Update student with dismissal status
+        setStudentData(prev => 
+          prev.map(s => 
+            s.studentId === student.studentId 
+              ? { ...s, dismissalStatus: studentRecord.dismissalQueueStatus, isLoadingDismissalStatus: false, dismissalStatusError: undefined }
+              : s
+          )
+        );
+        console.log(`Found dismissal status for student ${student.studentId}: ${studentRecord.dismissalQueueStatus}`);
+      } else {
+        // Student not found in dismissal queue
+        setStudentData(prev => 
+          prev.map(s => 
+            s.studentId === student.studentId 
+              ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "Not in queue" }
+              : s
+          )
+        );
+        console.log(`Student ${student.studentId} not found in dismissal queue for grade ${student.grade}`);
+      }
+    } catch (error) {
+      console.error(`Failed to fetch dismissal status for student ${student.studentId}:`, error);
+      
+      let errorMessage = "Queue info not available";
+      if (error instanceof Error) {
+        if (error.message.includes("No open queue")) {
+          errorMessage = "Queue info not available";
+        } else {
+          errorMessage = "Status unavailable";
+        }
+      }
+      
+      // Update student with error state
+      setStudentData(prev => 
+        prev.map(s => 
+          s.studentId === student.studentId 
+            ? { 
+                ...s, 
+                dismissalStatus: undefined, 
+                isLoadingDismissalStatus: false, 
+                dismissalStatusError: errorMessage
+              }
+            : s
+        )
+      );
     }
   };
 
@@ -386,6 +498,33 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     return new Date(date).toLocaleString();
   };
 
+  const getDismissalStatusColor = (status: string) => {
+    switch (status) {
+      case 'Standby':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'InQueue':
+        return 'bg-blue-100 text-blue-800';
+      case 'Released':
+        return 'bg-green-100 text-green-800';
+      case 'Collected':
+        return 'bg-gray-100 text-gray-800';
+      case 'Unknown':
+        return 'bg-red-100 text-red-800';
+      case 'NoShow':
+        return 'bg-orange-100 text-orange-800';
+      case 'EarlyDismissal':
+        return 'bg-purple-100 text-purple-800';
+      case 'DirectPickup':
+        return 'bg-indigo-100 text-indigo-800';
+      case 'LatePickup':
+        return 'bg-teal-100 text-teal-800';
+      case 'AfterCare':
+        return 'bg-pink-100 text-pink-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -576,7 +715,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 </div>
               </div>
 
-              {/* Student Information - Simple one line format */}
+              {/* Student Information - Enhanced with dismissal status */}
               <div>
                 <Label className="text-sm font-bold text-blue-600">Students</Label>
                 {isLoadingStudents ? (
@@ -586,11 +725,31 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 ) : studentData.length === 0 ? (
                   <p className="text-sm text-gray-600 mt-1">No students found</p>
                 ) : (
-                  <div className="mt-1 space-y-1">
+                  <div className="mt-1 space-y-2">
                     {studentData.map((student, index) => (
-                      <p key={student.studentId} className="text-sm text-gray-900">
-                        {student.studentName} - Grade {student.grade} - {student.classBuilding}
-                      </p>
+                      <div key={student.studentId} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {student.studentName} - Grade {student.grade} - {student.classBuilding}
+                          </p>
+                        </div>
+                        <div className="ml-4">
+                          {student.isLoadingDismissalStatus ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+                              <span className="text-xs text-gray-500">Loading...</span>
+                            </div>
+                          ) : student.dismissalStatus ? (
+                            <Badge className={getDismissalStatusColor(student.dismissalStatus)}>
+                              {student.dismissalStatus}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-gray-500">
+                              {student.dismissalStatusError || 'Status unavailable'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
