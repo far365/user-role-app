@@ -27,6 +27,15 @@ export const updateDismissalQueueByQRScan = api<UpdateDismissalQueueByQRScanRequ
       qrScannedAtBuilding
     } = req;
 
+    console.log("[Queue API] === PARAMETERS PASSED TO updateDismissalQueueByQRScan ===");
+    console.log("[Queue API] queueId:", queueId);
+    console.log("[Queue API] parentId:", parentId);
+    console.log("[Queue API] parentName:", parentName);
+    console.log("[Queue API] alternateName:", alternateName);
+    console.log("[Queue API] qrScannedAtBuilding:", qrScannedAtBuilding);
+    console.log("[Queue API] Full request object:", JSON.stringify(req, null, 2));
+    console.log("[Queue API] === END PARAMETERS ===");
+
     // Validate required fields
     if (!queueId || !queueId.trim()) {
       throw APIError.invalidArgument("Queue ID is required");
