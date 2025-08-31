@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Bug, Car, Users, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Bug, Car, Users, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -48,6 +48,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [isRefreshingDismissalStatus, setIsRefreshingDismissalStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
@@ -257,6 +258,41 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             : s
         )
       );
+    }
+  };
+
+  const handleRefreshDismissalStatus = async () => {
+    if (studentData.length === 0) {
+      toast({
+        title: "No Students",
+        description: "No students found to refresh dismissal status",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsRefreshingDismissalStatus(true);
+      
+      console.log("Refreshing dismissal status for all students");
+      
+      // Refresh dismissal status for each student
+      const refreshPromises = studentData.map(student => fetchDismissalStatusForStudent(student));
+      await Promise.all(refreshPromises);
+      
+      toast({
+        title: "Status Refreshed",
+        description: "Dismissal status has been updated for all students",
+      });
+    } catch (error) {
+      console.error("Failed to refresh dismissal status:", error);
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh dismissal status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshingDismissalStatus(false);
     }
   };
 
@@ -693,9 +729,21 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           {/* Non-Editable Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <UserCheck className="w-5 h-5" />
-                <span>Parent Information</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="w-5 h-5" />
+                  <span>Parent Information</span>
+                </div>
+                <Button 
+                  onClick={handleRefreshDismissalStatus} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={isRefreshingDismissalStatus || studentData.length === 0}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshingDismissalStatus ? 'animate-spin' : ''}`} />
+                  {isRefreshingDismissalStatus ? 'Refreshing...' : 'Refresh Status'}
+                </Button>
               </CardTitle>
               <CardDescription>Your account details and status</CardDescription>
             </CardHeader>
