@@ -16,10 +16,12 @@ interface QRScanPageProps {
 }
 
 interface QRCodeData {
-  name: string;
+  name?: string;
   phone: string;
   parentId?: string;
   date: string;
+  parent?: string;
+  alternatePickupBy?: string;
 }
 
 interface ScanResult {
@@ -40,8 +42,16 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     try {
       console.log("Parsing QR code data:", rawData);
       
-      // Expected format:
+      // Expected formats:
+      // Regular parent:
       // Name: John Doe
+      // Phone: 1234567890
+      // Parent ID: p0001 (optional)
+      // Date: 12/1/2024
+      //
+      // Alternate contact:
+      // Parent: John Doe
+      // Alternate Pickup by: Jane Smith
       // Phone: 1234567890
       // Parent ID: p0001 (optional)
       // Date: 12/1/2024
@@ -57,6 +67,12 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
           case 'name':
             data.name = value;
             break;
+          case 'parent':
+            data.parent = value;
+            break;
+          case 'alternate pickup by':
+            data.alternatePickupBy = value;
+            break;
           case 'phone':
             data.phone = value;
             break;
@@ -70,17 +86,34 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       }
       
       // Validate required fields
-      if (!data.name || !data.phone) {
-        console.error("Missing required fields in QR code data");
+      if (!data.phone) {
+        console.error("Missing phone field in QR code data");
         return null;
       }
       
-      return {
-        name: data.name,
-        phone: data.phone,
-        parentId: data.parentId,
-        date: data.date || new Date().toLocaleDateString()
-      };
+      // For alternate contacts, we need both parent and alternate pickup by
+      if (data.parent && data.alternatePickupBy) {
+        return {
+          parent: data.parent,
+          alternatePickupBy: data.alternatePickupBy,
+          phone: data.phone,
+          parentId: data.parentId,
+          date: data.date || new Date().toLocaleDateString()
+        };
+      }
+      
+      // For regular contacts, we need a name
+      if (data.name) {
+        return {
+          name: data.name,
+          phone: data.phone,
+          parentId: data.parentId,
+          date: data.date || new Date().toLocaleDateString()
+        };
+      }
+      
+      console.error("QR code data doesn't match expected format");
+      return null;
     } catch (error) {
       console.error("Error parsing QR code data:", error);
       return null;
@@ -95,17 +128,19 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       setTimeout(() => {
         const filename = file.name.toLowerCase();
         
-        if (filename.includes('parent') || filename.includes('qr')) {
+        if (filename.includes('alternate')) {
+          // Simulate an alternate contact QR code with both parent and alternate info
+          const mockData = `Parent: John Smith
+Alternate Pickup by: Jane Doe
+Phone: (555) 987-6543
+Parent ID: p0001
+Date: ${new Date().toLocaleDateString()}`;
+          resolve(mockData);
+        } else if (filename.includes('parent') || filename.includes('qr')) {
           // Simulate a parent QR code
           const mockData = `Name: John Smith
 Phone: (555) 123-4567
 Parent ID: p0001
-Date: ${new Date().toLocaleDateString()}`;
-          resolve(mockData);
-        } else if (filename.includes('alternate')) {
-          // Simulate an alternate contact QR code
-          const mockData = `Name: Jane Doe
-Phone: (555) 987-6543
 Date: ${new Date().toLocaleDateString()}`;
           resolve(mockData);
         } else {
@@ -167,9 +202,10 @@ Date: ${new Date().toLocaleDateString()}`;
           rawData: rawData
         });
         
+        const contactName = parsedData.alternatePickupBy || parsedData.name || 'Contact';
         toast({
           title: "QR Code Scanned Successfully",
-          description: `Found contact information for ${parsedData.name}`,
+          description: `Found contact information for ${contactName}`,
         });
       } else {
         setScanResult({
@@ -224,10 +260,21 @@ Date: ${new Date().toLocaleDateString()}`;
       
       console.log("Adding to dismissal queue:", {
         queueId,
-        parentName: qrData.name,
-        parentPhone: qrData.phone,
-        parentId: qrData.parentId
+        contactInfo: qrData
       });
+      
+      // Determine the contact name and type
+      let parentName = "";
+      let alternateName = "";
+      
+      if (qrData.parent && qrData.alternatePickupBy) {
+        // This is an alternate contact
+        parentName = qrData.parent;
+        alternateName = qrData.alternatePickupBy;
+      } else if (qrData.name) {
+        // This is a regular parent contact
+        parentName = qrData.name;
+      }
       
       // Add to dismissal queue
       await backend.queue.addToDismissalQueue({
@@ -235,15 +282,16 @@ Date: ${new Date().toLocaleDateString()}`;
         classBuilding: "A", // Default building
         dismissalQueueStatus: "Standby",
         parentId: qrData.parentId,
-        parentName: qrData.name,
-        alternateName: qrData.parentId ? undefined : qrData.name, // Use alternateName if no parentId
+        parentName: parentName || undefined,
+        alternateName: alternateName || undefined,
         addToQueueMethod: "QR",
         qrScannedAtBuilding: "A"
       });
       
+      const contactDisplayName = alternateName || parentName || 'Contact';
       toast({
         title: "Added to Queue",
-        description: `${qrData.name} has been added to the dismissal queue`,
+        description: `${contactDisplayName} has been added to the dismissal queue`,
       });
       
       // Clear the scan result after successful addition
@@ -282,6 +330,8 @@ Date: ${new Date().toLocaleDateString()}`;
     
     return phone; // Return original if not 10 digits
   };
+
+  const isAlternateContact = scanResult?.data?.parent && scanResult?.data?.alternatePickupBy;
 
   return (
     <div className="space-y-6">
@@ -390,9 +440,9 @@ Date: ${new Date().toLocaleDateString()}`;
                 <div className="flex justify-between items-start">
                   <Badge 
                     variant="secondary" 
-                    className={`text-sm px-3 py-1 ${scanResult.data.parentId ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300"}`}
+                    className={`text-sm px-3 py-1 ${isAlternateContact ? "bg-purple-100 text-purple-800 border-purple-300" : scanResult.data.parentId ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-gray-100 text-gray-800 border-gray-300"}`}
                   >
-                    {scanResult.data.parentId ? "Registered Parent" : "Alternate Contact"}
+                    {isAlternateContact ? "Alternate Contact" : scanResult.data.parentId ? "Registered Parent" : "Contact"}
                   </Badge>
                   <div className="text-xs text-gray-500">
                     Scanned: {new Date().toLocaleTimeString()}
@@ -406,14 +456,31 @@ Date: ${new Date().toLocaleDateString()}`;
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Name */}
+                    {/* Parent Name (for alternate contacts) */}
+                    {isAlternateContact && scanResult.data.parent && (
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <User className="w-4 h-4" />
+                          <span className="text-sm font-medium">Parent Name</span>
+                        </div>
+                        <div className="pl-6">
+                          <p className="text-lg font-semibold text-gray-900">{scanResult.data.parent}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Contact Name */}
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2 text-gray-600">
                         <User className="w-4 h-4" />
-                        <span className="text-sm font-medium">Full Name</span>
+                        <span className="text-sm font-medium">
+                          {isAlternateContact ? "Alternate Pickup By" : "Contact Name"}
+                        </span>
                       </div>
                       <div className="pl-6">
-                        <p className="text-lg font-semibold text-gray-900">{scanResult.data.name}</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {scanResult.data.alternatePickupBy || scanResult.data.name || 'Unknown'}
+                        </p>
                       </div>
                     </div>
                     
@@ -460,10 +527,22 @@ Date: ${new Date().toLocaleDateString()}`;
                 <div className="bg-white border border-green-200 rounded-lg p-4">
                   <h4 className="font-medium text-green-800 mb-2">Scan Summary</h4>
                   <p className="text-sm text-green-700">
-                    Successfully identified <strong>{scanResult.data.name}</strong> as a{" "}
-                    <strong>{scanResult.data.parentId ? "registered parent" : "alternate contact"}</strong>.
-                    {scanResult.data.parentId && (
-                      <span> Parent ID: <strong>{scanResult.data.parentId}</strong></span>
+                    {isAlternateContact ? (
+                      <>
+                        Successfully identified <strong>{scanResult.data.alternatePickupBy}</strong> as an{" "}
+                        <strong>alternate contact</strong> for parent <strong>{scanResult.data.parent}</strong>.
+                        {scanResult.data.parentId && (
+                          <span> Parent ID: <strong>{scanResult.data.parentId}</strong></span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        Successfully identified <strong>{scanResult.data.name}</strong> as a{" "}
+                        <strong>{scanResult.data.parentId ? "registered parent" : "contact"}</strong>.
+                        {scanResult.data.parentId && (
+                          <span> Parent ID: <strong>{scanResult.data.parentId}</strong></span>
+                        )}
+                      </>
                     )}
                   </p>
                 </div>
@@ -501,12 +580,23 @@ Date: ${new Date().toLocaleDateString()}`;
                 )}
                 
                 <div className="bg-red-100 border border-red-200 rounded-lg p-3">
-                  <h4 className="text-sm font-medium text-red-800 mb-2">Expected QR Code Format:</h4>
-                  <div className="text-xs text-red-700 space-y-1">
-                    <p>Name: [Contact Name]</p>
-                    <p>Phone: [Phone Number]</p>
-                    <p>Parent ID: [Parent ID] (optional)</p>
-                    <p>Date: [Date]</p>
+                  <h4 className="text-sm font-medium text-red-800 mb-2">Expected QR Code Formats:</h4>
+                  <div className="text-xs text-red-700 space-y-3">
+                    <div>
+                      <p className="font-medium">Regular Parent Contact:</p>
+                      <p>Name: [Contact Name]</p>
+                      <p>Phone: [Phone Number]</p>
+                      <p>Parent ID: [Parent ID] (optional)</p>
+                      <p>Date: [Date]</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Alternate Contact:</p>
+                      <p>Parent: [Parent Name]</p>
+                      <p>Alternate Pickup by: [Alternate Name]</p>
+                      <p>Phone: [Phone Number]</p>
+                      <p>Parent ID: [Parent ID] (optional)</p>
+                      <p>Date: [Date]</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -525,10 +615,16 @@ Date: ${new Date().toLocaleDateString()}`;
             <p><strong>For testing purposes:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li>Upload any image file to simulate QR code scanning</li>
+              <li>Files with "alternate" in the name will simulate an alternate contact QR code with both parent and alternate information</li>
               <li>Files with "parent" or "qr" in the name will simulate a registered parent QR code</li>
-              <li>Files with "alternate" in the name will simulate an alternate contact QR code</li>
               <li>Other files will generate default test data</li>
               <li>Successfully scanned contacts can be added to the dismissal queue</li>
+            </ul>
+            <p className="mt-3"><strong>QR Code Formats:</strong></p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li><strong>Alternate contacts</strong> include both parent name and alternate pickup person</li>
+              <li><strong>Regular contacts</strong> include the contact name and optional parent ID</li>
+              <li>All QR codes include phone number and date information</li>
             </ul>
             <p className="mt-3"><strong>In production:</strong> This would use camera access or a QR code scanning library to read actual QR codes.</p>
           </div>

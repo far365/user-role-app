@@ -28,23 +28,20 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
     
     try {
       const currentDate = new Date().toLocaleDateString();
-      let qrData = `Name: ${name}\nPhone: ${phone}\nDate: ${currentDate}`;
+      let qrData = "";
       
-      if (parentID) {
-        qrData = `Name: ${name}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
-      }
-
-      // Add alternate pickup information if this is an alternate contact
-      if (isAlternateContact && alternateName) {
-        // For alternate contacts, show parent name first, then alternate pickup by
-        if (parentName) {
-          qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nDate: ${currentDate}`;
-          if (parentID) {
-            qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
-          }
-        } else {
-          qrData += `\nAlternate Pickup by: ${alternateName}`;
+      if (isAlternateContact && alternateName && parentName) {
+        // For alternate contacts, include both parent and alternate information
+        qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nDate: ${currentDate}`;
+        if (parentID) {
+          qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
         }
+      } else if (parentID) {
+        // For regular parent contacts
+        qrData = `Name: ${name}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
+      } else {
+        // Fallback for contacts without parent ID
+        qrData = `Name: ${name}\nPhone: ${phone}\nDate: ${currentDate}`;
       }
       
       const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
@@ -75,7 +72,10 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
     if (!qrCodeUrl) return;
     
     const link = document.createElement('a');
-    link.download = `qr-code-${name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    const fileName = isAlternateContact && alternateName 
+      ? `qr-code-alternate-${alternateName.replace(/\s+/g, '-').toLowerCase()}.png`
+      : `qr-code-${name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    link.download = fileName;
     link.href = qrCodeUrl;
     link.click();
   };
@@ -99,7 +99,7 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
         <DialogHeader>
           <DialogTitle>QR Code - {title}</DialogTitle>
           <DialogDescription>
-            QR code containing contact information for {name || 'this contact'}
+            QR code containing contact information for {isAlternateContact && alternateName ? `${alternateName} (alternate pickup for ${parentName})` : name || 'this contact'}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4">
@@ -131,9 +131,6 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
                     <p><strong>Name:</strong> {name}</p>
                     <p><strong>Phone:</strong> {phone}</p>
                     {parentID && <p><strong>Parent ID:</strong> {parentID}</p>}
-                    {isAlternateContact && alternateName && (
-                      <p><strong>Alternate Pickup by:</strong> {alternateName}</p>
-                    )}
                     <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
                   </>
                 )}
