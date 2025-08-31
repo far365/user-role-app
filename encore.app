@@ -1,3 +1,3 @@
 {
-  "id": "your-new-project-name"
+  "id": "school-attendance-dismissal"
 }
