@@ -35,6 +35,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isAddingToQueue, setIsAddingToQueue] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -249,50 +250,68 @@ Date: ${new Date().toLocaleDateString()}`;
     }
 
     try {
+      setIsAddingToQueue(true);
       const qrData = scanResult.data;
       
-      // Generate today's queue ID
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const queueId = `${year}${month}${day}`;
-      
       console.log("Adding to dismissal queue:", {
-        queueId,
         contactInfo: qrData
       });
+      
+      // Check if there's an open queue first
+      const currentQueueResponse = await backend.queue.getCurrentQueue();
+      
+      if (!currentQueueResponse.queue) {
+        toast({
+          title: "No Open Queue",
+          description: "There is no open dismissal queue. Please start a queue first.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const queueId = currentQueueResponse.queue.queueId;
+      console.log("Found open queue:", queueId);
       
       // Determine the contact name and type
       let parentName = "";
       let alternateName = "";
+      let parentId = "";
       
       if (qrData.parent && qrData.alternatePickupBy) {
         // This is an alternate contact
         parentName = qrData.parent;
         alternateName = qrData.alternatePickupBy;
+        parentId = qrData.parentId || "";
       } else if (qrData.name) {
         // This is a regular parent contact
         parentName = qrData.name;
+        parentId = qrData.parentId || "";
       }
       
-      // Add to dismissal queue
-      await backend.queue.addToDismissalQueue({
+      // Update dismissal queue records
+      const response = await backend.queue.updateDismissalQueueByQRScan({
         queueId: queueId,
-        classBuilding: "A", // Default building
-        dismissalQueueStatus: "Standby",
-        parentId: qrData.parentId,
+        parentId: parentId,
         parentName: parentName || undefined,
         alternateName: alternateName || undefined,
-        addToQueueMethod: "QR",
         qrScannedAtBuilding: "A"
       });
       
       const contactDisplayName = alternateName || parentName || 'Contact';
-      toast({
-        title: "Added to Queue",
-        description: `${contactDisplayName} has been added to the dismissal queue`,
-      });
+      const updatedCount = response.updatedCount || 0;
+      
+      if (updatedCount > 0) {
+        toast({
+          title: "Added to Queue",
+          description: `${contactDisplayName} has been added to the dismissal queue. ${updatedCount} student record(s) updated.`,
+        });
+      } else {
+        toast({
+          title: "No Records Updated",
+          description: `No student records found for ${contactDisplayName} in the current queue.`,
+          variant: "destructive",
+        });
+      }
       
       // Clear the scan result after successful addition
       setScanResult(null);
@@ -303,11 +322,26 @@ Date: ${new Date().toLocaleDateString()}`;
       
     } catch (error) {
       console.error("Failed to add to queue:", error);
+      
+      let errorMessage = "Failed to add to dismissal queue. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("No open queue")) {
+          errorMessage = "No open dismissal queue found. Please start a queue first.";
+        } else if (error.message.includes("not found")) {
+          errorMessage = "No student records found for this parent/contact in the current queue.";
+        } else {
+          errorMessage = `Failed to add to queue: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to add to dismissal queue. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsAddingToQueue(false);
     }
   };
 
@@ -552,10 +586,11 @@ Date: ${new Date().toLocaleDateString()}`;
                   <Button 
                     onClick={handleAddToQueue}
                     size="lg"
+                    disabled={isAddingToQueue}
                     className="bg-green-600 hover:bg-green-700 px-8"
                   >
                     <CheckCircle className="w-5 h-5 mr-2" />
-                    Add to Dismissal Queue
+                    {isAddingToQueue ? 'Adding to Queue...' : 'Add to Dismissal Queue'}
                   </Button>
                 </div>
               </div>
@@ -618,13 +653,20 @@ Date: ${new Date().toLocaleDateString()}`;
               <li>Files with "alternate" in the name will simulate an alternate contact QR code with both parent and alternate information</li>
               <li>Files with "parent" or "qr" in the name will simulate a registered parent QR code</li>
               <li>Other files will generate default test data</li>
-              <li>Successfully scanned contacts can be added to the dismissal queue</li>
+              <li>Successfully scanned contacts will update existing dismissal queue records</li>
             </ul>
             <p className="mt-3"><strong>QR Code Formats:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li><strong>Alternate contacts</strong> include both parent name and alternate pickup person</li>
               <li><strong>Regular contacts</strong> include the contact name and optional parent ID</li>
               <li>All QR codes include phone number and date information</li>
+            </ul>
+            <p className="mt-3"><strong>Queue Update Process:</strong></p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li>The system will find the currently open queue</li>
+              <li>Update existing dismissal queue records with parent/contact information</li>
+              <li>Set dismissal status to 'InQueue' and QR scanned location to 'A'</li>
+              <li>If no open queue exists, an error will be displayed</li>
             </ul>
             <p className="mt-3"><strong>In production:</strong> This would use camera access or a QR code scanning library to read actual QR codes.</p>
           </div>
