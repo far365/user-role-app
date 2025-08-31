@@ -11,9 +11,10 @@ interface QRCodeGeneratorProps {
   parentID?: string;
   isAlternateContact?: boolean;
   alternateName?: string;
+  parentName?: string;
 }
 
-export function QRCodeGenerator({ name, phone, title, parentID, isAlternateContact = false, alternateName }: QRCodeGeneratorProps) {
+export function QRCodeGenerator({ name, phone, title, parentID, isAlternateContact = false, alternateName, parentName }: QRCodeGeneratorProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -35,7 +36,15 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
 
       // Add alternate pickup information if this is an alternate contact
       if (isAlternateContact && alternateName) {
-        qrData += `\nAlternate Pickup by: ${alternateName}`;
+        // For alternate contacts, show parent name first, then alternate pickup by
+        if (parentName) {
+          qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nDate: ${currentDate}`;
+          if (parentID) {
+            qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
+          }
+        } else {
+          qrData += `\nAlternate Pickup by: ${alternateName}`;
+        }
       }
       
       const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
@@ -109,13 +118,25 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
                 className="mx-auto border rounded-lg shadow-sm"
               />
               <div className="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
-                <p><strong>Name:</strong> {name}</p>
-                <p><strong>Phone:</strong> {phone}</p>
-                {parentID && <p><strong>Parent ID:</strong> {parentID}</p>}
-                {isAlternateContact && alternateName && (
-                  <p><strong>Alternate Pickup by:</strong> {alternateName}</p>
+                {isAlternateContact && alternateName && parentName ? (
+                  <>
+                    <p><strong>Parent:</strong> {parentName}</p>
+                    <p><strong>Alternate Pickup by:</strong> {alternateName}</p>
+                    <p><strong>Phone:</strong> {phone}</p>
+                    {parentID && <p><strong>Parent ID:</strong> {parentID}</p>}
+                    <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+                  </>
+                ) : (
+                  <>
+                    <p><strong>Name:</strong> {name}</p>
+                    <p><strong>Phone:</strong> {phone}</p>
+                    {parentID && <p><strong>Parent ID:</strong> {parentID}</p>}
+                    {isAlternateContact && alternateName && (
+                      <p><strong>Alternate Pickup by:</strong> {alternateName}</p>
+                    )}
+                    <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+                  </>
                 )}
-                <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           ) : (

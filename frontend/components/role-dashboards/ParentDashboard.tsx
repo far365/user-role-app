@@ -894,6 +894,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       parentID={parentData.parentID}
                       isAlternateContact={true}
                       alternateName={parentData.alternate1Name}
+                      parentName={parentData.parentName}
                     />
                   )}
                 </div>
@@ -976,6 +977,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       parentID={parentData.parentID}
                       isAlternateContact={true}
                       alternateName={parentData.alternate2Name}
+                      parentName={parentData.parentName}
                     />
                   )}
                 </div>
@@ -1058,6 +1060,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       parentID={parentData.parentID}
                       isAlternateContact={true}
                       alternateName={parentData.alternate3Name}
+                      parentName={parentData.parentName}
                     />
                   )}
                 </div>
