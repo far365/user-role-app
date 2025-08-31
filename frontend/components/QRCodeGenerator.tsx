@@ -9,9 +9,11 @@ interface QRCodeGeneratorProps {
   phone: string;
   title: string;
   parentID?: string;
+  isAlternateContact?: boolean;
+  alternateName?: string;
 }
 
-export function QRCodeGenerator({ name, phone, title, parentID }: QRCodeGeneratorProps) {
+export function QRCodeGenerator({ name, phone, title, parentID, isAlternateContact = false, alternateName }: QRCodeGeneratorProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +31,11 @@ export function QRCodeGenerator({ name, phone, title, parentID }: QRCodeGenerato
       
       if (parentID) {
         qrData = `Name: ${name}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
+      }
+
+      // Add alternate pickup information if this is an alternate contact
+      if (isAlternateContact && alternateName) {
+        qrData += `\nAlternate Pickup by: ${alternateName}`;
       }
       
       const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
@@ -105,6 +112,9 @@ export function QRCodeGenerator({ name, phone, title, parentID }: QRCodeGenerato
                 <p><strong>Name:</strong> {name}</p>
                 <p><strong>Phone:</strong> {phone}</p>
                 {parentID && <p><strong>Parent ID:</strong> {parentID}</p>}
+                {isAlternateContact && alternateName && (
+                  <p><strong>Alternate Pickup by:</strong> {alternateName}</p>
+                )}
                 <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
               </div>
             </div>
