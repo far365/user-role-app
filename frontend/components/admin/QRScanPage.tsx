@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Upload, QrCode, Camera, CheckCircle, AlertCircle, User, Phone, Calendar } from "lucide-react";
+import { ArrowLeft, Upload, QrCode, Camera, CheckCircle, AlertCircle, User, Phone, Calendar, IdCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 
@@ -369,7 +370,7 @@ Date: ${new Date().toLocaleDateString()}`;
         </CardContent>
       </Card>
 
-      {/* Scan Results */}
+      {/* Scan Results - Enhanced Display */}
       {scanResult && (
         <Card className={scanResult.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
           <CardHeader>
@@ -379,97 +380,134 @@ Date: ${new Date().toLocaleDateString()}`;
               ) : (
                 <AlertCircle className="w-5 h-5" />
               )}
-              <span>Scan {scanResult.success ? 'Successful' : 'Failed'}</span>
+              <span>QR Code Scan {scanResult.success ? 'Successful' : 'Failed'}</span>
             </CardTitle>
-            <CardDescription className={scanResult.success ? "text-green-700" : "text-red-700"}>
-              {scanResult.success 
-                ? "QR code data has been successfully parsed"
-                : "There was an issue scanning the QR code"
-              }
-            </CardDescription>
           </CardHeader>
           <CardContent>
             {scanResult.success && scanResult.data ? (
-              <div className="space-y-4">
-                {/* Contact Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-green-800">Name</p>
-                      <p className="text-sm text-green-700">{scanResult.data.name}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-green-800">Phone</p>
-                      <p className="text-sm text-green-700">{formatPhone(scanResult.data.phone)}</p>
-                    </div>
-                  </div>
-                  
-                  {scanResult.data.parentId && (
-                    <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-green-800">Parent ID</p>
-                        <p className="text-sm text-green-700">{scanResult.data.parentId}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-green-800">Date</p>
-                      <p className="text-sm text-green-700">{scanResult.data.date}</p>
-                    </div>
-                  </div>
-                </div>
-
+              <div className="space-y-6">
                 {/* Contact Type Badge */}
-                <div>
+                <div className="flex justify-between items-start">
                   <Badge 
                     variant="secondary" 
-                    className={scanResult.data.parentId ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}
+                    className={`text-sm px-3 py-1 ${scanResult.data.parentId ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-purple-100 text-purple-800 border-purple-300"}`}
                   >
                     {scanResult.data.parentId ? "Registered Parent" : "Alternate Contact"}
                   </Badge>
+                  <div className="text-xs text-gray-500">
+                    Scanned: {new Date().toLocaleTimeString()}
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Contact Information - Enhanced Layout */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Name */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <User className="w-4 h-4" />
+                        <span className="text-sm font-medium">Full Name</span>
+                      </div>
+                      <div className="pl-6">
+                        <p className="text-lg font-semibold text-gray-900">{scanResult.data.name}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Phone */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Phone className="w-4 h-4" />
+                        <span className="text-sm font-medium">Phone Number</span>
+                      </div>
+                      <div className="pl-6">
+                        <p className="text-lg font-semibold text-gray-900">{formatPhone(scanResult.data.phone)}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Parent ID */}
+                    {scanResult.data.parentId && (
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <IdCard className="w-4 h-4" />
+                          <span className="text-sm font-medium">Parent ID</span>
+                        </div>
+                        <div className="pl-6">
+                          <p className="text-lg font-semibold text-gray-900">{scanResult.data.parentId}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Date */}
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-sm font-medium">QR Code Date</span>
+                      </div>
+                      <div className="pl-6">
+                        <p className="text-lg font-semibold text-gray-900">{scanResult.data.date}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Summary Box */}
+                <div className="bg-white border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-2">Scan Summary</h4>
+                  <p className="text-sm text-green-700">
+                    Successfully identified <strong>{scanResult.data.name}</strong> as a{" "}
+                    <strong>{scanResult.data.parentId ? "registered parent" : "alternate contact"}</strong>.
+                    {scanResult.data.parentId && (
+                      <span> Parent ID: <strong>{scanResult.data.parentId}</strong></span>
+                    )}
+                  </p>
                 </div>
 
                 {/* Action Button */}
-                <div className="pt-2">
+                <div className="flex justify-center pt-4">
                   <Button 
                     onClick={handleAddToQueue}
-                    className="bg-green-600 hover:bg-green-700"
+                    size="lg"
+                    className="bg-green-600 hover:bg-green-700 px-8"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className="w-5 h-5 mr-2" />
                     Add to Dismissal Queue
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-red-700">
-                  {scanResult.error || "Unknown error occurred"}
-                </p>
+              <div className="space-y-4">
+                <div className="bg-white border border-red-200 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 mb-2">Scan Error</h4>
+                  <p className="text-sm text-red-700">
+                    {scanResult.error || "Unknown error occurred while scanning the QR code"}
+                  </p>
+                </div>
                 
                 {scanResult.rawData && (
-                  <div>
-                    <p className="text-sm font-medium text-red-800 mb-2">Raw QR Code Data:</p>
-                    <pre className="text-xs text-red-700 bg-white p-2 rounded border overflow-auto max-h-32">
-                      {scanResult.rawData}
-                    </pre>
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-red-800">Raw QR Code Data:</h4>
+                    <div className="bg-white border border-red-200 rounded p-3">
+                      <pre className="text-xs text-red-700 overflow-auto max-h-32 whitespace-pre-wrap">
+                        {scanResult.rawData}
+                      </pre>
+                    </div>
                   </div>
                 )}
                 
-                <div className="text-xs text-red-600">
-                  <p className="font-medium">Expected QR code format:</p>
-                  <p>Name: [Contact Name]</p>
-                  <p>Phone: [Phone Number]</p>
-                  <p>Parent ID: [Parent ID] (optional)</p>
-                  <p>Date: [Date]</p>
+                <div className="bg-red-100 border border-red-200 rounded-lg p-3">
+                  <h4 className="text-sm font-medium text-red-800 mb-2">Expected QR Code Format:</h4>
+                  <div className="text-xs text-red-700 space-y-1">
+                    <p>Name: [Contact Name]</p>
+                    <p>Phone: [Phone Number]</p>
+                    <p>Parent ID: [Parent ID] (optional)</p>
+                    <p>Date: [Date]</p>
+                  </div>
                 </div>
               </div>
             )}
