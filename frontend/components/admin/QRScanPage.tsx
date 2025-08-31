@@ -139,45 +139,50 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     }
   };
 
-  const simulateQRCodeScan = async (file: File): Promise<string> => {
-    // For testing purposes, we'll simulate different QR code contents based on filename
-    // In a real implementation, this would use a QR code reading library
-    
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const filename = file.name.toLowerCase();
-        console.log("[QR Scanner] === SIMULATING QR CODE SCAN ===");
-        console.log("[QR Scanner] File name:", filename);
-        
-        if (filename.includes('alternate')) {
-          // Simulate an alternate contact QR code with both parent and alternate info
-          const mockData = `Parent: John Smith
-Alternate Pickup by: Jane Doe
-Phone: (555) 987-6543
-Parent ID: p0001
-Date: ${new Date().toLocaleDateString()}`;
-          console.log("[QR Scanner] Simulating alternate contact QR code");
-          console.log("[QR Scanner] Mock data:", mockData);
-          resolve(mockData);
-        } else if (filename.includes('parent') || filename.includes('qr')) {
-          // Simulate a parent QR code
-          const mockData = `Name: John Smith
-Phone: (555) 123-4567
-Parent ID: p0001
-Date: ${new Date().toLocaleDateString()}`;
-          console.log("[QR Scanner] Simulating parent QR code");
-          console.log("[QR Scanner] Mock data:", mockData);
-          resolve(mockData);
-        } else {
-          // Default mock data
-          const mockData = `Name: Test Parent
-Phone: (555) 000-0000
-Date: ${new Date().toLocaleDateString()}`;
-          console.log("[QR Scanner] Simulating default QR code");
-          console.log("[QR Scanner] Mock data:", mockData);
-          resolve(mockData);
+  const scanQRCodeFromImage = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        try {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          
+          const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+          
+          if (!imageData) {
+            reject(new Error('Failed to get image data'));
+            return;
+          }
+          
+          // In a real implementation, you would use a QR code scanning library here
+          // For now, we'll reject with an error indicating this needs a QR scanning library
+          reject(new Error('QR code scanning requires a specialized library like jsQR or qr-scanner. This is a placeholder implementation.'));
+          
+        } catch (error) {
+          reject(error);
         }
-      }, 1500); // Simulate processing time
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          img.src = e.target.result as string;
+        } else {
+          reject(new Error('Failed to read file'));
+        }
+      };
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+      reader.readAsDataURL(file);
     });
   };
 
@@ -224,8 +229,8 @@ Date: ${new Date().toLocaleDateString()}`;
       console.log("[QR Scanner] === STARTING QR CODE SCAN ===");
       console.log("[QR Scanner] Scanning QR code from file:", selectedFile.name);
       
-      // Simulate QR code scanning
-      const rawData = await simulateQRCodeScan(selectedFile);
+      // Attempt to scan QR code from image
+      const rawData = await scanQRCodeFromImage(selectedFile);
       console.log("[QR Scanner] Raw QR code data received:", rawData);
       
       // Parse the QR code data
@@ -263,14 +268,24 @@ Date: ${new Date().toLocaleDateString()}`;
     } catch (error) {
       console.error("[QR Scanner] QR code scan error:", error);
       
+      let errorMessage = "Failed to scan QR code. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('specialized library')) {
+          errorMessage = "QR code scanning requires a specialized library. Please implement jsQR or qr-scanner for production use.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       setScanResult({
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error: errorMessage,
       });
       
       toast({
         title: "Scan Error",
-        description: "Failed to scan QR code. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -463,7 +478,7 @@ Date: ${new Date().toLocaleDateString()}`;
             <span>Upload QR Code Image</span>
           </CardTitle>
           <CardDescription>
-            For testing purposes, upload a QR code image file to simulate scanning
+            Upload a QR code image to scan and extract contact information
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -713,21 +728,20 @@ Date: ${new Date().toLocaleDateString()}`;
       )}
 
       {/* Instructions */}
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-amber-200 bg-amber-50">
         <CardHeader>
-          <CardTitle className="text-blue-800">Testing Instructions</CardTitle>
+          <CardTitle className="text-amber-800">Implementation Note</CardTitle>
         </CardHeader>
-        <CardContent className="text-blue-700">
+        <CardContent className="text-amber-700">
           <div className="space-y-2 text-sm">
-            <p><strong>For testing purposes:</strong></p>
+            <p><strong>QR Code Scanning Library Required:</strong></p>
+            <p>This component requires a QR code scanning library to function properly. Consider implementing one of the following:</p>
             <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>Upload any image file to simulate QR code scanning</li>
-              <li>Files with "alternate" in the name will simulate an alternate contact QR code with both parent and alternate information</li>
-              <li>Files with "parent" or "qr" in the name will simulate a registered parent QR code</li>
-              <li>Other files will generate default test data</li>
-              <li>Successfully scanned contacts will update existing dismissal queue records</li>
+              <li><strong>jsQR</strong> - Pure JavaScript QR code reading library</li>
+              <li><strong>qr-scanner</strong> - Lightweight QR code scanner with camera support</li>
+              <li><strong>@zxing/library</strong> - TypeScript port of ZXing barcode scanning library</li>
             </ul>
-            <p className="mt-3"><strong>QR Code Formats:</strong></p>
+            <p className="mt-3"><strong>Expected QR Code Formats:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li><strong>Alternate contacts</strong> include both parent name and alternate pickup person</li>
               <li><strong>Regular contacts</strong> include the contact name and optional parent ID</li>
@@ -740,7 +754,6 @@ Date: ${new Date().toLocaleDateString()}`;
               <li>Set dismissal status to 'InQueue' and QR scanned location to 'A'</li>
               <li>If no open queue exists, an error will be displayed</li>
             </ul>
-            <p className="mt-3"><strong>In production:</strong> This would use camera access or a QR code scanning library to read actual QR codes.</p>
           </div>
         </CardContent>
       </Card>
