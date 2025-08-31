@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
+import jsQR from "jsqr";
 
 interface QRScanPageProps {
   user: User;
@@ -158,11 +159,30 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
             return;
           }
           
-          // In a real implementation, you would use a QR code scanning library here
-          // For now, we'll reject with an error indicating this needs a QR scanning library
-          reject(new Error('QR code scanning requires a specialized library like jsQR or qr-scanner. This is a placeholder implementation.'));
+          // Use jsQR to scan the QR code
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+          
+          if (code) {
+            console.log("[QR Scanner] QR code detected:", code.data);
+            resolve(code.data);
+          } else {
+            // Try with inversion attempts for better detection
+            const codeInverted = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: "attemptBoth",
+            });
+            
+            if (codeInverted) {
+              console.log("[QR Scanner] QR code detected with inversion:", codeInverted.data);
+              resolve(codeInverted.data);
+            } else {
+              reject(new Error('No QR code found in the image. Please ensure the image contains a clear, readable QR code.'));
+            }
+          }
           
         } catch (error) {
+          console.error("[QR Scanner] Error processing image:", error);
           reject(error);
         }
       };
@@ -271,11 +291,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       let errorMessage = "Failed to scan QR code. Please try again.";
       
       if (error instanceof Error) {
-        if (error.message.includes('specialized library')) {
-          errorMessage = "QR code scanning requires a specialized library. Please implement jsQR or qr-scanner for production use.";
-        } else {
-          errorMessage = error.message;
-        }
+        errorMessage = error.message;
       }
       
       setScanResult({
@@ -728,18 +744,19 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       )}
 
       {/* Instructions */}
-      <Card className="border-amber-200 bg-amber-50">
+      <Card className="border-green-200 bg-green-50">
         <CardHeader>
-          <CardTitle className="text-amber-800">Implementation Note</CardTitle>
+          <CardTitle className="text-green-800">QR Scanner Ready</CardTitle>
         </CardHeader>
-        <CardContent className="text-amber-700">
+        <CardContent className="text-green-700">
           <div className="space-y-2 text-sm">
-            <p><strong>QR Code Scanning Library Required:</strong></p>
-            <p>This component requires a QR code scanning library to function properly. Consider implementing one of the following:</p>
+            <p><strong>QR Code Scanning:</strong> This component uses the jsQR library for real-time QR code detection.</p>
+            <p><strong>Supported Features:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-4">
-              <li><strong>jsQR</strong> - Pure JavaScript QR code reading library</li>
-              <li><strong>qr-scanner</strong> - Lightweight QR code scanner with camera support</li>
-              <li><strong>@zxing/library</strong> - TypeScript port of ZXing barcode scanning library</li>
+              <li>Automatic detection of QR codes in uploaded images</li>
+              <li>Support for various image formats (JPG, PNG, GIF, WebP)</li>
+              <li>Enhanced detection with inversion attempts for better reading</li>
+              <li>Real-time parsing of contact information</li>
             </ul>
             <p className="mt-3"><strong>Expected QR Code Formats:</strong></p>
             <ul className="list-disc list-inside space-y-1 ml-4">
