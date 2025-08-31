@@ -41,7 +41,8 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
 
   const parseQRCodeData = (rawData: string): QRCodeData | null => {
     try {
-      console.log("Parsing QR code data:", rawData);
+      console.log("[QR Scanner] === PARSING QR CODE DATA ===");
+      console.log("[QR Scanner] Raw QR code data:", rawData);
       
       // Expected formats:
       // Regular parent:
@@ -58,65 +59,82 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       // Date: 12/1/2024
       
       const lines = rawData.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      console.log("[QR Scanner] Split lines:", lines);
+      
       const data: Partial<QRCodeData> = {};
       
       for (const line of lines) {
         const [key, ...valueParts] = line.split(':');
         const value = valueParts.join(':').trim();
         
+        console.log("[QR Scanner] Processing line - Key:", key.toLowerCase().trim(), "Value:", value);
+        
         switch (key.toLowerCase().trim()) {
           case 'name':
             data.name = value;
+            console.log("[QR Scanner] Set name:", value);
             break;
           case 'parent':
             data.parent = value;
+            console.log("[QR Scanner] Set parent:", value);
             break;
           case 'alternate pickup by':
             data.alternatePickupBy = value;
+            console.log("[QR Scanner] Set alternatePickupBy:", value);
             break;
           case 'phone':
             data.phone = value;
+            console.log("[QR Scanner] Set phone:", value);
             break;
           case 'parent id':
             data.parentId = value;
+            console.log("[QR Scanner] Set parentId:", value);
             break;
           case 'date':
             data.date = value;
+            console.log("[QR Scanner] Set date:", value);
             break;
         }
       }
       
+      console.log("[QR Scanner] Parsed data object:", data);
+      
       // Validate required fields
       if (!data.phone) {
-        console.error("Missing phone field in QR code data");
+        console.error("[QR Scanner] Missing phone field in QR code data");
         return null;
       }
       
       // For alternate contacts, we need both parent and alternate pickup by
       if (data.parent && data.alternatePickupBy) {
-        return {
+        const result = {
           parent: data.parent,
           alternatePickupBy: data.alternatePickupBy,
           phone: data.phone,
           parentId: data.parentId,
           date: data.date || new Date().toLocaleDateString()
         };
+        console.log("[QR Scanner] Returning alternate contact data:", result);
+        return result;
       }
       
       // For regular contacts, we need a name
       if (data.name) {
-        return {
+        const result = {
           name: data.name,
           phone: data.phone,
           parentId: data.parentId,
           date: data.date || new Date().toLocaleDateString()
         };
+        console.log("[QR Scanner] Returning regular contact data:", result);
+        return result;
       }
       
-      console.error("QR code data doesn't match expected format");
+      console.error("[QR Scanner] QR code data doesn't match expected format");
+      console.error("[QR Scanner] Expected either (name + phone) or (parent + alternatePickupBy + phone)");
       return null;
     } catch (error) {
-      console.error("Error parsing QR code data:", error);
+      console.error("[QR Scanner] Error parsing QR code data:", error);
       return null;
     }
   };
@@ -128,6 +146,8 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     return new Promise((resolve) => {
       setTimeout(() => {
         const filename = file.name.toLowerCase();
+        console.log("[QR Scanner] === SIMULATING QR CODE SCAN ===");
+        console.log("[QR Scanner] File name:", filename);
         
         if (filename.includes('alternate')) {
           // Simulate an alternate contact QR code with both parent and alternate info
@@ -136,6 +156,8 @@ Alternate Pickup by: Jane Doe
 Phone: (555) 987-6543
 Parent ID: p0001
 Date: ${new Date().toLocaleDateString()}`;
+          console.log("[QR Scanner] Simulating alternate contact QR code");
+          console.log("[QR Scanner] Mock data:", mockData);
           resolve(mockData);
         } else if (filename.includes('parent') || filename.includes('qr')) {
           // Simulate a parent QR code
@@ -143,12 +165,16 @@ Date: ${new Date().toLocaleDateString()}`;
 Phone: (555) 123-4567
 Parent ID: p0001
 Date: ${new Date().toLocaleDateString()}`;
+          console.log("[QR Scanner] Simulating parent QR code");
+          console.log("[QR Scanner] Mock data:", mockData);
           resolve(mockData);
         } else {
           // Default mock data
           const mockData = `Name: Test Parent
 Phone: (555) 000-0000
 Date: ${new Date().toLocaleDateString()}`;
+          console.log("[QR Scanner] Simulating default QR code");
+          console.log("[QR Scanner] Mock data:", mockData);
           resolve(mockData);
         }
       }, 1500); // Simulate processing time
@@ -158,8 +184,14 @@ Date: ${new Date().toLocaleDateString()}`;
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log("[QR Scanner] === FILE SELECTED ===");
+      console.log("[QR Scanner] File name:", file.name);
+      console.log("[QR Scanner] File type:", file.type);
+      console.log("[QR Scanner] File size:", file.size, "bytes");
+      
       // Validate file type
       if (!file.type.startsWith('image/')) {
+        console.error("[QR Scanner] Invalid file type:", file.type);
         toast({
           title: "Invalid File",
           description: "Please select an image file",
@@ -170,11 +202,13 @@ Date: ${new Date().toLocaleDateString()}`;
       
       setSelectedFile(file);
       setScanResult(null);
+      console.log("[QR Scanner] File selected successfully");
     }
   };
 
   const handleScanQRCode = async () => {
     if (!selectedFile) {
+      console.error("[QR Scanner] No file selected for scanning");
       toast({
         title: "No File Selected",
         description: "Please select a QR code image to scan",
@@ -187,14 +221,16 @@ Date: ${new Date().toLocaleDateString()}`;
       setIsScanning(true);
       setScanResult(null);
       
-      console.log("Scanning QR code from file:", selectedFile.name);
+      console.log("[QR Scanner] === STARTING QR CODE SCAN ===");
+      console.log("[QR Scanner] Scanning QR code from file:", selectedFile.name);
       
       // Simulate QR code scanning
       const rawData = await simulateQRCodeScan(selectedFile);
-      console.log("Raw QR code data:", rawData);
+      console.log("[QR Scanner] Raw QR code data received:", rawData);
       
       // Parse the QR code data
       const parsedData = parseQRCodeData(rawData);
+      console.log("[QR Scanner] Parsed QR code data:", parsedData);
       
       if (parsedData) {
         setScanResult({
@@ -204,11 +240,14 @@ Date: ${new Date().toLocaleDateString()}`;
         });
         
         const contactName = parsedData.alternatePickupBy || parsedData.name || 'Contact';
+        console.log("[QR Scanner] QR code scan successful for contact:", contactName);
+        
         toast({
           title: "QR Code Scanned Successfully",
           description: `Found contact information for ${contactName}`,
         });
       } else {
+        console.error("[QR Scanner] Failed to parse QR code data");
         setScanResult({
           success: false,
           error: "Could not parse QR code data. Please ensure it's a valid parent/contact QR code.",
@@ -222,7 +261,7 @@ Date: ${new Date().toLocaleDateString()}`;
         });
       }
     } catch (error) {
-      console.error("QR code scan error:", error);
+      console.error("[QR Scanner] QR code scan error:", error);
       
       setScanResult({
         success: false,
@@ -236,11 +275,13 @@ Date: ${new Date().toLocaleDateString()}`;
       });
     } finally {
       setIsScanning(false);
+      console.log("[QR Scanner] === QR CODE SCAN COMPLETE ===");
     }
   };
 
   const handleAddToQueue = async () => {
     if (!scanResult?.success || !scanResult.data) {
+      console.error("[QR Scanner] No valid scan data available for adding to queue");
       toast({
         title: "No Valid Scan Data",
         description: "Please scan a valid QR code first",
@@ -253,14 +294,16 @@ Date: ${new Date().toLocaleDateString()}`;
       setIsAddingToQueue(true);
       const qrData = scanResult.data;
       
-      console.log("Adding to dismissal queue:", {
-        contactInfo: qrData
-      });
+      console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
+      console.log("[QR Scanner] QR data to process:", qrData);
       
       // Check if there's an open queue first
+      console.log("[QR Scanner] Checking for open queue...");
       const currentQueueResponse = await backend.queue.getCurrentQueue();
+      console.log("[QR Scanner] Current queue response:", currentQueueResponse);
       
       if (!currentQueueResponse.queue) {
+        console.error("[QR Scanner] No open queue found");
         toast({
           title: "No Open Queue",
           description: "There is no open dismissal queue. Please start a queue first.",
@@ -270,7 +313,7 @@ Date: ${new Date().toLocaleDateString()}`;
       }
 
       const queueId = currentQueueResponse.queue.queueId;
-      console.log("Found open queue:", queueId);
+      console.log("[QR Scanner] Found open queue:", queueId);
       
       // Determine the contact name and type
       let parentName = "";
@@ -282,30 +325,48 @@ Date: ${new Date().toLocaleDateString()}`;
         parentName = qrData.parent;
         alternateName = qrData.alternatePickupBy;
         parentId = qrData.parentId || "";
+        console.log("[QR Scanner] Processing as alternate contact:");
+        console.log("[QR Scanner] - Parent name:", parentName);
+        console.log("[QR Scanner] - Alternate name:", alternateName);
+        console.log("[QR Scanner] - Parent ID:", parentId);
       } else if (qrData.name) {
         // This is a regular parent contact
         parentName = qrData.name;
         parentId = qrData.parentId || "";
+        console.log("[QR Scanner] Processing as regular parent contact:");
+        console.log("[QR Scanner] - Parent name:", parentName);
+        console.log("[QR Scanner] - Parent ID:", parentId);
       }
       
-      // Update dismissal queue records
-      const response = await backend.queue.updateDismissalQueueByQRScan({
+      const updateRequest = {
         queueId: queueId,
         parentId: parentId,
         parentName: parentName || undefined,
         alternateName: alternateName || undefined,
         qrScannedAtBuilding: "A"
-      });
+      };
+      
+      console.log("[QR Scanner] Sending update request to backend:", updateRequest);
+      
+      // Update dismissal queue records
+      const response = await backend.queue.updateDismissalQueueByQRScan(updateRequest);
+      
+      console.log("[QR Scanner] Backend response:", response);
       
       const contactDisplayName = alternateName || parentName || 'Contact';
       const updatedCount = response.updatedCount || 0;
       
+      console.log("[QR Scanner] Contact display name:", contactDisplayName);
+      console.log("[QR Scanner] Updated count:", updatedCount);
+      
       if (updatedCount > 0) {
+        console.log("[QR Scanner] Successfully added to queue");
         toast({
           title: "Added to Queue",
           description: `${contactDisplayName} has been added to the dismissal queue. ${updatedCount} student record(s) updated.`,
         });
       } else {
+        console.log("[QR Scanner] No records were updated");
         toast({
           title: "No Records Updated",
           description: `No student records found for ${contactDisplayName} in the current queue.`,
@@ -320,12 +381,20 @@ Date: ${new Date().toLocaleDateString()}`;
         fileInputRef.current.value = '';
       }
       
+      console.log("[QR Scanner] Cleared scan result and file selection");
+      
     } catch (error) {
-      console.error("Failed to add to queue:", error);
+      console.error("[QR Scanner] Failed to add to queue:", error);
       
       let errorMessage = "Failed to add to dismissal queue. Please try again.";
       
       if (error instanceof Error) {
+        console.error("[QR Scanner] Error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        
         if (error.message.includes("No open queue")) {
           errorMessage = "No open dismissal queue found. Please start a queue first.";
         } else if (error.message.includes("not found")) {
@@ -342,15 +411,18 @@ Date: ${new Date().toLocaleDateString()}`;
       });
     } finally {
       setIsAddingToQueue(false);
+      console.log("[QR Scanner] === ADD TO QUEUE COMPLETE ===");
     }
   };
 
   const handleClearScan = () => {
+    console.log("[QR Scanner] === CLEARING SCAN DATA ===");
     setScanResult(null);
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    console.log("[QR Scanner] Scan data cleared");
   };
 
   const formatPhone = (phone: string) => {
