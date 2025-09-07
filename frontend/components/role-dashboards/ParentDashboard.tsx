@@ -699,6 +699,25 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard2</h3>
+ <div className="flex justify-center">
+            <Button 
+              onClick={handleSubmitQRCode}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <QrCode className="w-4 h-4 mr-2" />
+              Absences
+            </Button>
+          </div>
+				 <div className="flex justify-center">
+            <Button 
+              onClick={handleSubmitQRCode}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <QrCode className="w-4 h-4 mr-2" />
+              Emergency Contacts
+            </Button>
+          </div>
+				
         {Object.keys(validationErrors).length > 0 && (
           <Card className="border-red-200 bg-red-50">
             <CardHeader className="pb-3">
