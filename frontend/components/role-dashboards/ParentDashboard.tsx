@@ -798,7 +798,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <div key={student.studentId} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">
-                            {student.studentName} - Grade {student.grade} - {student.classBuilding}
+                            {student.studentName} - {student.grade} - {student.classBuilding}
+                          </p>
+													<p className="text-sm font-medium text-gray-900">
+                            Arrival Status: On Time at 7:58 AM
                           </p>
                         </div>
                         <div className="ml-4">
