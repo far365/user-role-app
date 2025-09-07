@@ -800,7 +800,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                           <p className="text-sm font-medium text-gray-900">
                             {student.studentName} - {student.grade} - {student.classBuilding}
                           </p>
-													<p className="text-sm font-medium text-gray-900">
+													<p className="text-sm font-small text-gray-900">
                             Arrival Status: On Time at 7:58 AM
                           </p>
                         </div>
