@@ -11,11 +11,9 @@ import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
 import type { Student } from "~backend/student/types";
-
 interface ParentDashboardProps {
   user: User;
 }
-
 interface EditableParentData {
   parentPhoneMain: string;
   parentVehicleInfo: string;
@@ -32,17 +30,14 @@ interface EditableParentData {
   alternate3Relationship: string;
   alternate3VehicleInfo: string;
 }
-
 interface ValidationErrors {
   [key: string]: string;
 }
-
 interface StudentWithDismissalStatus extends Student {
   dismissalStatus?: string;
   isLoadingDismissalStatus?: boolean;
   dismissalStatusError?: string;
 }
-
 export function ParentDashboard({ user }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<Parent | null>(null);
   const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
@@ -75,19 +70,18 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     alternate3VehicleInfo: '',
   });
   const { toast } = useToast();
-
   useEffect(() => {
     const fetchParentData = async () => {
       try {
         setIsLoading(true);
         setError(null);
         console.log("Fetching parent data for username:", user.loginID);
-        
+       
         const response = await backend.parent.getByUsername({ username: user.loginID });
         console.log("Parent data response:", response);
-        
+       
         setParentData(response.parent);
-        
+       
         // Initialize edit data with only editable fields
         setEditData({
           parentPhoneMain: response.parent.parentPhoneMain,
@@ -105,7 +99,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           alternate3Relationship: response.parent.alternate3Relationship,
           alternate3VehicleInfo: response.parent.alternate3VehicleInfo,
         });
-
         // Fetch student data using the correct parentID from the parent record
         await fetchStudentData(response.parent.parentID);
       } catch (error) {
@@ -120,10 +113,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         setIsLoading(false);
       }
     };
-
     fetchParentData();
   }, [user.loginID, toast]);
-
   const fetchStudentData = async (parentID: string) => {
     try {
       setIsLoadingStudents(true);
@@ -131,10 +122,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       console.log("=== FRONTEND: Fetching student data from Supabase ===");
       console.log("Parent ID:", parentID);
       console.log("This will query Supabase studentrcd table where parentid =", parentID);
-      
+     
       const response = await backend.student.getByParentID({ parentID });
       console.log("=== FRONTEND: Student data response from Supabase ===", response);
-      
+     
       // Convert students to include dismissal status fields
       const studentsWithDismissalStatus: StudentWithDismissalStatus[] = response.students.map(student => ({
         ...student,
@@ -142,14 +133,14 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         isLoadingDismissalStatus: false,
         dismissalStatusError: undefined
       }));
-      
+     
       setStudentData(studentsWithDismissalStatus);
-      
+     
       // Fetch dismissal status for each student
       studentsWithDismissalStatus.forEach(student => {
         fetchDismissalStatusForStudent(student);
       });
-      
+     
       if (response.students.length === 0) {
         console.log("=== FRONTEND: No students found in Supabase ===");
         console.log("This could mean:");
@@ -167,56 +158,53 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsLoadingStudents(false);
     }
   };
-
   const fetchDismissalStatusForStudent = async (student: StudentWithDismissalStatus) => {
     if (!student.studentId) {
       // Update student to show no ID available
-      setStudentData(prev => 
-        prev.map(s => 
-          s.studentId === student.studentId 
+      setStudentData(prev =>
+        prev.map(s =>
+          s.studentId === student.studentId
             ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "No student ID" }
             : s
         )
       );
       return;
     }
-
     try {
       // Update student to show loading state
-      setStudentData(prev => 
-        prev.map(s => 
-          s.studentId === student.studentId 
+      setStudentData(prev =>
+        prev.map(s =>
+          s.studentId === student.studentId
             ? { ...s, isLoadingDismissalStatus: true, dismissalStatusError: undefined }
             : s
         )
       );
-
       console.log(`Fetching dismissal status for student ${student.studentId} in grade ${student.grade}`);
-      
+     
       // Get the dismissal queue list for this student's grade
       const response = await backend.queue.getQueueListByGrade({ grade: student.grade });
       console.log(`Dismissal queue response for grade ${student.grade}:`, response);
-      
+     
       if (!response.queueId) {
         // No open queue
-        setStudentData(prev => 
-          prev.map(s => 
-            s.studentId === student.studentId 
+        setStudentData(prev =>
+          prev.map(s =>
+            s.studentId === student.studentId
               ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "Queue info not available" }
               : s
           )
         );
         return;
       }
-      
+     
       // Find this student in the dismissal queue records
       const studentRecord = response.records.find(record => record.studentId === student.studentId);
-      
+     
       if (studentRecord) {
         // Update student with dismissal status
-        setStudentData(prev => 
-          prev.map(s => 
-            s.studentId === student.studentId 
+        setStudentData(prev =>
+          prev.map(s =>
+            s.studentId === student.studentId
               ? { ...s, dismissalStatus: studentRecord.dismissalQueueStatus, isLoadingDismissalStatus: false, dismissalStatusError: undefined }
               : s
           )
@@ -224,9 +212,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         console.log(`Found dismissal status for student ${student.studentId}: ${studentRecord.dismissalQueueStatus}`);
       } else {
         // Student not found in dismissal queue
-        setStudentData(prev => 
-          prev.map(s => 
-            s.studentId === student.studentId 
+        setStudentData(prev =>
+          prev.map(s =>
+            s.studentId === student.studentId
               ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "Not in queue" }
               : s
           )
@@ -235,7 +223,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       }
     } catch (error) {
       console.error(`Failed to fetch dismissal status for student ${student.studentId}:`, error);
-      
+     
       let errorMessage = "Queue info not available";
       if (error instanceof Error) {
         if (error.message.includes("No open queue")) {
@@ -244,15 +232,15 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           errorMessage = "Status unavailable";
         }
       }
-      
+     
       // Update student with error state
-      setStudentData(prev => 
-        prev.map(s => 
-          s.studentId === student.studentId 
-            ? { 
-                ...s, 
-                dismissalStatus: undefined, 
-                isLoadingDismissalStatus: false, 
+      setStudentData(prev =>
+        prev.map(s =>
+          s.studentId === student.studentId
+            ? {
+                ...s,
+                dismissalStatus: undefined,
+                isLoadingDismissalStatus: false,
                 dismissalStatusError: errorMessage
               }
             : s
@@ -260,7 +248,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       );
     }
   };
-
   const handleRefreshDismissalStatus = async () => {
     if (studentData.length === 0) {
       toast({
@@ -270,16 +257,15 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
       return;
     }
-
     try {
       setIsRefreshingDismissalStatus(true);
-      
+     
       console.log("Refreshing dismissal status for all students");
-      
+     
       // Refresh dismissal status for each student
       const refreshPromises = studentData.map(student => fetchDismissalStatusForStudent(student));
       await Promise.all(refreshPromises);
-      
+     
       toast({
         title: "Status Refreshed",
         description: "Dismissal status has been updated for all students",
@@ -295,7 +281,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsRefreshingDismissalStatus(false);
     }
   };
-
   const handleStudentDebug = async () => {
     if (!parentData) {
       toast({
@@ -305,30 +290,29 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
       return;
     }
-
     try {
       console.log("=== FRONTEND: Fetching comprehensive Supabase student debug data ===");
       console.log("Parent ID for debug:", parentData.parentID);
-      
+     
       const response = await backend.student.debug({ parentID: parentData.parentID });
       console.log("=== FRONTEND: Supabase student debug response ===", response);
-      
+     
       setStudentDebugData(response);
       setShowStudentDebug(true);
-      
+     
       // Enhanced toast message with more details
       const totalStudents = response.studentrcdRecords.length;
       const studentsForParent = response.specificStudentsForParent.length;
       const tableExists = response.tableExists;
       const connectionOk = response.connectionTest?.success;
       const supabaseConfigured = response.supabaseConfig?.supabaseUrl === 'CONFIGURED';
-      
+     
       let debugSummary = `Supabase connection: ${connectionOk ? 'OK' : 'FAILED'}`;
       debugSummary += `\nSupabase configured: ${supabaseConfigured ? 'YES' : 'NO'}`;
       debugSummary += `\nTable exists: ${tableExists ? 'YES' : 'NO'}`;
       debugSummary += `\nTotal students in Supabase: ${totalStudents}`;
       debugSummary += `\nStudents for this parent: ${studentsForParent}`;
-      
+     
       toast({
         title: "Supabase Student Debug Complete",
         description: debugSummary,
@@ -342,19 +326,18 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
     }
   };
-
   const validateAlternateContact = (contactNumber: number, data: EditableParentData): string[] => {
     const errors: string[] = [];
     const prefix = `alternate${contactNumber}`;
-    
+   
     const name = data[`${prefix}Name` as keyof EditableParentData] as string;
     const phone = data[`${prefix}Phone` as keyof EditableParentData] as string;
     const relationship = data[`${prefix}Relationship` as keyof EditableParentData] as string;
     const vehicleInfo = data[`${prefix}VehicleInfo` as keyof EditableParentData] as string;
-    
+   
     // Check if any field is filled
     const hasAnyField = name.trim() || phone.trim() || relationship.trim() || vehicleInfo.trim();
-    
+   
     if (hasAnyField) {
       // If any field is filled, all fields must be filled
       if (!name.trim()) errors.push(`Alternate Contact ${contactNumber} Name is required`);
@@ -362,18 +345,17 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       if (!relationship.trim()) errors.push(`Alternate Contact ${contactNumber} Relationship is required`);
       if (!vehicleInfo.trim()) errors.push(`Alternate Contact ${contactNumber} Vehicle Info is required`);
     }
-    
+   
     return errors;
   };
-
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
-    
+   
     // Validate alternate contacts
     const alternate1Errors = validateAlternateContact(1, editData);
     const alternate2Errors = validateAlternateContact(2, editData);
     const alternate3Errors = validateAlternateContact(3, editData);
-    
+   
     // Add errors to the errors object
     alternate1Errors.forEach((error, index) => {
       errors[`alternate1_${index}`] = error;
@@ -384,12 +366,11 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     alternate3Errors.forEach((error, index) => {
       errors[`alternate3_${index}`] = error;
     });
-    
+   
     setValidationErrors(errors);
-    
+   
     return Object.keys(errors).length === 0;
   };
-
   const handleDebug = async () => {
     try {
       console.log("Fetching debug data for username:", user.loginID);
@@ -406,12 +387,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
     }
   };
-
   const handleEdit = () => {
     setIsEditing(true);
     setValidationErrors({});
   };
-
   const handleCancel = () => {
     if (parentData) {
       setEditData({
@@ -434,12 +413,11 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     setIsEditing(false);
     setValidationErrors({});
   };
-
   const handleSave = async () => {
     console.log("=== SAVE OPERATION START ===");
     console.log("Current edit data:", editData);
     console.log("Original parent data:", parentData);
-    
+   
     if (!validateForm()) {
       const errorMessages = Object.values(validationErrors);
       toast({
@@ -449,26 +427,25 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
       return;
     }
-
     try {
       setIsSaving(true);
-      
+     
       console.log("Calling backend.parent.update with:", {
         username: user.loginID,
         ...editData,
       });
-      
+     
       const response = await backend.parent.update({
         username: user.loginID,
         ...editData,
       });
-      
+     
       console.log("Backend response:", response);
-      
+     
       setParentData(response.parent);
       setIsEditing(false);
       setValidationErrors({});
-      
+     
       toast({
         title: "Success",
         description: "Parent information updated successfully.",
@@ -476,9 +453,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     } catch (error) {
       console.error("=== SAVE OPERATION ERROR ===");
       console.error("Failed to update parent data:", error);
-      
+     
       let errorMessage = "Failed to update parent information. Please try again.";
-      
+     
       if (error instanceof Error) {
         errorMessage = `Update failed: ${error.message}`;
         console.error("Error details:", {
@@ -487,7 +464,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           stack: error.stack
         });
       }
-      
+     
       toast({
         title: "Error",
         description: errorMessage,
@@ -498,14 +475,13 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       console.log("=== SAVE OPERATION END ===");
     }
   };
-
   const handleInputChange = (field: keyof EditableParentData, value: string) => {
     console.log(`Input change: ${field} = ${value}`);
     setEditData(prev => ({
       ...prev,
       [field]: value,
     }));
-    
+   
     // Clear validation errors for this field when user starts typing
     if (value.trim()) {
       const newErrors = { ...validationErrors };
@@ -517,23 +493,19 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setValidationErrors(newErrors);
     }
   };
-
   const getFieldError = (fieldName: string): boolean => {
     return Object.values(validationErrors).some(error => error.includes(fieldName));
   };
-
   const handleSubmitQRCode = () => {
     toast({
       title: "QR Code Submitted",
       description: "QR Code submission simulated for testing purposes.",
     });
   };
-
   const formatDate = (date: Date | null) => {
     if (!date) return "Never";
     return new Date(date).toLocaleString();
   };
-
   const getDismissalStatusColor = (status: string) => {
     switch (status) {
       case 'Standby':
@@ -560,7 +532,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -584,14 +555,13 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       </div>
     );
   }
-
   if (error && !parentData) {
     return (
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h2>
         </div>
-        
+       
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-red-800">
@@ -622,7 +592,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             </div>
           </CardContent>
         </Card>
-
         {showDebug && debugData && (
           <Card className="border-yellow-200 bg-yellow-50">
             <CardHeader>
@@ -639,33 +608,31 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     {JSON.stringify(debugData.specificUser, null, 2)}
                   </pre>
                 </div>
-
                 <div>
                   <p className="font-medium">Specific Parent Record (parentrcd where parentid = "{user.loginID}"):</p>
                   <pre className="bg-white p-2 rounded text-xs overflow-auto">
                     {JSON.stringify(debugData.specificParent, null, 2)}
                   </pre>
                 </div>
-                
+               
                 <div>
                   <p className="font-medium">All usersrcd Records ({debugData.usersrcdRecords.length}):</p>
                   <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
                     {debugData.usersrcdRecords.map((record: any, index: number) => (
                       <div key={index} className="mb-2 p-1 border-b">
-                        <strong>Username:</strong> {record.username || 'N/A'} | 
-                        <strong> LoginID:</strong> {record.loginid || 'N/A'} | 
+                        <strong>Username:</strong> {record.username || 'N/A'} |
+                        <strong> LoginID:</strong> {record.loginid || 'N/A'} |
                         <strong> UserID:</strong> {record.userid || 'N/A'}
                       </div>
                     ))}
                   </div>
                 </div>
-
                 <div>
                   <p className="font-medium">All parentrcd Records ({debugData.parentrcdRecords.length}):</p>
                   <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
                     {debugData.parentrcdRecords.map((record: any, index: number) => (
                       <div key={index} className="mb-2 p-1 border-b">
-                        <strong>ParentID:</strong> {record.parentid || 'N/A'} | 
+                        <strong>ParentID:</strong> {record.parentid || 'N/A'} |
                         <strong> Name:</strong> {record.parentname || 'N/A'}
                       </div>
                     ))}
@@ -678,14 +645,13 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       {/* Status and Last Login Header */}
       {parentData && (
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Badge 
+            <Badge
               variant={parentData.parentRecordStatus === 'Active' ? 'default' : 'destructive'}
               className={parentData.parentRecordStatus === 'Active' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
             >
@@ -695,30 +661,24 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           </div>
         </div>
       )}
-
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
-
-
-				<Button 
-          variant="ghost" 
+<Button
+          variant="ghost"
           className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
           onClick={() => handleNavigate('teacher-setup')}
         >
           <GraduationCap className="h-5 w-5 mr-3" />
           Absences
         </Button>
-				<Button 
-          variant="ghost" 
+<Button
+          variant="ghost"
           className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
           onClick={() => handleNavigate('teacher-setup')}
         >
           <GraduationCap className="h-5 w-5 mr-3" />
           Emergency Contacts
         </Button>
-				
- 
-				
         {Object.keys(validationErrors).length > 0 && (
           <Card className="border-red-200 bg-red-50">
             <CardHeader className="pb-3">
@@ -743,7 +703,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           </Card>
         )}
       </div>
-
       {parentData && (
         <div className="space-y-6">
           {/* Non-Editable Information */}
@@ -754,9 +713,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   <UserCheck className="w-5 h-5" />
                   <span>Parent Information</span>
                 </div>
-                <Button 
-                  onClick={handleRefreshDismissalStatus} 
-                  variant="outline" 
+                <Button
+                  onClick={handleRefreshDismissalStatus}
+                  variant="outline"
                   size="sm"
                   disabled={isRefreshingDismissalStatus || studentData.length === 0}
                   className="border-blue-300 text-blue-700 hover:bg-blue-50"
@@ -782,7 +741,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   </div>
                 </div>
               </div>
-
               {/* Student Information - Enhanced with dismissal status */}
               <div>
                 <Label className="text-sm font-bold text-blue-600">Students</Label>
@@ -800,34 +758,37 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                           <p className="text-sm font-medium text-gray-900">
                             {student.studentName} - {student.grade} - {student.classBuilding}
                           </p>
-													<p className="text-sm font-small text-gray-900">
+                          <p className="text-xs text-gray-900">
                             Arrival Status: On Time at 7:58 AM
                           </p>
-                        </div>
-                        <div className="ml-4">
-                          {student.isLoadingDismissalStatus ? (
-                            <div className="flex items-center space-x-2">
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
-                              <span className="text-xs text-gray-500">Loading...</span>
-                            </div>
-                          ) : student.dismissalStatus ? (
-                            <Badge className={getDismissalStatusColor(student.dismissalStatus)}>
-                              {student.dismissalStatus}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-gray-500">
-                              {student.dismissalStatusError || 'Status unavailable'}
-                            </span>
-                          )}
+                          <p className="text-xs text-gray-900">
+                            Dismissal Status: as of 3:45pm
+                          </p>
+                          <div className="mt-1">
+                            {student.isLoadingDismissalStatus ? (
+                              <div className="flex items-center space-x-2">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+                                <span className="text-xs text-gray-500">Loading...</span>
+                              </div>
+                            ) : student.dismissalStatus ? (
+                              <Badge className={getDismissalStatusColor(student.dismissalStatus)}>
+                                {student.dismissalStatus}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                {student.dismissalStatusError || 'Status unavailable'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
                 <div className="mt-2">
-                  <Button 
-                    onClick={handleStudentDebug} 
-                    variant="outline" 
+                  <Button
+                    onClick={handleStudentDebug}
+                    variant="outline"
                     size="sm"
                     className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
                   >
@@ -838,7 +799,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </div>
             </CardContent>
           </Card>
-
           {/* Editable Information */}
           <Card>
             <CardHeader>
@@ -887,7 +847,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     <p className="text-sm text-gray-900 mt-1">{parentData.parentPhoneMain || 'Not provided'}</p>
                   )}
                 </div>
-                
+               
                 <div>
                   <Label htmlFor="parentVehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Information</Label>
                   {isEditing ? (
@@ -904,7 +864,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   )}
                 </div>
               </div>
-
               {/* Alternate Contact 1 */}
               <div className={`p-4 border rounded-lg ${getFieldError('Alternate Contact 1') ? 'border-red-300 bg-red-50' : 'bg-gray-50'}`}>
                 <div className="flex items-center justify-between mb-3">
@@ -937,7 +896,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Name || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate1Phone" className="text-sm font-medium text-gray-700">Phone</Label>
                     {isEditing ? (
@@ -953,7 +912,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Phone || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate1Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
                     {isEditing ? (
@@ -969,7 +928,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate1Relationship || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate1VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Info</Label>
                     {isEditing ? (
@@ -987,7 +946,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   </div>
                 </div>
               </div>
-
               {/* Alternate Contact 2 */}
               <div className={`p-4 border rounded-lg ${getFieldError('Alternate Contact 2') ? 'border-red-300 bg-red-50' : 'bg-gray-50'}`}>
                 <div className="flex items-center justify-between mb-3">
@@ -1020,7 +978,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Name || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate2Phone" className="text-sm font-medium text-gray-700">Phone</Label>
                     {isEditing ? (
@@ -1036,7 +994,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Phone || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate2Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
                     {isEditing ? (
@@ -1052,7 +1010,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate2Relationship || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate2VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Info</Label>
                     {isEditing ? (
@@ -1070,7 +1028,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   </div>
                 </div>
               </div>
-
               {/* Alternate Contact 3 */}
               <div className={`p-4 border rounded-lg ${getFieldError('Alternate Contact 3') ? 'border-red-300 bg-red-50' : 'bg-gray-50'}`}>
                 <div className="flex items-center justify-between mb-3">
@@ -1103,7 +1060,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Name || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate3Phone" className="text-sm font-medium text-gray-700">Phone</Label>
                     {isEditing ? (
@@ -1119,7 +1076,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Phone || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate3Relationship" className="text-sm font-medium text-gray-700">Relationship</Label>
                     {isEditing ? (
@@ -1135,7 +1092,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <p className="text-sm text-gray-900 mt-1">{parentData.alternate3Relationship || 'Not provided'}</p>
                     )}
                   </div>
-                  
+                 
                   <div>
                     <Label htmlFor="alternate3VehicleInfo" className="text-sm font-medium text-gray-700">Vehicle Info</Label>
                     {isEditing ? (
@@ -1155,10 +1112,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               </div>
             </CardContent>
           </Card>
-
           {/* Submit QR Code Button */}
           <div className="flex justify-center">
-            <Button 
+            <Button
               onClick={handleSubmitQRCode}
               className="bg-blue-600 hover:bg-blue-700"
             >
@@ -1166,7 +1122,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               Submit QR Code
             </Button>
           </div>
-
           {/* Student Debug Information */}
           {showStudentDebug && studentDebugData && (
             <Card className="border-yellow-200 bg-yellow-50">
@@ -1190,7 +1145,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       )}
                     </div>
                   </div>
-
                   <div>
                     <p className="font-medium">Students for this Parent ({studentDebugData.specificStudentsForParent.length}):</p>
                     <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
@@ -1199,15 +1153,15 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       ) : (
                         studentDebugData.specificStudentsForParent.map((record: any, index: number) => (
                           <div key={index} className="mb-2 p-1 border-b">
-                            <strong>Student:</strong> {record.studentname || 'N/A'} | 
-                            <strong> ID:</strong> {record.studentid || 'N/A'} | 
+                            <strong>Student:</strong> {record.studentname || 'N/A'} |
+                            <strong> ID:</strong> {record.studentid || 'N/A'} |
                             <strong> Parent ID:</strong> {record.parentid || 'N/A'}
                           </div>
                         ))
                       )}
                     </div>
                   </div>
-                  
+                 
                   <div>
                     <p className="font-medium">All Students in Supabase Database ({studentDebugData.studentrcdRecords.length}):</p>
                     <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
@@ -1218,8 +1172,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                           <p className="text-green-600 mb-2">✅ Found {studentDebugData.studentrcdRecords.length} total students in Supabase</p>
                           {studentDebugData.studentrcdRecords.slice(0, 10).map((record: any, index: number) => (
                             <div key={index} className="mb-2 p-1 border-b">
-                              <strong>Student:</strong> {record.studentname || 'N/A'} | 
-                              <strong> ID:</strong> {record.studentid || 'N/A'} | 
+                              <strong>Student:</strong> {record.studentname || 'N/A'} |
+                              <strong> ID:</strong> {record.studentid || 'N/A'} |
                               <strong> Parent ID:</strong> {record.parentid || 'N/A'} |
                               <strong> Grade:</strong> {record.grade || 'N/A'}
                             </div>
