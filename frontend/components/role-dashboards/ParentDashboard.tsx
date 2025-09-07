@@ -759,7 +759,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                             {student.studentName} - {student.grade} - {student.classBuilding}
                           </p>
                           <p className="text-xs text-gray-900">
-                            Arrival Status: On Time at 7:58 AM
+                            Arrival Status: Tardy at 7:58 AM - 15 mins late
                           </p>
                           <p className="text-xs text-gray-900">
                             Dismissal Status: as of 3:45pm
