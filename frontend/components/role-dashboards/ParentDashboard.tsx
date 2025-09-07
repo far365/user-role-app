@@ -717,24 +717,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           Emergency Contacts
         </Button>
 				
- <div className="flex justify-left">
-            <Button 
-              onClick={handleSubmitQRCode}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <QrCode className="w-4 h-4 mr-2" />
-              Absences
-            </Button>
-          </div>
-				 <div className="flex justify-right">
-            <Button 
-              onClick={handleSubmitQRCode}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <QrCode className="w-4 h-4 mr-2" />
-              Emergency Contacts
-            </Button>
-          </div>
+ 
 				
         {Object.keys(validationErrors).length > 0 && (
           <Card className="border-red-200 bg-red-50">
