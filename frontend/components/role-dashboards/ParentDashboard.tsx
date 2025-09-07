@@ -698,7 +698,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard2</h3>
+       
  <div className="flex justify-center">
             <Button 
               onClick={handleSubmitQRCode}
