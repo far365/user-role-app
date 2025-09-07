@@ -699,7 +699,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
        
- <div className="flex justify-center">
+ <div className="flex justify-left">
             <Button 
               onClick={handleSubmitQRCode}
               className="bg-blue-600 hover:bg-blue-700"
@@ -708,7 +708,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               Absences
             </Button>
           </div>
-				 <div className="flex justify-center">
+				 <div className="flex justify-right">
             <Button 
               onClick={handleSubmitQRCode}
               className="bg-blue-600 hover:bg-blue-700"
