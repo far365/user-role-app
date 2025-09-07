@@ -698,7 +698,25 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
 
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
-       
+
+
+				<Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
+          onClick={() => handleNavigate('teacher-setup')}
+        >
+          <GraduationCap className="h-5 w-5 mr-3" />
+          Absences
+        </Button>
+				<Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
+          onClick={() => handleNavigate('teacher-setup')}
+        >
+          <GraduationCap className="h-5 w-5 mr-3" />
+          Emergency Contacts
+        </Button>
+				
  <div className="flex justify-left">
             <Button 
               onClick={handleSubmitQRCode}
