@@ -536,6 +536,46 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           </CardContent>
         </Card>
 
+				
+        {/* Close Queue - Using StopCircle icon instead of Square */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <StopCircle className="w-5 h-5" />
+              <span>Start Dismissal Queue</span>
+            </CardTitle>
+            <CardDescription>
+              Close the currently active queue using Supabase function
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                This will call the Supabase function close_currently_open_queue() to close the queue and update dismissal statuses.
+              </p>
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-xs text-purple-800">
+                  <strong>Supabase Function:</strong> Calls close_currently_open_queue(userid) which automatically closes the queue and updates all 'Standby' dismissal records to 'Unknown' status.
+                </p>
+              </div>
+              <Button 
+                onClick={handleCloseQueue} 
+                disabled={isClosing || !currentQueue}
+                variant="outline"
+                className="w-full"
+              >
+                <StopCircle className="w-4 h-4 mr-2" />
+                {isClosing ? 'Closing with Supabase...' : 'Starting Dissmisal Queue'}
+              </Button>
+              {!currentQueue && (
+                <p className="text-xs text-gray-500">
+                  No open queue to close
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+				
         {/* Close Queue - Using StopCircle icon instead of Square */}
         <Card>
           <CardHeader>
