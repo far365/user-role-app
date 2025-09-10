@@ -542,7 +542,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <StopCircle className="w-5 h-5" />
-              <span>Start Dismissal Queue</span>
+              <span>Start Dismissal </span>
             </CardTitle>
             <CardDescription>
               Close the currently active queue using Supabase function
