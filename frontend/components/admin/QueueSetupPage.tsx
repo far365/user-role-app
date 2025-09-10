@@ -503,7 +503,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Play className="w-5 h-5" />
-              <span>Start New Queue</span>
+              <span>Start Attendance</span>
             </CardTitle>
             <CardDescription>
               Create a new pickup queue for today and auto-build dismissal queue
