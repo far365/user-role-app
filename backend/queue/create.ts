@@ -65,9 +65,10 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
       //const month = String(now.getMonth() + 1).padStart(2, '0');
       //const day = String(now.getDate()).padStart(2, '0');
       //const queueId = `${year}${month}${day}`;
-			const mytimezone = now.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
-
+			
 const now = new Date();
+const mytimezone = now.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+
 const userDate = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/Chicago', // e.g., 'America/Chicago'
   year: 'numeric',
