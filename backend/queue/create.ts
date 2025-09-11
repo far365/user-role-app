@@ -76,7 +76,7 @@ const userDate = new Intl.DateTimeFormat('en-US', {
   day: '2-digit'
 }).format(now).split('/'); // MM/DD/YYYY
 
-			const queueId = `20${userDate[2]}${userDate[0]}${userDate[1]}`; // Adjust to YYYYMMDD
+			const queueId = `${userDate[2]}${userDate[0]}${userDate[1]}`; // Adjust to YYYYMMDD
 
       console.log("[Queue API] Generated queue ID:", queueId," tz:",mytimezone,"-",now);
 //---
