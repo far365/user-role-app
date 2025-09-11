@@ -60,15 +60,25 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
       }
       
       // Generate queue ID in YYYYMMDD format
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const queueId = `${year}${month}${day}`;
+      //const now = new Date();
+      //const year = now.getFullYear();
+      //const month = String(now.getMonth() + 1).padStart(2, '0');
+      //const day = String(now.getDate()).padStart(2, '0');
+      //const queueId = `${year}${month}${day}`;
 			const mytimezone = now.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
 
-      console.log("[Queue API] Generated queue ID:", queueId," tz:",mytimezone,"-",now);
+const now = new Date();
+const userDate = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Chicago', // e.g., 'America/Chicago'
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+}).format(now).split('/'); // MM/DD/YYYY
 
+			const queueId = `20${userDate[2]}${userDate[0]}${userDate[1]}`; // Adjust to YYYYMMDD
+
+      console.log("[Queue API] Generated queue ID:", queueId," tz:",mytimezone,"-",now);
+//---
       // Check if there's already an open queue (any queue with status 'Open')
       console.log("[Queue API] Checking for existing open queues...");
       const { data: existingOpenQueue, error: checkOpenError } = await supabase
