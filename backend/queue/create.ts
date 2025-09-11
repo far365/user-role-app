@@ -65,8 +65,9 @@ export const create = api<CreateQueueRequest, CreateQueueResponse>(
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const queueId = `${year}${month}${day}`;
+			const mytimezone = now.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
 
-      console.log("[Queue API] Generated queue ID:", queueId);
+      console.log("[Queue API] Generated queue ID:", queueId," tz:",mytimezone,"-",now);
 
       // Check if there's already an open queue (any queue with status 'Open')
       console.log("[Queue API] Checking for existing open queues...");
