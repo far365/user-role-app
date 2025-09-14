@@ -522,7 +522,13 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
           </div>
 
           {/* School-wide Status Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
+
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center">
+            <div className="text-sm font-medium text-slate-800">Total Students</div>
+            <div className="text-2xl font-bold text-slate-900">{totalCounts.total}</div>
+          </div>
+					
+					<div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
               <div className="text-sm font-medium text-yellow-800">Standby</div>
               <div className="text-lg font-bold text-yellow-900">{totalCounts.standby}</div>
@@ -574,10 +580,6 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center">
-            <div className="text-sm font-medium text-slate-800">Total Students</div>
-            <div className="text-2xl font-bold text-slate-900">{totalCounts.total}</div>
-          </div>
         </CardContent>
       </Card>
 
