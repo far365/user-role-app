@@ -168,7 +168,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 <Input
                   id="loginID"
                   type="text"
-                  placeholder="Enter your login ID (e.g., p0001)"
+                  placeholder="Enter your login ID"
                   value={loginID}
                   onChange={(e) => setLoginID(e.target.value)}
                   disabled={isLoading}
