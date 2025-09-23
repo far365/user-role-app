@@ -202,10 +202,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-medium text-gray-700 mb-2">Available Login IDs:</p>
               <div className="space-y-1 text-xs text-gray-600">
-                <div>p0001 - Usman Hadi (Parent)</div>
-                <div className="mt-2 text-gray-500">
-                  Use any login ID from your Supabase usersrcd table
-                </div>
+                <div>Example text goes here</div>
               </div>
             </div>
           </CardContent>
