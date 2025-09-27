@@ -7,8 +7,8 @@ interface CountsResponse {
 
 export const attendanceAndDismissalQueueCountsByGrade = api(
   { method: "POST", path: "/attendance-dismissal-counts", expose: true },
-  async ({ param1, param2 }: { param1: string; param2: string }): Promise<CountsResponse> => {
-    const { data, error } = await supabase.rpc('attendance_and_dismissal_queue_counts_by_grade', { param1, param2 });
+  async ({ param1, param2 }: { sch_tz : string; p_grade : string }): Promise<CountsResponse> => {
+    const { data, error } = await supabase.rpc('attendance_and_dismissal_queue_counts_by_grade', { sch_tz , p_grade  });
     if (error) throw new Error(`Supabase error: ${error.message}`);
     return { data: data || [] };
   }
