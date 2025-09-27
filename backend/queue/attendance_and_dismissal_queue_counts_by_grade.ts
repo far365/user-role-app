@@ -6,7 +6,7 @@ interface CountsResponse {
 }
 
 export const attendanceAndDismissalQueueCountsByGrade = api(
-  { method: "POST", path: "/attendance-dismissal-counts", expose: true },
+  { method: "POST", path: "/adttendance_and_dismissal_queue_counts_by_grade", expose: true },
   async ({ sch_tz , p_grade  }: { sch_tz : string; p_grade : string }): Promise<CountsResponse> => {
     console.log(`=== RAW DATA DUMP ===`);
     console.log(`Input parameters: sch_tz="${sch_tz}", p_grade="${p_grade}"`);
