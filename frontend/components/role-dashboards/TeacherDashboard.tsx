@@ -827,6 +827,24 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Temporary Debug Display */}
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="text-sm font-semibold text-yellow-800 mb-2">Debug Info:</div>
+              <div className="text-xs text-yellow-700">
+                <div>attendanceDismissalCounts exists: {attendanceDismissalCounts ? 'Yes' : 'No'}</div>
+                {attendanceDismissalCounts && (
+                  <>
+                    <div>Attendance items: {attendanceDismissalCounts.attendance.length}</div>
+                    <div>Dismissal items: {attendanceDismissalCounts.dismissal.length}</div>
+                    <div className="mt-1">
+                      <div>Attendance data: {JSON.stringify(attendanceDismissalCounts.attendance)}</div>
+                      <div>Dismissal data: {JSON.stringify(attendanceDismissalCounts.dismissal)}</div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
                 <thead>
@@ -836,49 +854,59 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Determine the maximum number of rows needed */}
-                  {Array.from({ 
-                    length: Math.max(
-                      attendanceDismissalCounts.attendance.length, 
-                      attendanceDismissalCounts.dismissal.length
-                    ) 
-                  }).map((_, index) => {
-                    const attendanceItem = attendanceDismissalCounts.attendance[index];
-                    const dismissalItem = attendanceDismissalCounts.dismissal[index];
-                    
-                    return (
-                      <tr key={index} className="border-t">
-                        <td className="px-4 py-2 border-r">
-                          {attendanceItem ? (
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-gray-700">
-                                {attendanceItem.status}
-                              </span>
-                              <span className="text-sm font-semibold text-gray-900">
-                                {attendanceItem.count}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="h-6"></div>
-                          )}
-                        </td>
-                        <td className="px-4 py-2">
-                          {dismissalItem ? (
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-gray-700">
-                                {dismissalItem.status}
-                              </span>
-                              <span className="text-sm font-semibold text-gray-900">
-                                {dismissalItem.count}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="h-6"></div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {/* Show message if no data */}
+                  {(!attendanceDismissalCounts || 
+                    (attendanceDismissalCounts.attendance.length === 0 && attendanceDismissalCounts.dismissal.length === 0)) ? (
+                    <tr>
+                      <td colSpan={2} className="px-4 py-8 text-center text-gray-500">
+                        No attendance or dismissal data available. Check console for API response details.
+                      </td>
+                    </tr>
+                  ) : (
+                    /* Determine the maximum number of rows needed */
+                    Array.from({ 
+                      length: Math.max(
+                        attendanceDismissalCounts.attendance.length, 
+                        attendanceDismissalCounts.dismissal.length
+                      ) 
+                    }).map((_, index) => {
+                      const attendanceItem = attendanceDismissalCounts.attendance[index];
+                      const dismissalItem = attendanceDismissalCounts.dismissal[index];
+                      
+                      return (
+                        <tr key={index} className="border-t">
+                          <td className="px-4 py-2 border-r">
+                            {attendanceItem ? (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">
+                                  {attendanceItem.status}
+                                </span>
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {attendanceItem.count}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="h-6"></div>
+                            )}
+                          </td>
+                          <td className="px-4 py-2">
+                            {dismissalItem ? (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">
+                                  {dismissalItem.status}
+                                </span>
+                                <span className="text-sm font-semibold text-gray-900">
+                                  {dismissalItem.count}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="h-6"></div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
