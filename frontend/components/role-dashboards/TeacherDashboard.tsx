@@ -815,7 +815,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       </Card>
 
       {/* Attendance and Dismissal Counts Grid */}
-      {selectedGrade && attendanceDismissalCounts && (
+      {selectedGrade && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -827,11 +827,12 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Temporary Debug Display */}
+            {/* Always show debug info */}
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="text-sm font-semibold text-yellow-800 mb-2">Debug Info:</div>
               <div className="text-xs text-yellow-700">
                 <div>attendanceDismissalCounts exists: {attendanceDismissalCounts ? 'Yes' : 'No'}</div>
+                <div>debugApiResponse exists: {debugApiResponse ? 'Yes' : 'No'}</div>
                 {attendanceDismissalCounts && (
                   <>
                     <div>Attendance items: {attendanceDismissalCounts.attendance.length}</div>
@@ -841,6 +842,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       <div>Dismissal data: {JSON.stringify(attendanceDismissalCounts.dismissal)}</div>
                     </div>
                   </>
+                )}
+                {debugApiResponse && (
+                  <div className="mt-2">
+                    <div>API Response: {JSON.stringify(debugApiResponse)}</div>
+                  </div>
                 )}
               </div>
             </div>
@@ -854,24 +860,33 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Show message if no data */}
-                  {(!attendanceDismissalCounts || 
-                    (attendanceDismissalCounts.attendance.length === 0 && attendanceDismissalCounts.dismissal.length === 0)) ? (
-                    <tr>
-                      <td colSpan={2} className="px-4 py-8 text-center text-gray-500">
-                        No attendance or dismissal data available. Check console for API response details.
-                      </td>
-                    </tr>
-                  ) : (
-                    /* Determine the maximum number of rows needed */
-                    Array.from({ 
-                      length: Math.max(
-                        attendanceDismissalCounts.attendance.length, 
-                        attendanceDismissalCounts.dismissal.length
-                      ) 
-                    }).map((_, index) => {
-                      const attendanceItem = attendanceDismissalCounts.attendance[index];
-                      const dismissalItem = attendanceDismissalCounts.dismissal[index];
+                  {(() => {
+                    // Default statuses to always show even if API returns no data
+                    const defaultAttendanceStatuses = ['Unknown', 'OnTime', 'OnTime-M', 'Tardy', 'Tardy-M', 'NoShow'];
+                    const defaultDismissalStatuses = ['Unknown', 'StandBy', 'InQueue', 'Collected', 'EarlyDismissal', 'DirectPickup', 'LatePickup', 'After Care'];
+                    
+                    // Get actual data or create default with 0 counts
+                    const attendanceData = attendanceDismissalCounts?.attendance || 
+                      defaultAttendanceStatuses.map(status => ({ status, count: 0 }));
+                    const dismissalData = attendanceDismissalCounts?.dismissal || 
+                      defaultDismissalStatuses.map(status => ({ status, count: 0 }));
+                    
+                    // Ensure we have all default statuses (fill in missing ones with 0)
+                    const completeAttendanceData = defaultAttendanceStatuses.map(status => {
+                      const existing = attendanceData.find(item => item.status === status);
+                      return existing || { status, count: 0 };
+                    });
+                    
+                    const completeDismissalData = defaultDismissalStatuses.map(status => {
+                      const existing = dismissalData.find(item => item.status === status);
+                      return existing || { status, count: 0 };
+                    });
+                    
+                    const maxRows = Math.max(completeAttendanceData.length, completeDismissalData.length);
+                    
+                    return Array.from({ length: maxRows }).map((_, index) => {
+                      const attendanceItem = completeAttendanceData[index];
+                      const dismissalItem = completeDismissalData[index];
                       
                       return (
                         <tr key={index} className="border-t">
@@ -905,8 +920,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                           </td>
                         </tr>
                       );
-                    })
-                  )}
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
