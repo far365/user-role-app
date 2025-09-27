@@ -506,7 +506,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               <span>Start Attendance</span>
             </CardTitle>
             <CardDescription>
-              Create a new pickup queue for today and auto-build dismissal queue
+              Start a new Attendance/Class Roster for today.
             </CardDescription>
           </CardHeader>
           <CardContent>
