@@ -15,7 +15,7 @@ interface AttendanceAndDismissalQueueCountsByGradeResponse {
 }
 
 export const attendanceAndDismissalQueueCountsByGrade = api(
-  { method: "POST", path: "/attendance-and-dismissal-queue-counts-by-grade", expose: true },
+  { method: "POST", path: "/attendance_and_dismissal_queue_counts_by_grade", expose: true },
   async (req: AttendanceAndDismissalQueueCountsByGradeRequest): Promise<AttendanceAndDismissalQueueCountsByGradeResponse> => {
     const { data, error } = await supabase.rpc('attendance_and_dismissal_queue_counts_by_grade', {
       param1: req.param1,
