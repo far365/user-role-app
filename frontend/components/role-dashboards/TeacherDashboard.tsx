@@ -827,36 +827,60 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Attendance Column */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-center">Attendance</h4>
-                <div className="space-y-2">
-                  {attendanceDismissalCounts.attendance.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">{item.status}</span>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                        {item.count}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Dismissal Column */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3 text-center">Dismissal</h4>
-                <div className="space-y-2">
-                  {attendanceDismissalCounts.dismissal.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">{item.status}</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        {item.count}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900 border-r">Attendance</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-900">Dismissal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Determine the maximum number of rows needed */}
+                  {Array.from({ 
+                    length: Math.max(
+                      attendanceDismissalCounts.attendance.length, 
+                      attendanceDismissalCounts.dismissal.length
+                    ) 
+                  }).map((_, index) => {
+                    const attendanceItem = attendanceDismissalCounts.attendance[index];
+                    const dismissalItem = attendanceDismissalCounts.dismissal[index];
+                    
+                    return (
+                      <tr key={index} className="border-t">
+                        <td className="px-4 py-2 border-r">
+                          {attendanceItem ? (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">
+                                {attendanceItem.status}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {attendanceItem.count}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="h-6"></div>
+                          )}
+                        </td>
+                        <td className="px-4 py-2">
+                          {dismissalItem ? (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">
+                                {dismissalItem.status}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {dismissalItem.count}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="h-6"></div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
