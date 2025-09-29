@@ -848,7 +848,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     <div className="flex gap-3">
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="flex-1 h-12 border-2 border-blue-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
       >
         <UserX className="h-5 w-5 mr-2" />
         Absence
@@ -864,14 +864,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     <div className="flex gap-3">
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="flex-1 h-12 border-2 border-blue-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
       >
         <UserCheck className="h-5 w-5 mr-2" />
         Attendance
       </Button>
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="flex-1 h-12 border-2 border-blue-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
       >
         <LogOut className="h-5 w-5 mr-2" />
         Dismissal
