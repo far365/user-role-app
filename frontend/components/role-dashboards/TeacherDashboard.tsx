@@ -231,31 +231,50 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       let dismissalData = '';
       
       console.log("🔍 PARSING DEBUG - Searching through response.data items:");
+      console.log("🔍 PARSING DEBUG - response.data:", response.data);
+      console.log("🔍 PARSING DEBUG - response.data type:", typeof response.data);
+      console.log("🔍 PARSING DEBUG - response.data.length:", response.data ? response.data.length : 'undefined');
       
       // Find attendance and dismissal strings in the response
       for (let i = 0; i < response.data.length; i++) {
         const item = response.data[i];
         console.log(`🔍 PARSING DEBUG - Item ${i}:`, item, typeof item);
+        console.log(`🔍 PARSING DEBUG - Item ${i} properties:`, Object.keys(item || {}));
         
         // Check if item has a 'result' property (API returns objects with result property)
         let dataString = '';
         if (typeof item === 'string') {
           dataString = item;
+          console.log(`🔍 PARSING DEBUG - Item ${i} is a string:`, dataString);
         } else if (item && typeof item === 'object' && item.result && typeof item.result === 'string') {
           dataString = item.result;
-          console.log(`🔍 PARSING DEBUG - Extracted result string:`, dataString);
+          console.log(`🔍 PARSING DEBUG - Item ${i} extracted result string:`, dataString);
+        } else {
+          console.log(`🔍 PARSING DEBUG - Item ${i} structure not recognized. Item:`, item);
+          if (item && typeof item === 'object') {
+            console.log(`🔍 PARSING DEBUG - Item ${i} object keys:`, Object.keys(item));
+            console.log(`🔍 PARSING DEBUG - Item ${i} object values:`, Object.values(item));
+          }
         }
         
         if (dataString) {
+          console.log(`🔍 PARSING DEBUG - Processing dataString:`, dataString);
           if (dataString.startsWith('ATTENDANCE:')) {
             attendanceData = dataString;
-            console.log("🔍 PARSING DEBUG - Found attendance data:", attendanceData);
+            console.log("🔍 PARSING DEBUG - ✅ Found attendance data:", attendanceData);
           } else if (dataString.startsWith('DISMISSAL:')) {
             dismissalData = dataString;
-            console.log("🔍 PARSING DEBUG - Found dismissal data:", dismissalData);
+            console.log("🔍 PARSING DEBUG - ✅ Found dismissal data:", dismissalData);
+          } else {
+            console.log("🔍 PARSING DEBUG - ❌ DataString doesn't start with ATTENDANCE: or DISMISSAL:", dataString);
           }
+        } else {
+          console.log(`🔍 PARSING DEBUG - ❌ No dataString extracted from item ${i}`);
         }
       }
+      
+      console.log("🔍 PARSING DEBUG - After loop - attendanceData:", attendanceData);
+      console.log("🔍 PARSING DEBUG - After loop - dismissalData:", dismissalData);
       
       const parsedResult = {
         attendance: attendanceData ? parseCountData(attendanceData) : [],
