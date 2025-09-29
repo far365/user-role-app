@@ -91,7 +91,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   
   // Auto-refresh state
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   
