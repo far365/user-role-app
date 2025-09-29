@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause, UserX, UserCheck, LogOut } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import { SlideReleaseButton } from "../teacher/SlideReleaseButton";
+import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -85,6 +86,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [selectedStudent, setSelectedStudent] = useState<DismissalQueueRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentQueueId, setCurrentQueueId] = useState<string | null>(null);
+  const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
   
   // Debug state for API response
   const [debugApiResponse, setDebugApiResponse] = useState<any>(null);
@@ -865,9 +867,10 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       <Button 
         variant="outline" 
         className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+        onClick={() => setIsAttendanceDialogOpen(true)}
       >
         <UserCheck className="h-5 w-5 mr-2" />
-        Update Attendance
+        Attendance
       </Button>
       <Button 
         variant="outline" 
@@ -1243,6 +1246,16 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             setSelectedStudent(null);
           }}
           onStatusUpdated={handleStatusUpdated}
+        />
+      )}
+
+      {/* Attendance Update Dialog */}
+      {selectedGrade && (
+        <AttendanceUpdateDialog
+          isOpen={isAttendanceDialogOpen}
+          onClose={() => setIsAttendanceDialogOpen(false)}
+          grade={selectedGrade}
+          user={user}
         />
       )}
     </div>
