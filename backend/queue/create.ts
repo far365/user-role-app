@@ -204,9 +204,7 @@ const userDate = new Intl.DateTimeFormat('en-US', {
         
         // Call build_new_queue Supabase function which handles both queue creation and dismissal queue population
         const { data: functionResult, error: functionError } = await supabase
-          .rpc('build_new_queue', {
-            p_started_by_username: queueStartedByUsername.trim()
-          });
+          .rpc('build_new_queue');
 
         console.log("[Queue API] Supabase function result:", { functionResult, functionError });
 

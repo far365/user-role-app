@@ -26,9 +26,7 @@ export const buildNewQueue = api<BuildNewQueueRequest, BuildNewQueueResponse>(
       
       // Call the build_new_queue Supabase function directly
       const { data: functionResult, error: functionError } = await supabase
-        .rpc('build_new_queue', {
-          p_username: queueStartedByUsername.trim()
-        });
+        .rpc('build_new_queue');
 
       console.log("[Build New Queue API] Supabase function result:", { functionResult, functionError });
 
