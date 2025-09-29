@@ -237,12 +237,21 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         const item = response.data[i];
         console.log(`🔍 PARSING DEBUG - Item ${i}:`, item, typeof item);
         
+        // Check if item has a 'result' property (API returns objects with result property)
+        let dataString = '';
         if (typeof item === 'string') {
-          if (item.startsWith('ATTENDANCE:')) {
-            attendanceData = item;
+          dataString = item;
+        } else if (item && typeof item === 'object' && item.result && typeof item.result === 'string') {
+          dataString = item.result;
+          console.log(`🔍 PARSING DEBUG - Extracted result string:`, dataString);
+        }
+        
+        if (dataString) {
+          if (dataString.startsWith('ATTENDANCE:')) {
+            attendanceData = dataString;
             console.log("🔍 PARSING DEBUG - Found attendance data:", attendanceData);
-          } else if (item.startsWith('DISMISSAL:')) {
-            dismissalData = item;
+          } else if (dataString.startsWith('DISMISSAL:')) {
+            dismissalData = dataString;
             console.log("🔍 PARSING DEBUG - Found dismissal data:", dismissalData);
           }
         }
