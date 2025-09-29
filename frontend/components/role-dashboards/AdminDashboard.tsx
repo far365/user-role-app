@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode, ClipboardList } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode, ClipboardList, UserX, UserCheck, LogOut } from "lucide-react";
 import { ParentSetupPage } from "../admin/ParentSetupPage";
 import { StudentSetupPage } from "../admin/StudentSetupPage";
 import { QueueSetupPage } from "../admin/QueueSetupPage";
 import { QRScanPage } from "../admin/QRScanPage";
 import { FullDismissalQueuePage } from "../admin/FullDismissalQueuePage";
+import backend from "~backend/client";
 import type { User } from "~backend/user/types";
+import type { Grade } from "~backend/grades/types";
 
 interface AdminDashboardProps {
   user: User;
@@ -14,6 +18,8 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ user }: AdminDashboardProps) {
   const [currentPage, setCurrentPage] = useState<string>('dashboard');
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
@@ -22,6 +28,18 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const handleBackToDashboard = () => {
     setCurrentPage('dashboard');
   };
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const response = await backend.grades.list();
+        setGrades(response.grades);
+      } catch (error) {
+        console.error("Failed to fetch grades:", error);
+      }
+    };
+    fetchGrades();
+  }, []);
 
   if (currentPage === 'qr-scan') {
     return <QRScanPage user={user} onBack={handleBackToDashboard} />;
@@ -51,6 +69,60 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           Manage system settings, users, and monitor overall platform activity.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Grade Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Grade
+            </label>
+            <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose a grade..." />
+              </SelectTrigger>
+              <SelectContent>
+                {grades.map((grade) => (
+                  <SelectItem key={grade.name} value={grade.name}>
+                    {grade.name.charAt(0).toUpperCase() + grade.name.slice(1).replace('-', ' ')} - Building {grade.building}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              disabled={!selectedGrade}
+              className={`flex-1 ${!selectedGrade ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 hover:border-red-300'}`}
+            >
+              <UserX className="h-4 w-4 mr-2" />
+              Absence
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              disabled={!selectedGrade}
+              className={`flex-1 ${!selectedGrade ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 hover:border-green-300'}`}
+            >
+              <UserCheck className="h-4 w-4 mr-2" />
+              Attendance
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              disabled={!selectedGrade}
+              className={`flex-1 ${!selectedGrade ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50 hover:border-blue-300'}`}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Dismissal
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <Button 
