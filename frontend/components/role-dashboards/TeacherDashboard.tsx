@@ -843,33 +843,42 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       </Card>
 
       {/* Grade Action Buttons */}
-      {selectedGrade && (
-        <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
-          >
-            <UserX className="h-5 w-5 mr-2" />
-            Absence
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
-          >
-            <UserCheck className="h-5 w-5 mr-2" />
-            Attendance
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
-          >
-            <LogOut className="h-5 w-5 mr-2" />
-            Dismissal
-          </Button>
-        </div>
-      )}
+{selectedGrade && (
+  <div className="flex flex-col gap-3">
+    <div className="flex gap-3">
+      <Button 
+        variant="outline" 
+        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+      >
+        <UserX className="h-5 w-5 mr-2" />
+        Absence
+      </Button>
+      <Button 
+        variant="outline" 
+        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+      >
+        <Clock className="h-5 w-5 mr-2" />
+        Pending Approvals - 0
+      </Button>
+    </div>
+    <div className="flex gap-3">
+      <Button 
+        variant="outline" 
+        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+      >
+        <UserCheck className="h-5 w-5 mr-2" />
+        Attendance
+      </Button>
+      <Button 
+        variant="outline" 
+        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+      >
+        <LogOut className="h-5 w-5 mr-2" />
+        Dismissal
+      </Button>
+    </div>
+  </div>
+)}
 
       {/* Attendance and Dismissal Counts Grid */}
       {selectedGrade && (
