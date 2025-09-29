@@ -867,7 +867,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
       >
         <UserCheck className="h-5 w-5 mr-2" />
-        Attendance
+        Update Attendance
       </Button>
       <Button 
         variant="outline" 
