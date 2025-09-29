@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause, UserX, UserCheck, LogOut } from "lucide-react";
+import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause, UserX, UserCheck, LogOut, Settings } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import { SlideReleaseButton } from "../teacher/SlideReleaseButton";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialog";
+import { SelectClosedQueueDialog } from "../teacher/SelectClosedQueueDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -96,6 +97,9 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  
+  // Closed queue selection state
+  const [isClosedQueueDialogOpen, setIsClosedQueueDialogOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -764,6 +768,18 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </div>
           </div>
 
+          {/* Update Closed Queue Button */}
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={() => setIsClosedQueueDialogOpen(true)}
+              variant="outline"
+              className="h-10 px-4 border-2 border-purple-400 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-500"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Update Closed Queue
+            </Button>
+          </div>
+
           {/* Grade Selection */}
           <div className="flex items-center space-x-4">
             <div className="flex-1">
@@ -1251,6 +1267,16 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           user={user}
         />
       )}
+
+      {/* Select Closed Queue Dialog */}
+      <SelectClosedQueueDialog
+        isOpen={isClosedQueueDialogOpen}
+        onClose={() => setIsClosedQueueDialogOpen(false)}
+        onQueueSelected={(queueId) => {
+          console.log("Selected queue:", queueId);
+          // Additional logic will be added later
+        }}
+      />
     </div>
   );
 }
