@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause } from "lucide-react";
+import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause, UserX, UserCheck, LogOut } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import { SlideReleaseButton } from "../teacher/SlideReleaseButton";
 import backend from "~backend/client";
@@ -841,6 +841,35 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Grade Action Buttons */}
+      {selectedGrade && (
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+          >
+            <UserX className="h-5 w-5 mr-2" />
+            Absence
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+          >
+            <UserCheck className="h-5 w-5 mr-2" />
+            Attendance
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            Dismissal
+          </Button>
+        </div>
+      )}
 
       {/* Attendance and Dismissal Counts Grid */}
       {selectedGrade && (
