@@ -848,14 +848,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     <div className="flex gap-3">
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-blue-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
       >
         <UserX className="h-5 w-5 mr-2" />
         Absence
       </Button>
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-red-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
       >
         <Clock className="h-5 w-5 mr-2" />
         Pending Approvals - 0
@@ -864,14 +864,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     <div className="flex gap-3">
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-blue-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
       >
         <UserCheck className="h-5 w-5 mr-2" />
         Attendance
       </Button>
       <Button 
         variant="outline" 
-        className="flex-1 h-12 border-2 border-blue-400 text-red-600 bg-white hover:bg-red-50 hover:border-red-500"
+        className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
       >
         <LogOut className="h-5 w-5 mr-2" />
         Dismissal
