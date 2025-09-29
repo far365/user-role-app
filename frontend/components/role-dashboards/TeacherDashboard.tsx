@@ -145,12 +145,19 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     };
   }, [intervalId]);
 
-  // Load grades on component mount
+  // Load grades on component mount and auto-select first grade
   useEffect(() => {
     const loadGrades = async () => {
       try {
         const response = await backend.grades.list();
         setGrades(response.grades);
+        
+        // Auto-select the first grade if available
+        if (response.grades && response.grades.length > 0) {
+          const firstGrade = response.grades[0].name;
+          setSelectedGrade(firstGrade);
+          loadDismissalQueue(firstGrade);
+        }
       } catch (error) {
         console.error("Failed to load grades:", error);
         toast({
