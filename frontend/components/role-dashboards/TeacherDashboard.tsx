@@ -1177,9 +1177,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           ) : (
             <div className="space-y-2">
               {/* Header */}
-              <div className="grid grid-cols-4 gap-4 p-3 bg-gray-50 rounded-lg font-medium text-sm text-gray-700">
+              <div className="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg font-medium text-sm text-gray-700">
                 <div>Student Name</div>
-                <div>A & D Status</div>
                 <div>
                   <div>Parent/</div>
                   <div>Contact</div>
@@ -1191,7 +1190,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               {filteredRecords.map((record) => (
                 <div 
                   key={`${record.queueId}-${record.studentId}`}
-                  className="grid grid-cols-4 gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="grid grid-cols-3 gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div>
                     <div className="font-medium text-gray-900">
@@ -1206,12 +1205,6 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       <Edit className="w-3 h-3 mr-1" />
                       Edit
                     </Button>
-                  </div>
-                  
-                  <div>
-                    <Badge className={getStatusColor(record.dismissalQueueStatus)}>
-                      {record.dismissalQueueStatus}
-                    </Badge>
                   </div>
                   
                   <div className="text-sm text-gray-600">
