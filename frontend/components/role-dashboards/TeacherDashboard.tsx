@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusDialog";
+import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialog";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
@@ -33,6 +34,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<AttendanceDismissalRecord | null>(null);
   const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
+  const [isBulkAttendanceDialogOpen, setIsBulkAttendanceDialogOpen] = useState(false);
   const [isDismissalDialogOpen, setIsDismissalDialogOpen] = useState(false);
   
   const { toast } = useToast();
@@ -253,7 +255,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             <Button 
               variant="outline" 
               className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
-              onClick={() => setIsAttendanceDialogOpen(true)}
+              onClick={() => setIsBulkAttendanceDialogOpen(true)}
             >
               <UserCheck className="h-4 w-4 mr-1.5" />
               Attendance
@@ -361,7 +363,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Attendance Status Dialog */}
+      {/* Individual Student Attendance Status Dialog */}
       {selectedStudent && (
         <AttendanceStatusDialog
           student={selectedStudent}
@@ -378,6 +380,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           }}
         />
       )}
+
+      {/* Bulk Attendance Update Dialog */}
+      <AttendanceUpdateDialog
+        isOpen={isBulkAttendanceDialogOpen}
+        onClose={() => setIsBulkAttendanceDialogOpen(false)}
+        grade={selectedGrade}
+        user={user}
+      />
 
       {/* Dismissal Status Dialog (reuse existing one) */}
       {selectedStudent && (
