@@ -1,7 +1,7 @@
-# School Attendance & Dismissal System
+# SAAD - School Attendance & Dismissal System
 
 ## Overview
-This is a school attendance and dismissal queue management system built with:
+SAAD (School Attendance & Dismissal) is a school attendance and dismissal queue management system built with:
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
 - **Backend**: Encore.dev framework + TypeScript
 - **Database**: Supabase (PostgreSQL)
