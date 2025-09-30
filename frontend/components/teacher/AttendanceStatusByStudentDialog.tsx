@@ -188,7 +188,7 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
 {JSON.stringify({
   grade: grade,
   arrivalStatus: selectedStatus,
-  userid: {user.userid},
+  userid: user.userid,
   studentId: student.studentid
 }, null, 2)}
                 </pre>
