@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Bug, Car, Users, User as UserIcon, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Bug, Car, Users, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";

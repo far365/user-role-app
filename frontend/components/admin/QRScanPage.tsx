@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Upload, QrCode, Camera, CheckCircle, AlertCircle, User as UserIcon, Phone, Calendar, IdCard } from "lucide-react";
+import { ArrowLeft, Upload, QrCode, Camera, CheckCircle, AlertCircle, User, Phone, Calendar, IdCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import backend from "~backend/client";
@@ -597,7 +597,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
                     {isAlternateContact && scanResult.data.parent && (
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2 text-gray-600">
-                          <UserIcon className="w-4 h-4" />
+                          <User className="w-4 h-4" />
                           <span className="text-sm font-medium">Parent Name</span>
                         </div>
                         <div className="pl-6">
@@ -609,7 +609,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
                     {/* Contact Name */}
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2 text-gray-600">
-                        <UserIcon className="w-4 h-4" />
+                        <User className="w-4 h-4" />
                         <span className="text-sm font-medium">
                           {isAlternateContact ? "Alternate Pickup By" : "Contact Name"}
                         </span>
