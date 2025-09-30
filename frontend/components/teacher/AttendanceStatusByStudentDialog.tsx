@@ -178,7 +178,9 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
                 <div><strong>Student:</strong> {student.StudentName}</div>
                 <div><strong>Student ID:</strong> {student.studentid}</div>
                 <div><strong>Current Status:</strong> {getCurrentStatus()}</div>
-                <div><strong>New Status:</strong> {selectedStatus}</div>
+                <div><strong>NEW Status:</strong> {selectedStatus}</div>
+								 <div><strong>grade:</strong> {grade}</div>
+								 <div><strong>Nuserid:</strong> {userid}</div>
               </div>
               <div className="mt-2 pt-2 border-t border-blue-200">
                 <div className="text-xs font-medium text-blue-800 mb-1">API Payload:</div>
