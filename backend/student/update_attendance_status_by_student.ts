@@ -2,10 +2,10 @@ import { api } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 
 interface UpdateAttendanceStatusRequest {
-  studentId: string;
-  arrivalStatus: string;
   grade: string;
+  arrivalStatus: string;
   userid: string;
+  studentId: string;
 }
 
 interface UpdateAttendanceStatusResponse {
@@ -17,6 +17,8 @@ interface UpdateAttendanceStatusResponse {
   debugInfo?: {
     inputStudentId: string;
     inputArrivalStatus: string;
+    inputGrade?: string;
+    inputUserid?: string;
     timestamp?: string;
     supabaseResponse?: any;
     supabaseError?: any;
@@ -26,7 +28,7 @@ interface UpdateAttendanceStatusResponse {
 
 export const updateStudentAttendanceStatus = api(
   { method: "POST", path: "/student/update-attendance-status", expose: true },
-  async ({ studentId, arrivalStatus, grade, userid }: UpdateAttendanceStatusRequest): Promise<UpdateAttendanceStatusResponse> => {
+  async ({ grade, arrivalStatus, userid, studentId }: UpdateAttendanceStatusRequest): Promise<UpdateAttendanceStatusResponse> => {
     const timestamp = new Date().toISOString();
     
     console.log(`=== UPDATE INDIVIDUAL STUDENT ATTENDANCE STATUS ===`);
