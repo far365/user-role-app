@@ -232,6 +232,7 @@ import { close as api_queue_close_close } from "~backend/queue/close";
 import { create as api_queue_create_create } from "~backend/queue/create";
 import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
 import { deleteQueue as api_queue_delete_deleteQueue } from "~backend/queue/delete";
+import { getAttendanceDismissalStatusByGrade as api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade } from "~backend/queue/get_attendance_dismissal_status_by_grade";
 import { getCurrentQueue as api_queue_get_current_getCurrentQueue } from "~backend/queue/get_current";
 import { getQueueCountByGrade as api_queue_get_queue_count_by_grade_getQueueCountByGrade } from "~backend/queue/get_queue_count_by_grade";
 import { getQueueListByGrade as api_queue_get_queue_list_by_grade_getQueueListByGrade } from "~backend/queue/get_queue_list_by_grade";
@@ -255,6 +256,7 @@ export namespace queue {
             this.create = this.create.bind(this)
             this.debugTable = this.debugTable.bind(this)
             this.deleteQueue = this.deleteQueue.bind(this)
+            this.getAttendanceDismissalStatusByGrade = this.getAttendanceDismissalStatusByGrade.bind(this)
             this.getCurrentQueue = this.getCurrentQueue.bind(this)
             this.getQueueCountByGrade = this.getQueueCountByGrade.bind(this)
             this.getQueueListByGrade = this.getQueueListByGrade.bind(this)
@@ -328,6 +330,12 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/delete`, {query, method: "DELETE", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_delete_deleteQueue>
+        }
+
+        public async getAttendanceDismissalStatusByGrade(params: RequestType<typeof api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade>): Promise<ResponseType<typeof api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/get-attendance-dismissal-status-by-grade`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade>
         }
 
         /**
@@ -425,6 +433,7 @@ import {
     searchByName as api_student_search_searchByName
 } from "~backend/student/search";
 import { update as api_student_update_update } from "~backend/student/update";
+import { updateAttendanceStatus as api_student_update_attendance_status_updateAttendanceStatus } from "~backend/student/update_attendance_status";
 
 export namespace student {
 
@@ -439,6 +448,7 @@ export namespace student {
             this.searchById = this.searchById.bind(this)
             this.searchByName = this.searchByName.bind(this)
             this.update = this.update.bind(this)
+            this.updateAttendanceStatus = this.updateAttendanceStatus.bind(this)
         }
 
         /**
@@ -508,6 +518,12 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/update`, {method: "PUT", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_update_update>
+        }
+
+        public async updateAttendanceStatus(params: RequestType<typeof api_student_update_attendance_status_updateAttendanceStatus>): Promise<ResponseType<typeof api_student_update_attendance_status_updateAttendanceStatus>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/update-attendance-status`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_update_attendance_status_updateAttendanceStatus>
         }
     }
 }
