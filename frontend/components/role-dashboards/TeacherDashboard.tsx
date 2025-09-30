@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusDialog";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import backend from "~backend/client";
@@ -229,6 +229,45 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Grade Action Buttons */}
+      {selectedGrade && (
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+            >
+              <UserX className="h-5 w-5 mr-2" />
+              Absence
+            </Button>
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+            >
+              <Clock className="h-5 w-5 mr-2" />
+              Pending Approvals - 0
+            </Button>
+          </div>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+              onClick={() => setIsAttendanceDialogOpen(true)}
+            >
+              <UserCheck className="h-5 w-5 mr-2" />
+              Attendance
+            </Button>
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              Dismissal
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Student List Section */}
       <Card>
