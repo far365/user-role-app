@@ -55,7 +55,7 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
       
       console.log("🚀 REQUEST DATA BEING SENT:", JSON.stringify(requestData, null, 2));
       
-      const response = await backend.student.updateAttendanceStatus(requestData);
+      const response = await backend.student.updateStudentAttendanceStatus(requestData);
 
       console.log("✅ INDIVIDUAL ATTENDANCE UPDATE DEBUG - Full API Response:", JSON.stringify(response, null, 2));
       

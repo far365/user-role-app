@@ -24,7 +24,7 @@ interface UpdateAttendanceStatusResponse {
   };
 }
 
-export const updateAttendanceStatus = api(
+export const updateStudentAttendanceStatus = api(
   { method: "POST", path: "/student/update-attendance-status", expose: true },
   async ({ studentId, arrivalStatus, grade, userid }: UpdateAttendanceStatusRequest): Promise<UpdateAttendanceStatusResponse> => {
     const timestamp = new Date().toISOString();
