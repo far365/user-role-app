@@ -4,6 +4,8 @@ import { supabase } from "../user/supabase";
 interface UpdateAttendanceStatusRequest {
   studentId: string;
   arrivalStatus: string;
+  grade: string;
+  userid: string;
 }
 
 interface UpdateAttendanceStatusResponse {
@@ -24,7 +26,7 @@ interface UpdateAttendanceStatusResponse {
 
 export const updateAttendanceStatus = api(
   { method: "POST", path: "/student/update-attendance-status", expose: true },
-  async ({ studentId, arrivalStatus }: UpdateAttendanceStatusRequest): Promise<UpdateAttendanceStatusResponse> => {
+  async ({ studentId, arrivalStatus, grade, userid }: UpdateAttendanceStatusRequest): Promise<UpdateAttendanceStatusResponse> => {
     const timestamp = new Date().toISOString();
     
     console.log(`=== UPDATE INDIVIDUAL STUDENT ATTENDANCE STATUS ===`);
@@ -35,34 +37,31 @@ export const updateAttendanceStatus = api(
     console.log(`   - arrivalStatus (raw): "${arrivalStatus}"`);
     console.log(`   - arrivalStatus (type): ${typeof arrivalStatus}`);
     console.log(`   - arrivalStatus (length): ${arrivalStatus?.length || 'undefined'}`);
+    console.log(`   - grade (raw): "${grade}"`);
+    console.log(`   - userid (raw): "${userid}"`);
     console.log(`   - timestamp: ${timestamp}`);
     
     try {
-      // Log the exact update object being sent to Supabase
-      const updateObject = { 
-        attendanceStatus: arrivalStatus,
-        updatedAt: timestamp
-      };
+      console.log(`🔧 SUPABASE RPC PARAMETERS:`);
+      console.log(`   - Function: update_attendance_status_by_student`);
+      console.log(`   - p_grade: "${grade}"`);
+      console.log(`   - p_arrival_status: "${arrivalStatus}"`);
+      console.log(`   - p_userid: "${userid}"`);
+      console.log(`   - p_studentid: "${studentId}"`);
       
-      console.log(`🔧 SUPABASE UPDATE PARAMETERS:`);
-      console.log(`   - Table: studentrcd`);
-      console.log(`   - Update Object:`, JSON.stringify(updateObject, null, 4));
-      console.log(`   - Where Condition: studentId = "${studentId}"`);
-      console.log(`   - Select: * (return updated data)`);
+      // Call the Supabase stored procedure with all required parameters
+      const { data, error } = await supabase.rpc('update_attendance_status_by_student', {
+        p_grade: grade,
+        p_arrival_status: arrivalStatus,
+        p_userid: userid,
+        p_studentid: studentId
+      });
       
-      // Update the student's attendance status directly in the studentrcd table
-      const { data, error } = await supabase
-        .from('studentrcd')
-        .update(updateObject)
-        .eq('studentId', studentId)
-        .select();
-      
-      console.log(`📤 SUPABASE RESPONSE:`);
+      console.log(`📤 SUPABASE RPC RESPONSE:`);
       console.log(`   - Error:`, error);
       console.log(`   - Error (stringified):`, JSON.stringify(error, null, 4));
       console.log(`   - Data (raw):`, data);
       console.log(`   - Data (type):`, typeof data);
-      console.log(`   - Data (array length):`, Array.isArray(data) ? data.length : 'not array');
       console.log(`   - Data (stringified):`, JSON.stringify(data, null, 4));
       
       if (error) {
@@ -82,37 +81,23 @@ export const updateAttendanceStatus = api(
         };
       }
 
-      // Check if any rows were updated
-      if (!data || data.length === 0) {
-        console.warn(`⚠️  NO ROWS UPDATED:`);
-        console.warn(`   - Possible reasons:`);
-        console.warn(`     1. Student ID "${studentId}" not found in studentrcd table`);
-        console.warn(`     2. Row Level Security (RLS) blocking the update`);
-        console.warn(`     3. Table/column name mismatch`);
-        
-        return {
-          success: false,
-          error: `No student found with ID: ${studentId}`,
-          debugInfo: {
-            inputStudentId: studentId,
-            inputArrivalStatus: arrivalStatus,
-            supabaseData: data
-          }
-        };
-      }
+      // The stored procedure should return success info or number of rows affected
+      const rowsUpdated = typeof data === 'number' ? data : (data ? 1 : 0);
       
       console.log(`✅ UPDATE SUCCESSFUL:`);
-      console.log(`   - Rows updated: ${data.length}`);
-      console.log(`   - Updated student data:`, JSON.stringify(data[0], null, 4));
+      console.log(`   - Rows updated: ${rowsUpdated}`);
+      console.log(`   - Stored procedure result:`, data);
       
       const result = { 
         success: true, 
         studentId: studentId,
         newStatus: arrivalStatus,
-        updatedData: data[0],
+        updatedData: data,
         debugInfo: {
           inputStudentId: studentId,
           inputArrivalStatus: arrivalStatus,
+          inputGrade: grade,
+          inputUserid: userid,
           timestamp: timestamp,
           supabaseResponse: data
         }
@@ -135,6 +120,8 @@ export const updateAttendanceStatus = api(
         debugInfo: {
           inputStudentId: studentId,
           inputArrivalStatus: arrivalStatus,
+          inputGrade: grade,
+          inputUserid: userid,
           exception: err instanceof Error ? err.message : String(err)
         }
       };
