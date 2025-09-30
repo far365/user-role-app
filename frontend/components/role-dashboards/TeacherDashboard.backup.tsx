@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, CheckCircle, RefreshCw, AlertCircle, Edit, XCircle, Play, Pause, UserX, UserCheck, LogOut, Settings } from "lucide-react";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import { SlideReleaseButton } from "../teacher/SlideReleaseButton";
-import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialog";
+import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { SelectClosedQueueDialog } from "../teacher/SelectClosedQueueDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";

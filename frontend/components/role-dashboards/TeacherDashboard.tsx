@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusDialog";
-import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialog";
+import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { StudentStatusEditDialog } from "../teacher/StudentStatusEditDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
