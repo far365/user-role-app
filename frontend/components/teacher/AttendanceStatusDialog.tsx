@@ -13,6 +13,8 @@ interface AttendanceStatusDialogProps {
     StudentName: string;
     AttendanceStatusAndTime: string;
   };
+  grade: string;
+  userid: string;
   isOpen: boolean;
   onClose: () => void;
   onStatusUpdated: () => void;
@@ -20,7 +22,7 @@ interface AttendanceStatusDialogProps {
 
 type ArrivalStatus = "OnTime" | "OnTime-M" | "Tardy" | "Tardy-M" | "NoShow" | "Unknown";
 
-export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdated }: AttendanceStatusDialogProps) {
+export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose, onStatusUpdated }: AttendanceStatusDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<ArrivalStatus>("OnTime");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
@@ -50,7 +52,9 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
     try {
       const requestData = {
         studentId: student.studentid,
-        arrivalStatus: selectedStatus
+        arrivalStatus: selectedStatus,
+        grade: grade,
+        userid: userid
       };
       
       console.log("🚀 REQUEST DATA BEING SENT:", JSON.stringify(requestData, null, 2));
@@ -86,7 +90,9 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
       setDebugInfo({
         request: {
           studentId: student.studentid,
-          arrivalStatus: selectedStatus
+          arrivalStatus: selectedStatus,
+          grade: grade,
+          userid: userid
         },
         error: {
           message: errorMessage,
@@ -179,7 +185,9 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
                 <pre className="text-xs bg-white p-2 border border-blue-300 rounded overflow-x-auto">
 {JSON.stringify({
   studentId: student.studentid,
-  arrivalStatus: selectedStatus
+  arrivalStatus: selectedStatus,
+  grade: grade,
+  userid: userid
 }, null, 2)}
                 </pre>
               </div>

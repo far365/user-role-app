@@ -367,6 +367,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {selectedStudent && (
         <AttendanceStatusDialog
           student={selectedStudent}
+          grade={selectedGrade}
+          userid={user.userid}
           isOpen={isAttendanceDialogOpen}
           onClose={() => {
             setIsAttendanceDialogOpen(false);
