@@ -26,6 +26,7 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [resultMessage, setResultMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   const { toast } = useToast();
 
   const arrivalStatuses: { value: ArrivalStatus; label: string }[] = [
@@ -44,16 +45,26 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
     console.log("  Arrival Status:", selectedStatus);
 
     setIsSubmitting(true);
+    setDebugInfo(null); // Clear previous debug info
     
     try {
-      // Note: This assumes an API endpoint exists for updating individual student attendance
-      // You may need to create this endpoint in the backend
-      const response = await backend.student.updateAttendanceStatus({
+      const requestData = {
         studentId: student.studentid,
         arrivalStatus: selectedStatus
-      });
+      };
+      
+      console.log("🚀 REQUEST DATA BEING SENT:", JSON.stringify(requestData, null, 2));
+      
+      const response = await backend.student.updateAttendanceStatus(requestData);
 
-      console.log("✅ INDIVIDUAL ATTENDANCE UPDATE DEBUG - API Response:", response);
+      console.log("✅ INDIVIDUAL ATTENDANCE UPDATE DEBUG - Full API Response:", JSON.stringify(response, null, 2));
+      
+      // Store debug information for display
+      setDebugInfo({
+        request: requestData,
+        response: response,
+        timestamp: new Date().toISOString()
+      });
 
       if (response.success) {
         setResultMessage(`Successfully updated attendance for ${student.StudentName} to ${selectedStatus}`);
@@ -70,6 +81,21 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
       console.error("❌ INDIVIDUAL ATTENDANCE UPDATE DEBUG - Error:", error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Store error debug information
+      setDebugInfo({
+        request: {
+          studentId: student.studentid,
+          arrivalStatus: selectedStatus
+        },
+        error: {
+          message: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+          fullError: error
+        },
+        timestamp: new Date().toISOString()
+      });
+      
       setResultMessage(`Error updating attendance: ${errorMessage}`);
       setIsError(true);
       setShowResultDialog(true);
@@ -93,6 +119,7 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
     setShowResultDialog(false);
     setResultMessage("");
     setIsError(false);
+    setDebugInfo(null);
     onClose();
   };
 
@@ -140,11 +167,21 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
             </div>
 
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-1">Update Info:</div>
-              <div className="text-xs text-blue-700">
-                <div>Student: {student.StudentName}</div>
-                <div>Current: {getCurrentStatus()}</div>
-                <div>New Status: {selectedStatus}</div>
+              <div className="text-sm font-medium text-blue-800 mb-2">📋 Request Details:</div>
+              <div className="text-xs text-blue-700 space-y-1">
+                <div><strong>Student:</strong> {student.StudentName}</div>
+                <div><strong>Student ID:</strong> {student.studentid}</div>
+                <div><strong>Current Status:</strong> {getCurrentStatus()}</div>
+                <div><strong>New Status:</strong> {selectedStatus}</div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-blue-200">
+                <div className="text-xs font-medium text-blue-800 mb-1">API Payload:</div>
+                <pre className="text-xs bg-white p-2 border border-blue-300 rounded overflow-x-auto">
+{JSON.stringify({
+  studentId: student.studentid,
+  arrivalStatus: selectedStatus
+}, null, 2)}
+                </pre>
               </div>
             </div>
           </div>
@@ -168,15 +205,64 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
       </Dialog>
 
       <AlertDialog open={showResultDialog} onOpenChange={setShowResultDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {isError ? "Update Failed" : "Update Complete"}
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-left">
               {resultMessage}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          {debugInfo && (
+            <div className="mt-4 space-y-4">
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">🔍 Debug Information</h4>
+                
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs font-medium text-gray-700 mb-1">📤 Request Sent to Backend:</div>
+                    <pre className="text-xs bg-white p-2 border rounded overflow-x-auto">
+                      {JSON.stringify(debugInfo.request, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  {debugInfo.response && (
+                    <div>
+                      <div className="text-xs font-medium text-gray-700 mb-1">📥 Backend Response:</div>
+                      <pre className="text-xs bg-white p-2 border rounded overflow-x-auto">
+                        {JSON.stringify(debugInfo.response, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  {debugInfo.error && (
+                    <div>
+                      <div className="text-xs font-medium text-red-700 mb-1">❌ Error Details:</div>
+                      <pre className="text-xs bg-red-50 p-2 border border-red-200 rounded overflow-x-auto">
+                        {JSON.stringify(debugInfo.error, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  <div className="text-xs text-gray-500">
+                    Timestamp: {debugInfo.timestamp}
+                  </div>
+                </div>
+              </div>
+              
+              {debugInfo.response?.debugInfo && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-sm font-semibold text-blue-800 mb-2">🔧 Backend Debug Information</h4>
+                  <pre className="text-xs bg-white p-2 border rounded overflow-x-auto">
+                    {JSON.stringify(debugInfo.response.debugInfo, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+          
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleResultDialogClose}>
               OK
