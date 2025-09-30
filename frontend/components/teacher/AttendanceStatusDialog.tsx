@@ -134,7 +134,7 @@ export function AttendanceStatusDialog({ student, isOpen, onClose, onStatusUpdat
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Attendance Status</DialogTitle>
+            <DialogTitle>Update Attendance Status By Student</DialogTitle>
             <DialogDescription>
               Update the attendance status for <strong>{student.StudentName}</strong>
             </DialogDescription>

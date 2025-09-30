@@ -433,7 +433,7 @@ import {
     searchByName as api_student_search_searchByName
 } from "~backend/student/search";
 import { update as api_student_update_update } from "~backend/student/update";
-import { updateAttendanceStatus as api_student_update_attendance_status_by_student_updateAttendanceStatus } from "~backend/student/update_attendance_status_by_student";
+import { updateStudentAttendanceStatus as api_student_update_attendance_status_by_student_updateStudentAttendanceStatus } from "~backend/student/update_attendance_status_by_student";
 
 export namespace student {
 
@@ -448,7 +448,7 @@ export namespace student {
             this.searchById = this.searchById.bind(this)
             this.searchByName = this.searchByName.bind(this)
             this.update = this.update.bind(this)
-            this.updateAttendanceStatus = this.updateAttendanceStatus.bind(this)
+            this.updateStudentAttendanceStatus = this.updateStudentAttendanceStatus.bind(this)
         }
 
         /**
@@ -520,10 +520,10 @@ export namespace student {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_update_update>
         }
 
-        public async updateAttendanceStatus(params: RequestType<typeof api_student_update_attendance_status_by_student_updateAttendanceStatus>): Promise<ResponseType<typeof api_student_update_attendance_status_by_student_updateAttendanceStatus>> {
+        public async updateStudentAttendanceStatus(params: RequestType<typeof api_student_update_attendance_status_by_student_updateStudentAttendanceStatus>): Promise<ResponseType<typeof api_student_update_attendance_status_by_student_updateStudentAttendanceStatus>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/update-attendance-status`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_update_attendance_status_by_student_updateAttendanceStatus>
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_update_attendance_status_by_student_updateStudentAttendanceStatus>
         }
     }
 }
