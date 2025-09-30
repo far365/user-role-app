@@ -768,16 +768,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </div>
           </div>
 
-          {/* Update Closed Queue Button */}
+          {/* Update Closed Queue Link */}
           <div className="flex items-center justify-between">
-            <Button
+            <button
               onClick={() => setIsClosedQueueDialogOpen(true)}
-              variant="outline"
-              className="h-10 px-4 border-2 border-purple-400 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-500"
+              className="text-purple-600 hover:text-purple-800 underline text-sm font-medium"
             >
-              <Settings className="h-4 w-4 mr-2" />
               Update Closed Queue
-            </Button>
+            </button>
           </div>
 
           {/* Grade Selection */}
