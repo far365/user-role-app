@@ -51,10 +51,10 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
     
     try {
       const requestData = {
-        studentId: student.studentid,
-        arrivalStatus: selectedStatus,
         grade: grade,
-        userid: userid
+        arrivalStatus: selectedStatus,
+        userid: userid,
+        studentId: student.studentid
       };
       
       console.log("🚀 REQUEST DATA BEING SENT:", JSON.stringify(requestData, null, 2));
@@ -89,10 +89,10 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
       // Store error debug information
       setDebugInfo({
         request: {
-          studentId: student.studentid,
-          arrivalStatus: selectedStatus,
           grade: grade,
-          userid: userid
+          arrivalStatus: selectedStatus,
+          userid: userid,
+          studentId: student.studentid
         },
         error: {
           message: errorMessage,
@@ -184,10 +184,10 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
                 <div className="text-xs font-medium text-blue-800 mb-1">API Payload:</div>
                 <pre className="text-xs bg-white p-2 border border-blue-300 rounded overflow-x-auto">
 {JSON.stringify({
-  studentId: student.studentid,
-  arrivalStatus: selectedStatus,
   grade: grade,
-  userid: userid
+  arrivalStatus: selectedStatus,
+  userid: userid,
+  studentId: student.studentid
 }, null, 2)}
                 </pre>
               </div>
