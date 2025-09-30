@@ -232,37 +232,37 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
       {/* Grade Action Buttons */}
       {selectedGrade && (
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-3">
+        <div className="flex flex-col gap-2.5">
+          <div className="flex gap-2.5">
             <Button 
               variant="outline" 
-              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+              className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
             >
-              <UserX className="h-5 w-5 mr-2" />
+              <UserX className="h-4 w-4 mr-1.5" />
               Absence
             </Button>
             <Button 
               variant="outline" 
-              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+              className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
             >
-              <Clock className="h-5 w-5 mr-2" />
+              <Clock className="h-4 w-4 mr-1.5" />
               Pending Approvals - 0
             </Button>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2.5">
             <Button 
               variant="outline" 
-              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+              className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
               onClick={() => setIsAttendanceDialogOpen(true)}
             >
-              <UserCheck className="h-5 w-5 mr-2" />
+              <UserCheck className="h-4 w-4 mr-1.5" />
               Attendance
             </Button>
             <Button 
               variant="outline" 
-              className="inline-flex items-center h-12 px-4 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500"
+              className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
             >
-              <LogOut className="h-5 w-5 mr-2" />
+              <LogOut className="h-4 w-4 mr-1.5" />
               Dismissal
             </Button>
           </div>
