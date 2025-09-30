@@ -20,19 +20,24 @@ export const updateAttendanceStatus = api(
     console.log(`Input parameters: studentId="${studentId}", arrivalStatus="${arrivalStatus}"`);
     
     try {
-      const { data, error } = await supabase.rpc('update_student_attendance_status', { 
-        p_student_id: studentId, 
-        p_arrival_status: arrivalStatus 
-      });
+      // Update the student's attendance status directly in the studentrcd table
+      const { data, error } = await supabase
+        .from('studentrcd')
+        .update({ 
+          attendanceStatus: arrivalStatus,
+          updatedAt: new Date().toISOString()
+        })
+        .eq('studentId', studentId)
+        .select();
       
-      console.log(`Supabase RPC Result:`);
+      console.log(`Supabase Direct Update Result:`);
       console.log(`- Error:`, error);
       console.log(`- Data (raw):`, data);
       console.log(`- Data type:`, typeof data);
       console.log(`- Data stringified:`, JSON.stringify(data, null, 2));
       
       if (error) {
-        console.error(`Supabase RPC error details:`, {
+        console.error(`Supabase update error details:`, {
           message: error.message,
           details: error.details,
           hint: error.hint,
@@ -41,6 +46,14 @@ export const updateAttendanceStatus = api(
         return { 
           success: false, 
           error: `Database error: ${error.message}` 
+        };
+      }
+
+      // Check if any rows were updated
+      if (!data || data.length === 0) {
+        return {
+          success: false,
+          error: `No student found with ID: ${studentId}`
         };
       }
       
