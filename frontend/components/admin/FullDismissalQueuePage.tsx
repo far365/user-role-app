@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, RefreshCw, Clock, AlertCircle, GraduationCap, Users, Play, Pause, Building, User, Phone } from "lucide-react";
+import { ArrowLeft, RefreshCw, Clock, AlertCircle, GraduationCap, Users, Play, Pause, Building, User as UserIcon, Phone } from "lucide-react";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -527,8 +527,8 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
             <div className="text-sm font-medium text-slate-800">Total Students</div>
             <div className="text-2xl font-bold text-slate-900">{totalCounts.total}</div>
           </div>
-					
-					<div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
+                                        
+                                        <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
               <div className="text-sm font-medium text-yellow-800">Standby</div>
               <div className="text-lg font-bold text-yellow-900">{totalCounts.standby}</div>
@@ -724,7 +724,7 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
                           <div className="flex items-center space-x-1">
                             {record.parentName || record.alternateName ? (
                               <>
-                                <User className="w-3 h-3" />
+                                <UserIcon className="w-3 h-3" />
                                 <span>{record.alternateName || record.parentName}</span>
                               </>
                             ) : (
