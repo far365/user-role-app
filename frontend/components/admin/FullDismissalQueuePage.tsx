@@ -94,7 +94,7 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
           if (prev <= 1) {
             // Time to refresh
             handleRefresh();
-            return 30; // Reset countdown
+            return 30; // Reset  countdown
           }
           return prev - 1;
         });
