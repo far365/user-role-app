@@ -140,7 +140,7 @@ export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpda
             <span>Edit Student Dismissal Status</span>
           </DialogTitle>
           <DialogDescription>
-            Update the dismissal queue status for {student.studentName}
+            Update the dismissal queue status for {studentId}/{student.studentName}
           </DialogDescription>
         </DialogHeader>
 
