@@ -137,7 +137,7 @@ export function StudentStatusEditDialog({ student, isOpen, onClose, onStatusUpda
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <User className="w-5 h-5" />
-            <span>Edit Student Status</span>
+            <span>Edit Student Dismissal Status</span>
           </DialogTitle>
           <DialogDescription>
             Update the dismissal queue status for {student.studentName}
