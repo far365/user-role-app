@@ -258,14 +258,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               onClick={() => setIsBulkAttendanceDialogOpen(true)}
             >
               <UserCheck className="h-4 w-4 mr-1.5" />
-              Attendance
+              Attendance By Grade/Group
             </Button>
             <Button 
               variant="outline" 
               className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
             >
               <LogOut className="h-4 w-4 mr-1.5" />
-              Dismissal
+              Dismissal By Grade/Group
             </Button>
           </div>
         </div>
