@@ -262,7 +262,7 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Student Record</DialogTitle>
+          <DialogTitle>Edit Student Dismissal Record</DialogTitle>
           <DialogDescription>
             Editing information for {student.studentName} (ID: {student.studentId})
             <br />
