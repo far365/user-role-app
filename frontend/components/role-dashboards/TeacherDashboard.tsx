@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
@@ -32,6 +33,10 @@ interface PendingAbsenceState {
   isLoading: boolean;
 }
 
+interface AbsenceNotes {
+  [absencercdid: number]: string;
+}
+
 export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
@@ -46,6 +51,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     requests: [],
     isLoading: false
   });
+  const [absenceNotes, setAbsenceNotes] = useState<AbsenceNotes>({});
   
   const { toast } = useToast();
 
@@ -158,10 +164,20 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
   const handleRejectAbsence = async (absencercdid: number) => {
     try {
-      await backend.student.rejectAbsenceRequest({ absencercdid });
+      const note = absenceNotes[absencercdid] || '';
+      await backend.student.rejectAbsenceRequest({ 
+        absencercdid: absencercdid.toString(), 
+        p_approver_note: note,
+        p_userid: user.userID
+      });
       toast({
         title: "Success",
         description: "Absence request rejected",
+      });
+      setAbsenceNotes(prev => {
+        const updated = { ...prev };
+        delete updated[absencercdid];
+        return updated;
       });
       if (selectedGrade) {
         await loadPendingAbsenceRequests(selectedGrade);
@@ -391,6 +407,21 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                             <p><span className="font-medium">Note:</span> {request.requester_note}</p>
                           )}
                         </div>
+                      </div>
+                      <div className="mt-3">
+                        <label className="text-sm font-medium text-gray-700 mb-1 block">
+                          Approval/Rejection Note
+                        </label>
+                        <Textarea
+                          placeholder="Add a note (optional)"
+                          value={absenceNotes[request.absencercdid] || ''}
+                          onChange={(e) => setAbsenceNotes(prev => ({
+                            ...prev,
+                            [request.absencercdid]: e.target.value
+                          }))}
+                          className="text-sm"
+                          rows={2}
+                        />
                       </div>
                       <div className="flex gap-2 mt-3 justify-end">
                         <Button
