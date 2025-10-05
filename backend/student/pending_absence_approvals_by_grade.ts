@@ -36,24 +36,9 @@ export const pendingAbsenceApprovalsByGrade = api<PendingAbsenceApprovalsByGrade
       console.log(`[Student API] Getting pending absence approvals for grade: ${grade}`);
       
       const { data: absenceRows, error } = await supabase
-        .from('absencercd')
-        .select(`
-          absencercdid,
-          studentid,
-          studentname,
-          grade,
-          absencedate,
-          fullday,
-          absencestarttm,
-          absenceendtm,
-          approvalstatus,
-          requester_note,
-          createdon
-        `)
-        .eq('grade', grade.trim())
-        .eq('approvalstatus', 'Pending')
-        .order('absencedate', { ascending: true })
-        .order('studentname', { ascending: true });
+        .rpc('pending_absence_approvals_by_grade', {
+          p_grade: grade.trim()
+        });
 
       console.log(`[Student API] Query result:`, { absenceRows, error });
 
@@ -62,7 +47,7 @@ export const pendingAbsenceApprovalsByGrade = api<PendingAbsenceApprovalsByGrade
         throw APIError.internal(`Failed to get pending absence approvals: ${error.message}`);
       }
 
-      const requests: AbsenceRequest[] = (absenceRows || []).map(row => ({
+      const requests: AbsenceRequest[] = (absenceRows || []).map((row: any) => ({
         absencercdid: row.absencercdid,
         studentid: row.studentid,
         studentname: row.studentname || '',
