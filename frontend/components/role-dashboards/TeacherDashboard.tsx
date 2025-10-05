@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
@@ -71,6 +72,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     isOpen: false,
     absencercdid: null
   });
+  const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(true);
   
   const { toast } = useToast();
 
@@ -419,96 +421,105 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {/* Pending Absence Requests Section */}
       {selectedGrade && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="w-5 h-5" />
-              <span>Pending Absence Requests</span>
-              {pendingAbsence.requests.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {pendingAbsence.requests.length}
-                </Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              Review and approve/reject absence requests for {selectedGrade}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pendingAbsence.isLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-3"></div>
-                <p className="text-gray-600">Loading absence requests...</p>
-              </div>
-            ) : pendingAbsence.requests.length === 0 ? (
-              <div className="text-center py-8">
-                <AlertCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-600 font-medium">No Pending Requests</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {pendingAbsence.requests.map((request) => (
-                  <div
-                    key={request.absencercdid}
-                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex flex-col">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-gray-900">
-                          {request.studentname}
-                        </h4>
-                        <div className="mt-2 space-y-1 text-sm text-gray-600">
-                          <p><span className="font-medium">Record ID:</span> {request.absencercdid}</p>
-                          <p><span className="font-medium">Date:</span> {new Date(request.absencedate).toLocaleDateString('en-US', { weekday: 'short', year: '2-digit', month: 'numeric', day: 'numeric' })}</p>
-                          <p><span className="font-medium">Type:</span> {request.fullday ? 'Full Day' : `Partial Day ${request.absencestarttm && request.absenceendtm ? `(${request.absencestarttm} - ${request.absenceendtm})` : ''}`}</p>
-                          {request.absencereason && (
-                            <p><span className="font-medium">Reason:</span> {request.absencereason}</p>
-                          )}
-                          {request.requester_note && (
-                            <p><span className="font-medium">Note:</span> {request.requester_note}</p>
-                          )}
+          <Collapsible open={isAbsenceRequestsOpen} onOpenChange={setIsAbsenceRequestsOpen}>
+            <CardHeader>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Clock className="w-5 h-5" />
+                    <span>Pending Absence Requests</span>
+                    {pendingAbsence.requests.length > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {pendingAbsence.requests.length}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${isAbsenceRequestsOpen ? 'transform rotate-180' : ''}`} />
+                </div>
+              </CollapsibleTrigger>
+              <CardDescription>
+                Review and approve/reject absence requests for {selectedGrade}
+              </CardDescription>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {pendingAbsence.isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-3"></div>
+                    <p className="text-gray-600">Loading absence requests...</p>
+                  </div>
+                ) : pendingAbsence.requests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <AlertCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-600 font-medium">No Pending Requests</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingAbsence.requests.map((request) => (
+                      <div
+                        key={request.absencercdid}
+                        className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex flex-col">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-gray-900">
+                              {request.studentname}
+                            </h4>
+                            <div className="mt-2 space-y-1 text-sm text-gray-600">
+                              <p><span className="font-medium">Record ID:</span> {request.absencercdid}</p>
+                              <p><span className="font-medium">Date:</span> {new Date(request.absencedate).toLocaleDateString('en-US', { weekday: 'short', year: '2-digit', month: 'numeric', day: 'numeric' })}</p>
+                              <p><span className="font-medium">Type:</span> {request.fullday ? 'Full Day' : `Partial Day ${request.absencestarttm && request.absenceendtm ? `(${request.absencestarttm} - ${request.absenceendtm})` : ''}`}</p>
+                              {request.absencereason && (
+                                <p><span className="font-medium">Reason:</span> {request.absencereason}</p>
+                              )}
+                              {request.requester_note && (
+                                <p><span className="font-medium">Note:</span> {request.requester_note}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <label className="text-sm font-medium text-gray-700 mb-1 block">
+                              Approval/Rejection Note
+                            </label>
+                            <Textarea
+                              placeholder="Add a note (optional)"
+                              value={absenceNotes[request.absencercdid] || ''}
+                              onChange={(e) => setAbsenceNotes(prev => ({
+                                ...prev,
+                                [request.absencercdid]: e.target.value
+                              }))}
+                              className="text-sm"
+                              rows={2}
+                            />
+                          </div>
+                          <div className="flex gap-2 mt-3 justify-end">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-green-500 text-green-600 hover:bg-green-50 h-7 px-2.5 text-xs"
+                              onClick={() => handleApproveAbsenceClick(request.absencercdid)}
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-red-500 text-red-600 hover:bg-red-50 h-7 px-2.5 text-xs"
+                              onClick={() => handleRejectAbsenceClick(request.absencercdid)}
+                            >
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-3">
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">
-                          Approval/Rejection Note
-                        </label>
-                        <Textarea
-                          placeholder="Add a note (optional)"
-                          value={absenceNotes[request.absencercdid] || ''}
-                          onChange={(e) => setAbsenceNotes(prev => ({
-                            ...prev,
-                            [request.absencercdid]: e.target.value
-                          }))}
-                          className="text-sm"
-                          rows={2}
-                        />
-                      </div>
-                      <div className="flex gap-2 mt-3 justify-end">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-green-500 text-green-600 hover:bg-green-50 h-7 px-2.5 text-xs"
-                          onClick={() => handleApproveAbsenceClick(request.absencercdid)}
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-red-500 text-red-600 hover:bg-red-50 h-7 px-2.5 text-xs"
-                          onClick={() => handleRejectAbsenceClick(request.absencercdid)}
-                        >
-                          <XCircle className="w-3 h-3 mr-1" />
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
       )}
 
