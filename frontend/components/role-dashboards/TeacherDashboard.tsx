@@ -72,8 +72,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     isOpen: false,
     absencercdid: null
   });
-  const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(true);
-  const [isStudentListOpen, setIsStudentListOpen] = useState(true);
+  const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(false);
+  const [isStudentListOpen, setIsStudentListOpen] = useState(false);
   
   const { toast } = useToast();
 
