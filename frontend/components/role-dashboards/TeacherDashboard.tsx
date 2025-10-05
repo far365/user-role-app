@@ -808,6 +808,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {selectedStudentForAbsence && (
         <SubmitAbsenceRequestDialog
           student={selectedStudentForAbsence}
+          grade={selectedGrade}
           isOpen={isSubmitAbsenceDialogOpen}
           onClose={() => {
             setIsSubmitAbsenceDialogOpen(false);

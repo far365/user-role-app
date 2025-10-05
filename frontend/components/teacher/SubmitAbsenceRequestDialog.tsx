@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { ViewAbsenceHistoryDialog } from "./ViewAbsenceHistoryDialog";
+import backend from "~backend/client";
 
 interface SubmitAbsenceRequestDialogProps {
   student: {
     studentid: string;
     StudentName: string;
   };
+  grade: string;
   isOpen: boolean;
   onClose: () => void;
   onSubmitted?: () => void;
@@ -35,7 +37,7 @@ const mockAbsenceHistory: AbsenceRequest[] = [
   { date: "10/2/25", type: "Full Day", status: "Pending" },
 ];
 
-export function SubmitAbsenceRequestDialog({ student, isOpen, onClose, onSubmitted }: SubmitAbsenceRequestDialogProps) {
+export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted }: SubmitAbsenceRequestDialogProps) {
   const [absenceType, setAbsenceType] = useState<"full" | "half">("full");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("9:00am");
@@ -43,9 +45,136 @@ export function SubmitAbsenceRequestDialog({ student, isOpen, onClose, onSubmitt
   const [reason, setReason] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
+  const [classTimings, setClassTimings] = useState<{ startTime: string; endTime: string } | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (isOpen && grade) {
+      backend.grades.classTimings({ grade })
+        .then(setClassTimings)
+        .catch((error) => {
+          console.error("Failed to load class timings:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load class timings",
+            variant: "destructive",
+          });
+        });
+    }
+  }, [isOpen, grade, toast]);
+
+  const parseTime = (timeStr: string): { hours: number; minutes: number } | null => {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!match) return null;
+    
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3].toLowerCase();
+    
+    if (period === 'pm' && hours !== 12) hours += 12;
+    if (period === 'am' && hours === 12) hours = 0;
+    
+    return { hours, minutes };
+  };
+
   const handleSubmit = () => {
+    const dateRegex = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\/(\d{1,2})\/(\d{2})$/i;
+    const dateMatch = startDate.match(dateRegex);
+    
+    if (!dateMatch) {
+      toast({
+        title: "Invalid Date",
+        description: "Please enter date in format: Fri 10/3/25",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const month = parseInt(dateMatch[2]);
+    const day = parseInt(dateMatch[3]);
+    const year = 2000 + parseInt(dateMatch[4]);
+    const selectedDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const oneYearFromNow = new Date(today);
+    oneYearFromNow.setFullYear(today.getFullYear() + 1);
+
+    if (selectedDate < today) {
+      toast({
+        title: "Invalid Date",
+        description: "Start date cannot be in the past",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedDate > oneYearFromNow) {
+      toast({
+        title: "Invalid Date",
+        description: "Start date cannot be more than one year in the future",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const dayOfWeek = selectedDate.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      toast({
+        title: "Invalid Date",
+        description: "Start date cannot be on a weekend",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (absenceType === "half" && classTimings) {
+      const parsedStartTime = parseTime(startTime);
+      const parsedEndTime = parseTime(endTime);
+      const parsedClassStart = parseTime(classTimings.startTime);
+      const parsedClassEnd = parseTime(classTimings.endTime);
+
+      if (!parsedStartTime || !parsedEndTime) {
+        toast({
+          title: "Invalid Time",
+          description: "Please enter time in format: 9:00am or 2:30pm",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!parsedClassStart || !parsedClassEnd) {
+        toast({
+          title: "Error",
+          description: "Class timings are not properly configured",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const startMinutes = parsedStartTime.hours * 60 + parsedStartTime.minutes;
+      const endMinutes = parsedEndTime.hours * 60 + parsedEndTime.minutes;
+      const classStartMinutes = parsedClassStart.hours * 60 + parsedClassStart.minutes;
+      const classEndMinutes = parsedClassEnd.hours * 60 + parsedClassEnd.minutes;
+
+      if (startMinutes < classStartMinutes || endMinutes > classEndMinutes) {
+        toast({
+          title: "Invalid Time Range",
+          description: `Half day timings must be within class hours (${classTimings.startTime} - ${classTimings.endTime})`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (startMinutes >= endMinutes) {
+        toast({
+          title: "Invalid Time Range",
+          description: "End time must be after start time",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     toast({
       title: "Coming Soon",
       description: "Absence request submission will be implemented when backend endpoints are ready",
@@ -71,6 +200,11 @@ export function SubmitAbsenceRequestDialog({ student, isOpen, onClose, onSubmitt
             <DialogDescription className="text-xl font-bold text-gray-900">
               {student.StudentName}
             </DialogDescription>
+            {classTimings && (
+              <div className="text-sm text-muted-foreground mt-2">
+                Normal Class Hours: {classTimings.startTime} - {classTimings.endTime}
+              </div>
+            )}
           </DialogHeader>
 
           <div className="space-y-4 py-2">

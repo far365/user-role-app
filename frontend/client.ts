@@ -90,6 +90,7 @@ export interface ClientOptions {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { classTimings as api_grades_class_timings_classTimings } from "~backend/grades/class_timings";
 import { list as api_grades_list_list } from "~backend/grades/list";
 
 export namespace grades {
@@ -99,7 +100,14 @@ export namespace grades {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.classTimings = this.classTimings.bind(this)
             this.list = this.list.bind(this)
+        }
+
+        public async classTimings(params: { grade: string }): Promise<ResponseType<typeof api_grades_class_timings_classTimings>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/grades/${encodeURIComponent(params.grade)}/class-timings`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_grades_class_timings_classTimings>
         }
 
         /**
