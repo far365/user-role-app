@@ -43,6 +43,11 @@ interface RejectConfirmation {
   absencercdid: number | null;
 }
 
+interface ApproveConfirmation {
+  isOpen: boolean;
+  absencercdid: number | null;
+}
+
 export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
@@ -59,6 +64,10 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   });
   const [absenceNotes, setAbsenceNotes] = useState<AbsenceNotes>({});
   const [rejectConfirmation, setRejectConfirmation] = useState<RejectConfirmation>({
+    isOpen: false,
+    absencercdid: null
+  });
+  const [approveConfirmation, setApproveConfirmation] = useState<ApproveConfirmation>({
     isOpen: false,
     absencercdid: null
   });
@@ -152,11 +161,20 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     await loadPendingAbsenceRequests(selectedGrade);
   };
 
-  const handleApproveAbsence = async (absencercdid: number) => {
+  const handleApproveAbsenceClick = (absencercdid: number) => {
+    setApproveConfirmation({
+      isOpen: true,
+      absencercdid
+    });
+  };
+
+  const handleApproveAbsenceConfirm = async () => {
+    if (approveConfirmation.absencercdid === null) return;
+    
     try {
-      const note = absenceNotes[absencercdid] || '';
+      const note = absenceNotes[approveConfirmation.absencercdid] || '';
       const response = await backend.student.approveAbsenceRequest({ 
-        absencercdid,
+        absencercdid: approveConfirmation.absencercdid,
         p_approver_note: note,
         p_userid: user.userID
       });
@@ -168,7 +186,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         });
         setAbsenceNotes(prev => {
           const updated = { ...prev };
-          delete updated[absencercdid];
+          delete updated[approveConfirmation.absencercdid!];
           return updated;
         });
         if (selectedGrade) {
@@ -188,6 +206,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         description: "Failed to approve absence request",
         variant: "destructive",
       });
+    } finally {
+      setApproveConfirmation({ isOpen: false, absencercdid: null });
     }
   };
 
@@ -468,7 +488,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                           size="sm"
                           variant="outline"
                           className="border-green-500 text-green-600 hover:bg-green-50 h-7 px-2.5 text-xs"
-                          onClick={() => handleApproveAbsence(request.absencercdid)}
+                          onClick={() => handleApproveAbsenceClick(request.absencercdid)}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Approve
@@ -653,6 +673,24 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
           }}
         />
       )}
+
+      {/* Approve Confirmation Dialog */}
+      <AlertDialog open={approveConfirmation.isOpen} onOpenChange={(open) => !open && setApproveConfirmation({ isOpen: false, absencercdid: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Approval</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to approve this absence request? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApproveAbsenceConfirm} className="bg-green-600 hover:bg-green-700">
+              Approve
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Reject Confirmation Dialog */}
       <AlertDialog open={rejectConfirmation.isOpen} onOpenChange={(open) => !open && setRejectConfirmation({ isOpen: false, absencercdid: null })}>
