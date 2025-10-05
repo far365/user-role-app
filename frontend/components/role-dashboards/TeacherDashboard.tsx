@@ -154,13 +154,32 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
   const handleApproveAbsence = async (absencercdid: number) => {
     try {
-      await backend.student.approveAbsenceRequest({ absencercdid });
-      toast({
-        title: "Success",
-        description: "Absence request approved",
+      const note = absenceNotes[absencercdid] || '';
+      const response = await backend.student.approveAbsenceRequest({ 
+        absencercdid,
+        p_approver_note: note,
+        p_userid: user.userID
       });
-      if (selectedGrade) {
-        await loadPendingAbsenceRequests(selectedGrade);
+      
+      if (response.status === 'Success') {
+        toast({
+          title: "Success",
+          description: "Absence request approved",
+        });
+        setAbsenceNotes(prev => {
+          const updated = { ...prev };
+          delete updated[absencercdid];
+          return updated;
+        });
+        if (selectedGrade) {
+          await loadPendingAbsenceRequests(selectedGrade);
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to approve absence request",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Failed to approve absence request:", error);

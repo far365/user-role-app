@@ -3,54 +3,55 @@ import { supabase } from "../user/supabase";
 
 export interface ApproveAbsenceRequestRequest {
   absencercdid: number;
+  p_approver_note?: string;
+  p_userid: string;
 }
 
 export interface ApproveAbsenceRequestResponse {
-  success: boolean;
+  status: 'Success' | 'Failed';
   absencercdid: number;
 }
 
 export const approveAbsenceRequest = api<ApproveAbsenceRequestRequest, ApproveAbsenceRequestResponse>(
   { expose: true, method: "POST", path: "/student/approve-absence-request" },
-  async ({ absencercdid }) => {
+  async ({ absencercdid, p_approver_note, p_userid }) => {
     if (!absencercdid) {
       throw APIError.invalidArgument("Absence record ID is required");
+    }
+
+    if (!p_userid) {
+      throw APIError.invalidArgument("User ID is required");
     }
 
     try {
       console.log(`[Student API] Approving absence request: ${absencercdid}`);
       
-      const { data, error } = await supabase
-        .from('absencercd')
-        .update({ 
-          approvalstatus: 'Approved'
-        })
-        .eq('absencercdid', absencercdid)
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('approve_absence_request', {
+        p_absencercdid: absencercdid,
+        p_approver_note: p_approver_note || null,
+        p_userid: p_userid
+      });
 
       if (error) {
         console.error("Approve absence request error:", error);
-        throw APIError.internal(`Failed to approve absence request: ${error.message}`);
-      }
-
-      if (!data) {
-        throw APIError.notFound(`Absence request with ID ${absencercdid} not found`);
+        return {
+          status: 'Failed',
+          absencercdid
+        };
       }
 
       console.log(`[Student API] Successfully approved absence request: ${absencercdid}`);
       return {
-        success: true,
+        status: 'Success',
         absencercdid
       };
 
     } catch (error) {
-      if (error instanceof APIError) {
-        throw error;
-      }
-      
       console.error("Unexpected error approving absence request:", error);
-      throw APIError.internal("Failed to approve absence request");
+      return {
+        status: 'Failed',
+        absencercdid
+      };
     }
   }
 );
