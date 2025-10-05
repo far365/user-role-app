@@ -2,24 +2,24 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 
 export interface RejectAbsenceRequestRequest {
-  absencercdid: number;
-  approver_note?: string;
-  userid: number;
+  absencercdid: string;
+  p_approver_note?: string;
+  p_userid: string;
 }
 
 export interface RejectAbsenceRequestResponse {
   success: boolean;
-  absencercdid: number;
+  absencercdid: string;
 }
 
 export const rejectAbsenceRequest = api<RejectAbsenceRequestRequest, RejectAbsenceRequestResponse>(
   { expose: true, method: "POST", path: "/student/reject-absence-request" },
-  async ({ absencercdid, approver_note, userid }) => {
+  async ({ absencercdid, p_approver_note, p_userid }) => {
     if (!absencercdid) {
       throw APIError.invalidArgument("Absence record ID is required");
     }
 
-    if (!userid) {
+    if (!p_userid) {
       throw APIError.invalidArgument("User ID is required");
     }
 
@@ -28,8 +28,8 @@ export const rejectAbsenceRequest = api<RejectAbsenceRequestRequest, RejectAbsen
       
       const { data, error } = await supabase.rpc('reject_absence_request', {
         p_absencercdid: absencercdid,
-        p_approver_note: approver_note || null,
-        p_userid: userid
+        p_approver_note: p_approver_note || null,
+        p_userid: p_userid
       });
 
       if (error) {
