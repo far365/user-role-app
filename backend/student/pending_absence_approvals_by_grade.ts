@@ -15,6 +15,7 @@ export interface AbsenceRequest {
   absencestarttm?: string;
   absenceendtm?: string;
   approvalstatus: string;
+  absencereason?: string;
   requester_note?: string;
   createdon: string;
 }
@@ -59,6 +60,7 @@ export const pendingAbsenceApprovalsByGrade = api<PendingAbsenceApprovalsByGrade
           absencestarttm: row.absencestarttm || row.absencestarttime || undefined,
           absenceendtm: row.absenceendtm || row.absenceendtime || undefined,
           approvalstatus: row.approvalstatus || '',
+          absencereason: row.absencereason || undefined,
           requester_note: row.requester_note || undefined,
           createdon: row.createdon || '',
         };
