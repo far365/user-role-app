@@ -382,10 +382,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                         </h4>
                         <div className="mt-2 space-y-1 text-sm text-gray-600">
                           <p><span className="font-medium">Date:</span> {new Date(request.absencedate).toLocaleDateString()}</p>
-                          <p><span className="font-medium">Type:</span> {request.fullday ? 'Full Day' : 'Partial Day'}</p>
-                          {!request.fullday && request.absencestarttm && request.absenceendtm && (
-                            <p><span className="font-medium">Time:</span> {request.absencestarttm} - {request.absenceendtm}</p>
-                          )}
+                          <p><span className="font-medium">Type:</span> {request.fullday ? 'Full Day' : `Partial Day ${request.absencestarttm && request.absenceendtm ? `(${request.absencestarttm} - ${request.absenceendtm})` : ''}`}</p>
                           {request.requester_note && (
                             <p><span className="font-medium">Note:</span> {request.requester_note}</p>
                           )}
