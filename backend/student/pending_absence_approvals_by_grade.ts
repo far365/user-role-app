@@ -47,19 +47,22 @@ export const pendingAbsenceApprovalsByGrade = api<PendingAbsenceApprovalsByGrade
         throw APIError.internal(`Failed to get pending absence approvals: ${error.message}`);
       }
 
-      const requests: AbsenceRequest[] = (absenceRows || []).map((row: any) => ({
-        absencercdid: row.absencercdid,
-        studentid: row.studentid,
-        studentname: row.studentname || '',
-        grade: row.grade || '',
-        absencedate: row.absencedate || '',
-        fullday: row.fullday || false,
-        absencestarttm: row.absencestarttm || undefined,
-        absenceendtm: row.absenceendtm || undefined,
-        approvalstatus: row.approvalstatus || '',
-        requester_note: row.requester_note || undefined,
-        createdon: row.createdon || '',
-      }));
+      const requests: AbsenceRequest[] = (absenceRows || []).map((row: any) => {
+        console.log('[Student API] Mapping row:', row);
+        return {
+          absencercdid: row.absencercdid,
+          studentid: row.studentid,
+          studentname: row.studentname || '',
+          grade: row.grade || '',
+          absencedate: row.absencedate || '',
+          fullday: row.fullday || false,
+          absencestarttm: row.absencestarttm || row.absencestarttime || undefined,
+          absenceendtm: row.absenceendtm || row.absenceendtime || undefined,
+          approvalstatus: row.approvalstatus || '',
+          requester_note: row.requester_note || undefined,
+          createdon: row.createdon || '',
+        };
+      });
 
       console.log(`[Student API] Found ${requests.length} pending absence requests`);
       return {
