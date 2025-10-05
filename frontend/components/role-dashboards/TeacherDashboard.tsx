@@ -73,6 +73,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     absencercdid: null
   });
   const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(true);
+  const [isStudentListOpen, setIsStudentListOpen] = useState(true);
   
   const { toast } = useToast();
 
@@ -525,108 +526,117 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
       {/* Student List Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="w-5 h-5" />
-            <span>Student List</span>
-            {selectedGrade && (
-              <Badge variant="secondary" className="ml-2">
-                {studentRecords.length} students
-              </Badge>
-            )}
-          </CardTitle>
-          <CardDescription>
-            {selectedGrade 
-              ? `Students in ${selectedGrade} with attendance and dismissal status`
-              : "Select a grade to view students"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {!selectedGrade ? (
-            <div className="text-center py-8">
-              <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">No grade selected</p>
-              <p className="text-sm text-gray-500 mt-1">
-                Please select a class/grade to view student data
-              </p>
-            </div>
-          ) : isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-3"></div>
-              <p className="text-gray-600">Loading student data...</p>
-            </div>
-          ) : studentRecords.length === 0 ? (
-            <div className="text-center py-8">
-              <AlertCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">No students found</p>
-              <p className="text-sm text-gray-500 mt-1">
-                No student data available for this grade
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Student Cards with 3-row layout */}
-              {studentRecords.map((student) => (
-                <div 
-                  key={`${student.queueid}-${student.studentid}`}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                >
-                  {/* Row 1: Student Name (bold) + Absence Request Button */}
-                  <div className="mb-3 flex items-center justify-between">
-                    <h4 className="font-bold text-gray-900 text-lg">
-                      {student.StudentName || 'Unknown Student'}
-                    </h4>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
-                      onClick={() => {
-                        // TODO: Implement absence request functionality
-                        toast({
-                          title: "Coming Soon",
-                          description: "Absence request feature will be implemented soon",
-                        });
-                      }}
-                    >
-                      ✨ Submit Absence Request
-                    </Button>
-                  </div>
-                  
-                  {/* Row 2: Attendance Info (2 columns) */}
-                  <div className="grid grid-cols-2 gap-4 mb-3">
-                    <div className="text-sm text-gray-600">
-                      {student.AttendanceStatusAndTime || 'No attendance info'}
-                    </div>
-                    <div>
-                      <button
-                        onClick={() => handleAttendanceStatusClick(student)}
-                        className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
-                      >
-                        {getAttendanceStatus(student.AttendanceStatusAndTime)}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Row 3: Dismissal Info (2 columns) */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-sm text-gray-600">
-                      {student.DismissalStatusAndTime || 'No dismissal info'}
-                    </div>
-                    <div>
-                      <button
-                        onClick={() => handleDismissalStatusClick(student)}
-                        className="text-green-600 hover:text-green-800 underline text-sm font-medium"
-                      >
-                        {getDismissalStatus(student.DismissalStatusAndTime)}
-                      </button>
-                    </div>
-                  </div>
+        <Collapsible open={isStudentListOpen} onOpenChange={setIsStudentListOpen}>
+          <CardHeader>
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span>Student List</span>
+                  {selectedGrade && (
+                    <Badge variant="secondary" className="ml-2">
+                      {studentRecords.length} students
+                    </Badge>
+                  )}
+                </CardTitle>
+                <ChevronDown className={`w-5 h-5 transition-transform ${isStudentListOpen ? 'transform rotate-180' : ''}`} />
+              </div>
+            </CollapsibleTrigger>
+            <CardDescription>
+              {selectedGrade 
+                ? `Students in ${selectedGrade} with attendance and dismissal status`
+                : "Select a grade to view students"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              {!selectedGrade ? (
+                <div className="text-center py-8">
+                  <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No grade selected</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Please select a class/grade to view student data
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+              ) : isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-3"></div>
+                  <p className="text-gray-600">Loading student data...</p>
+                </div>
+              ) : studentRecords.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No students found</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    No student data available for this grade
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Student Cards with 3-row layout */}
+                  {studentRecords.map((student) => (
+                    <div 
+                      key={`${student.queueid}-${student.studentid}`}
+                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      {/* Row 1: Student Name (bold) + Absence Request Button */}
+                      <div className="mb-3 flex items-center justify-between">
+                        <h4 className="font-bold text-gray-900 text-lg">
+                          {student.StudentName || 'Unknown Student'}
+                        </h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                          onClick={() => {
+                            // TODO: Implement absence request functionality
+                            toast({
+                              title: "Coming Soon",
+                              description: "Absence request feature will be implemented soon",
+                            });
+                          }}
+                        >
+                          ✨ Submit Absence Request
+                        </Button>
+                      </div>
+                      
+                      {/* Row 2: Attendance Info (2 columns) */}
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div className="text-sm text-gray-600">
+                          {student.AttendanceStatusAndTime || 'No attendance info'}
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => handleAttendanceStatusClick(student)}
+                            className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                          >
+                            {getAttendanceStatus(student.AttendanceStatusAndTime)}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Row 3: Dismissal Info (2 columns) */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-sm text-gray-600">
+                          {student.DismissalStatusAndTime || 'No dismissal info'}
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => handleDismissalStatusClick(student)}
+                            className="text-green-600 hover:text-green-800 underline text-sm font-medium"
+                          >
+                            {getDismissalStatus(student.DismissalStatusAndTime)}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
       {/* Individual Student Attendance Status Dialog */}
