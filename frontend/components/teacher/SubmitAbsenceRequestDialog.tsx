@@ -14,6 +14,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ViewAbsenceHistoryDialog } from "./ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
+import type { AbsenceRecord } from "~backend/student/pending_and_approved_absences_by_student";
 
 interface SubmitAbsenceRequestDialogProps {
   student: {
@@ -26,21 +27,6 @@ interface SubmitAbsenceRequestDialogProps {
   onSubmitted?: () => void;
 }
 
-interface AbsenceRequest {
-  date: string;
-  type: string;
-  status: string;
-  startTime?: string;
-  endTime?: string;
-}
-
-const mockAbsenceHistory: AbsenceRequest[] = [
-  { date: "Fri 5/2/25", type: "Full Day", status: "Approved" },
-  { date: "Wed 7/9/25", type: "Full Day", status: "Approved" },
-  { date: "Thu 7/10/25", type: "Half Day", status: "Approved", startTime: "8:30 am", endTime: "10 am" },
-  { date: "10/2/25", type: "Full Day", status: "Pending" },
-];
-
 export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted }: SubmitAbsenceRequestDialogProps) {
   const [absenceType, setAbsenceType] = useState<"full" | "half">("full");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -50,6 +36,8 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
   const [classTimings, setClassTimings] = useState<{ startTime: string; endTime: string } | null>(null);
+  const [absenceHistory, setAbsenceHistory] = useState<AbsenceRecord[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +54,23 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         });
     }
   }, [isOpen, grade, toast]);
+
+  useEffect(() => {
+    if (isOpen && student.studentid) {
+      setIsLoadingHistory(true);
+      backend.student.pendingAndApprovedAbsencesByStudent({ studentid: student.studentid })
+        .then((response) => {
+          setAbsenceHistory(response.absences);
+        })
+        .catch((error) => {
+          console.error("Failed to load absence history:", error);
+          setAbsenceHistory([]);
+        })
+        .finally(() => {
+          setIsLoadingHistory(false);
+        });
+    }
+  }, [isOpen, student.studentid]);
 
   const parseTime = (timeStr: string): { hours: number; minutes: number } | null => {
     const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
@@ -198,12 +203,22 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             <div className="space-y-3">
               <div className="font-medium">Currently Pending/Approved Request</div>
               <div className="pl-4 space-y-1 text-sm">
-                {mockAbsenceHistory.map((req, idx) => (
-                  <div key={idx}>
-                    {req.date} - {req.type}
-                    {req.startTime && req.endTime && ` (${req.startTime} - ${req.endTime})`} - {req.status}
-                  </div>
-                ))}
+                {isLoadingHistory ? (
+                  <div className="text-gray-500">Loading...</div>
+                ) : absenceHistory.length === 0 ? (
+                  <div className="text-gray-500">No pending or approved absences</div>
+                ) : (
+                  absenceHistory.map((req) => {
+                    const date = new Date(req.absencedate).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit' });
+                    const type = req.fullday ? 'Full Day' : 'Half Day';
+                    const timeRange = !req.fullday && req.absencestarttm && req.absenceendtm ? ` (${req.absencestarttm} - ${req.absenceendtm})` : '';
+                    return (
+                      <div key={req.absencercdid}>
+                        {date} - {type}{timeRange} - {req.approvalstatus}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -320,7 +335,15 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
       <ViewAbsenceHistoryDialog
         student={student}
-        absenceHistory={mockAbsenceHistory}
+        absenceHistory={absenceHistory.map((req: AbsenceRecord) => ({
+          date: new Date(req.absencedate).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit' }),
+          type: req.fullday ? 'Full Day' : 'Half Day',
+          status: req.approvalstatus,
+          startTime: req.absencestarttm,
+          endTime: req.absenceendtm,
+          reason: req.absencereason,
+          notes: req.requester_note
+        }))}
         isOpen={isViewHistoryOpen}
         onClose={() => setIsViewHistoryOpen(false)}
       />
