@@ -77,6 +77,21 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
     return { hours, minutes };
   };
 
+  const formatTime = (timeStr: string): string => {
+    // Handle format like "08:31:00-05" (24-hour format with timezone)
+    const match = timeStr.match(/^(\d{2}):(\d{2})/);
+    if (!match) return timeStr;
+    
+    let hours = parseInt(match[1]);
+    const minutes = match[2];
+    const period = hours >= 12 ? 'PM' : 'AM';
+    
+    if (hours > 12) hours -= 12;
+    if (hours === 0) hours = 12;
+    
+    return `${hours}:${minutes} ${period}`;
+  };
+
   const handleSubmit = () => {
     const dateRegex = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\/(\d{1,2})\/(\d{2})$/i;
     const dateMatch = startDate.match(dateRegex);
@@ -202,7 +217,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             </DialogDescription>
             {classTimings && (
               <div className="text-sm text-muted-foreground mt-2">
-                Normal Class Hours: {classTimings.startTime.replace(/(\d{1,2}):(\d{2})(am|pm)/i, (_, h, m, p) => `${h}:${m} ${p.toUpperCase()}`)} - {classTimings.endTime.replace(/(\d{1,2}):(\d{2})(am|pm)/i, (_, h, m, p) => `${h}:${m} ${p.toUpperCase()}`)}
+                Normal Class Hours: {formatTime(classTimings.startTime)} - {formatTime(classTimings.endTime)}
               </div>
             )}
           </DialogHeader>
