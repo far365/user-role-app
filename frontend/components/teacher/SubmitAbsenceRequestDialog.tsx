@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { ViewAbsenceHistoryDialog } from "./ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
 import type { AbsenceRecord } from "~backend/student/pending_and_approved_absences_by_student";
+import type { UserRole } from "~backend/user/types";
 
 interface SubmitAbsenceRequestDialogProps {
   student: {
@@ -25,9 +26,10 @@ interface SubmitAbsenceRequestDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmitted?: () => void;
+  userRole?: UserRole;
 }
 
-export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted }: SubmitAbsenceRequestDialogProps) {
+export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted, userRole }: SubmitAbsenceRequestDialogProps) {
   const [absenceType, setAbsenceType] = useState<"full" | "half">("full");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState("9:00am");
@@ -193,7 +195,14 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Submit Absence Request</DialogTitle>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              Submit Absence Request
+              {userRole && (
+                <Badge variant="outline" className="text-xs">
+                  {userRole}
+                </Badge>
+              )}
+            </DialogTitle>
             <DialogDescription className="text-xl font-bold text-gray-900">
               {student.StudentName}
             </DialogDescription>
@@ -336,6 +345,15 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                 rows={4}
               />
             </div>
+
+            {userRole === "Teacher" && (
+              <div className="space-y-2">
+                <Label className="font-medium">Approval Status</Label>
+                <div className="p-3 border border-gray-300 rounded-md bg-green-50">
+                  <Badge className="bg-green-600 hover:bg-green-700">Approved</Badge>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="gap-2">

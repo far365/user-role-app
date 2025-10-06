@@ -829,6 +829,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               loadPendingAbsenceRequests(selectedGrade);
             }
           }}
+          userRole={user.userRole}
         />
       )}
     </div>
