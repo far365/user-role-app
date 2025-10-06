@@ -282,7 +282,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                       onChange={(e) => setStartTime(e.target.value)}
                     />
                   </div>
-                  <div className="col-span-2 space-y-2">
+                  <div className="space-y-2">
                     <Label>End Time:</Label>
                     <Input
                       type="text"
