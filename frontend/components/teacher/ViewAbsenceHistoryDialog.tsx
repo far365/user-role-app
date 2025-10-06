@@ -45,43 +45,37 @@ export function ViewAbsenceHistoryDialog({ student, absenceHistory, isOpen, onCl
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 py-4">
           {absenceHistory.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No absence history found
             </div>
           ) : (
-            <div className="space-y-3">
-              {absenceHistory.map((request, idx) => (
-                <div
-                  key={idx}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="space-y-1">
-                      <div className="font-medium text-gray-900">{request.date}</div>
-                      <div className="text-sm text-gray-600">
-                        {request.type}
-                        {request.startTime && request.endTime && ` (${request.startTime} - ${request.endTime})`}
-                      </div>
-                    </div>
-                    <div>
-                      {getStatusBadge(request.status)}
-                    </div>
-                  </div>
-                  {request.reason && (
-                    <div className="text-sm text-gray-600 mt-2">
-                      <span className="font-medium">Reason:</span> {request.reason}
-                    </div>
-                  )}
-                  {request.notes && (
-                    <div className="text-sm text-gray-600 mt-1">
-                      <span className="font-medium">Notes:</span> {request.notes}
-                    </div>
-                  )}
+            absenceHistory.map((request, idx) => (
+              <div
+                key={idx}
+                className="border-t pt-4 first:border-t-0 first:pt-0"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="font-semibold text-base">{request.date}</div>
+                  {getStatusBadge(request.status)}
                 </div>
-              ))}
-            </div>
+                <div className="text-base mb-2">
+                  {request.type}
+                  {request.startTime && request.endTime && ` (${request.startTime} - ${request.endTime})`}
+                </div>
+                {request.reason && (
+                  <div className="text-sm text-gray-700 mb-1">
+                    <span className="font-semibold">Reason:</span> {request.reason}
+                  </div>
+                )}
+                {request.notes && (
+                  <div className="text-sm text-gray-700">
+                    <span className="font-semibold">Notes:</span> {request.notes}
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
 
