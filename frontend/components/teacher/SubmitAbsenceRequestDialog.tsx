@@ -213,9 +213,9 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
               View Absence History/Details
             </Button>
 
-            <div className="space-y-3">
-              <div className="font-medium">Currently Pending/Approved Request</div>
-              <div className="space-y-4">
+            <div className="space-y-3 border border-gray-300 bg-gray-50 p-4 rounded-md">
+              <div className="font-medium text-xs">Currently Pending/Approved Request</div>
+              <div className="space-y-4 text-xs">
                 {isLoadingHistory ? (
                   <div className="text-gray-500">Loading...</div>
                 ) : absenceHistory.length === 0 ? (
@@ -228,10 +228,10 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                     return (
                       <div key={req.absencercdid} className="pb-4 border-b last:border-b-0 last:pb-0">
                         <div className="flex items-start justify-between mb-2">
-                          <div className="font-semibold text-base">{date}</div>
+                          <div className="font-semibold">{date}</div>
                           {getStatusBadge(req.approvalstatus)}
                         </div>
-                        <div className="text-base text-foreground">
+                        <div className="text-foreground">
                           {type}{timeRange}
                         </div>
                       </div>
