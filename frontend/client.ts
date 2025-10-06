@@ -437,6 +437,7 @@ import { approveAbsenceRequest as api_student_approve_absence_request_approveAbs
 import { debug as api_student_debug_debug } from "~backend/student/debug";
 import { getByParentID as api_student_get_by_parent_getByParentID } from "~backend/student/get_by_parent";
 import { pendingAbsenceApprovalsByGrade as api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade } from "~backend/student/pending_absence_approvals_by_grade";
+import { pendingAndApprovedAbsencesByStudent as api_student_pending_and_approved_absences_by_student_pendingAndApprovedAbsencesByStudent } from "~backend/student/pending_and_approved_absences_by_student";
 import { rejectAbsenceRequest as api_student_reject_absence_request_rejectAbsenceRequest } from "~backend/student/reject_absence_request";
 import {
     searchByGrade as api_student_search_searchByGrade,
@@ -458,6 +459,7 @@ export namespace student {
             this.debug = this.debug.bind(this)
             this.getByParentID = this.getByParentID.bind(this)
             this.pendingAbsenceApprovalsByGrade = this.pendingAbsenceApprovalsByGrade.bind(this)
+            this.pendingAndApprovedAbsencesByStudent = this.pendingAndApprovedAbsencesByStudent.bind(this)
             this.rejectAbsenceRequest = this.rejectAbsenceRequest.bind(this)
             this.searchByGrade = this.searchByGrade.bind(this)
             this.searchById = this.searchById.bind(this)
@@ -500,6 +502,17 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/pending-absence-approvals-by-grade`, {query, method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade>
+        }
+
+        public async pendingAndApprovedAbsencesByStudent(params: RequestType<typeof api_student_pending_and_approved_absences_by_student_pendingAndApprovedAbsencesByStudent>): Promise<ResponseType<typeof api_student_pending_and_approved_absences_by_student_pendingAndApprovedAbsencesByStudent>> {
+            // Convert our params into the objects we need for the request
+            const query = makeRecord<string, string | string[]>({
+                studentid: params.studentid,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/pending-and-approved-absences-by-student`, {query, method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_pending_and_approved_absences_by_student_pendingAndApprovedAbsencesByStudent>
         }
 
         public async rejectAbsenceRequest(params: RequestType<typeof api_student_reject_absence_request_rejectAbsenceRequest>): Promise<ResponseType<typeof api_student_reject_absence_request_rejectAbsenceRequest>> {

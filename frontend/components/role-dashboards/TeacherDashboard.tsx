@@ -81,6 +81,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   });
   const [isAbsenceRequestsOpen, setIsAbsenceRequestsOpen] = useState(false);
   const [isStudentListOpen, setIsStudentListOpen] = useState(false);
+  const [isStatusSummaryOpen, setIsStatusSummaryOpen] = useState(false);
   const [statusCounts, setStatusCounts] = useState<StatusCount[]>([]);
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
@@ -453,42 +454,51 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {/* Status Counts Table */}
       {selectedGrade && (
         <Card>
-          <CardHeader>
-            <CardTitle>Attendance & Dismissal Status Summary</CardTitle>
-            <CardDescription>
-              Count of students by attendance and dismissal status for {selectedGrade}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingCounts ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
-              </div>
-            ) : statusCounts.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">No status data available</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-3 font-semibold">Status</th>
-                      <th className="text-right py-2 px-3 font-semibold">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {statusCounts.map((row, index) => (
-                      <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
-                        <td className="py-2 px-3">
-                          {row.attendance_status || row.dismissal_status || 'Unknown'}
-                        </td>
-                        <td className="py-2 px-3 text-right font-medium">{row.count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
+          <Collapsible open={isStatusSummaryOpen} onOpenChange={setIsStatusSummaryOpen}>
+            <CardHeader>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between">
+                  <CardTitle>Attendance & Dismissal Status Summary</CardTitle>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${isStatusSummaryOpen ? 'transform rotate-180' : ''}`} />
+                </div>
+              </CollapsibleTrigger>
+              <CardDescription>
+                Count of students by attendance and dismissal status for {selectedGrade}
+              </CardDescription>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {isLoadingCounts ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto"></div>
+                  </div>
+                ) : statusCounts.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No status data available</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-3 font-semibold">Status</th>
+                          <th className="text-right py-2 px-3 font-semibold">Count</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {statusCounts.map((row, index) => (
+                          <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
+                            <td className="py-2 px-3">
+                              {row.attendance_status || row.dismissal_status || 'Unknown'}
+                            </td>
+                            <td className="py-2 px-3 text-right font-medium">{row.count}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
       )}
 
