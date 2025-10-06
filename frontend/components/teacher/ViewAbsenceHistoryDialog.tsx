@@ -45,7 +45,7 @@ export function ViewAbsenceHistoryDialog({ student, absenceHistory, isOpen, onCl
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-4">
+        <div className="space-y-6 py-4">
           {absenceHistory.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No absence history found
@@ -54,23 +54,23 @@ export function ViewAbsenceHistoryDialog({ student, absenceHistory, isOpen, onCl
             absenceHistory.map((request, idx) => (
               <div
                 key={idx}
-                className="border-t pt-4 first:border-t-0 first:pt-0"
+                className="pb-6 border-b last:border-b-0 last:pb-0"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="font-semibold text-base">{request.date}</div>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="font-semibold text-lg">{request.date}</div>
                   {getStatusBadge(request.status)}
                 </div>
-                <div className="text-base mb-2">
+                <div className="text-base text-foreground mb-3">
                   {request.type}
                   {request.startTime && request.endTime && ` (${request.startTime} - ${request.endTime})`}
                 </div>
                 {request.reason && (
-                  <div className="text-sm text-gray-700 mb-1">
+                  <div className="text-sm text-foreground/80">
                     <span className="font-semibold">Reason:</span> {request.reason}
                   </div>
                 )}
                 {request.notes && (
-                  <div className="text-sm text-gray-700">
+                  <div className="text-sm text-foreground/80">
                     <span className="font-semibold">Notes:</span> {request.notes}
                   </div>
                 )}
