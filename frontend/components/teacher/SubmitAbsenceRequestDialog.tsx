@@ -40,6 +40,19 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const { toast } = useToast();
 
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "approved":
+        return <Badge className="bg-green-600 hover:bg-green-700">Approved</Badge>;
+      case "pending":
+        return <Badge className="bg-yellow-600 hover:bg-yellow-700">Pending</Badge>;
+      case "rejected":
+        return <Badge className="bg-red-600 hover:bg-red-700">Rejected</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
   useEffect(() => {
     if (isOpen && grade) {
       backend.grades.classTimings({ grade })
@@ -202,7 +215,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
             <div className="space-y-3">
               <div className="font-medium">Currently Pending/Approved Request</div>
-              <div className="pl-4 space-y-1 text-sm">
+              <div className="space-y-4">
                 {isLoadingHistory ? (
                   <div className="text-gray-500">Loading...</div>
                 ) : absenceHistory.length === 0 ? (
@@ -213,8 +226,14 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                     const type = req.fullday ? 'Full Day' : 'Half Day';
                     const timeRange = !req.fullday && req.absencestarttm && req.absenceendtm ? ` (${req.absencestarttm} - ${req.absenceendtm})` : '';
                     return (
-                      <div key={req.absencercdid}>
-                        {date} - {type}{timeRange} - {req.approvalstatus}
+                      <div key={req.absencercdid} className="pb-4 border-b last:border-b-0 last:pb-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="font-semibold text-base">{date}</div>
+                          {getStatusBadge(req.approvalstatus)}
+                        </div>
+                        <div className="text-base text-foreground">
+                          {type}{timeRange}
+                        </div>
                       </div>
                     );
                   })
