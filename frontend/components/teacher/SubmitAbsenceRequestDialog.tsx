@@ -202,7 +202,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             </DialogDescription>
             {classTimings && (
               <div className="text-sm text-muted-foreground mt-2">
-                Normal Class Hours: {classTimings.startTime} - {classTimings.endTime}
+                Normal Class Hours: {classTimings.startTime.replace(/(\d{1,2}):(\d{2})(am|pm)/i, (_, h, m, p) => `${h}:${m} ${p.toUpperCase()}`)} - {classTimings.endTime.replace(/(\d{1,2}):(\d{2})(am|pm)/i, (_, h, m, p) => `${h}:${m} ${p.toUpperCase()}`)}
               </div>
             )}
           </DialogHeader>
