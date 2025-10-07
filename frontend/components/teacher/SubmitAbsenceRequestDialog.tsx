@@ -194,7 +194,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       
       const requestData = {
         studentid: student.studentid,
-        absencetype: absenceCategory,
+        absencetype: "ApprovedAbsence",
         absencedate: formattedDate,
         fullday: absenceType === "full",
         absencestarttime: absenceType === "half" ? startTime : undefined,
@@ -242,7 +242,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         message: error instanceof Error ? error.message : "An unexpected error occurred",
         data: {
           studentid: student.studentid,
-          absencetype: absenceCategory,
+          absencetype: "ApprovedAbsence",
           absencedate: formattedDate,
           fullday: absenceType === "full",
           absencestarttime: absenceType === "half" ? startTime : undefined,
