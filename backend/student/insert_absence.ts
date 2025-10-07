@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 
 export interface InsertAbsenceRequest {
-  studentid: number;
+  studentid: string;
   absencetype: 'ApprovedAbsence' | 'UnapprovedAbsence' | 'ExcusedAbsence' | 'UnexcusedAbsence';
   absencedate: string;
   fullday: boolean;
