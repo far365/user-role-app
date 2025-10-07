@@ -477,6 +477,9 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     try {
       console.log("[QR Scanner] Starting camera...");
       
+      // Set camera open FIRST so video element is rendered
+      setIsCameraOpen(true);
+      
       const constraints = {
         video: { 
           facingMode: "environment",
@@ -487,6 +490,10 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       console.log("[QR Scanner] Media stream acquired");
+      setStream(mediaStream);
+      
+      // Wait for next frame to ensure video element is rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -504,12 +511,11 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
         
         await videoRef.current.play();
         console.log("[QR Scanner] Video playing, dimensions:", videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
-        
-        setStream(mediaStream);
-        setIsCameraOpen(true);
       }
     } catch (error) {
       console.error("[QR Scanner] Failed to start camera:", error);
+      setIsCameraOpen(false);
+      setStream(null);
       toast({
         title: "Camera Error",
         description: "Failed to access camera. Please ensure camera permissions are granted.",
@@ -630,11 +636,29 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   }, [stream]);
 
   useEffect(() => {
-    if (isCameraOpen && stream && videoRef.current) {
+    if (isCameraOpen && stream && videoRef.current && videoRef.current.readyState >= 2) {
       console.log("[QR Scanner] Camera open effect triggered, starting scan");
       scanFromCamera();
     }
   }, [isCameraOpen, stream]);
+  
+  // Start scanning when video is ready
+  useEffect(() => {
+    if (!videoRef.current || !stream) return;
+    
+    const video = videoRef.current;
+    const handleCanPlay = () => {
+      console.log("[QR Scanner] Video can play, starting scan");
+      scanFromCamera();
+    };
+    
+    if (video.readyState >= 2) {
+      handleCanPlay();
+    } else {
+      video.addEventListener('canplay', handleCanPlay);
+      return () => video.removeEventListener('canplay', handleCanPlay);
+    }
+  }, [stream]);
 
   const isAlternateContact = scanResult?.data?.parent && scanResult?.data?.alternatePickupBy;
 
@@ -735,10 +759,11 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="relative bg-black rounded-lg overflow-hidden">
+              <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '300px' }}>
                 <video 
                   ref={videoRef}
                   className="w-full h-auto"
+                  autoPlay
                   playsInline
                   muted
                 />
