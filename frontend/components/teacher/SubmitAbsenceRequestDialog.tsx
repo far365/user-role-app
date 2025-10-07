@@ -43,7 +43,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
-  const [resultStatus, setResultStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [resultStatus, setResultStatus] = useState<{ success: boolean; message: string; data?: any } | null>(null);
   const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
@@ -192,7 +192,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       const formattedDate = format(startDate, "yyyy-MM-dd");
       const approvalStatus = userRole === "Teacher" ? "Approved" : "Pending";
       
-      const response = await backend.student.insertAbsence({
+      const requestData = {
         studentid: student.studentid,
         absencetype: absenceCategory,
         absencedate: formattedDate,
@@ -203,12 +203,15 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         absencereason: reason,
         approvalstatus: approvalStatus,
         requester_note: additionalNotes || undefined,
-      });
+      };
+      
+      const response = await backend.student.insertAbsence(requestData);
 
       if (response.status === "Success") {
         setResultStatus({
           success: true,
-          message: `Absence request ${userRole === "Teacher" ? "submitted and approved" : "submitted"} successfully`
+          message: `Absence request ${userRole === "Teacher" ? "submitted and approved" : "submitted"} successfully`,
+          data: requestData
         });
         setShowResultDialog(true);
         
@@ -225,15 +228,30 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         console.error("Insert absence error:", response.message);
         setResultStatus({
           success: false,
-          message: response.message || "Failed to submit absence request"
+          message: response.message || "Failed to submit absence request",
+          data: requestData
         });
         setShowResultDialog(true);
       }
     } catch (error) {
       console.error("Failed to submit absence request:", error);
+      const formattedDate = startDate ? format(startDate, "yyyy-MM-dd") : "";
+      const approvalStatus = userRole === "Teacher" ? "Approved" : "Pending";
       setResultStatus({
         success: false,
-        message: error instanceof Error ? error.message : "An unexpected error occurred"
+        message: error instanceof Error ? error.message : "An unexpected error occurred",
+        data: {
+          studentid: student.studentid,
+          absencetype: absenceCategory,
+          absencedate: formattedDate,
+          fullday: absenceType === "full",
+          absencestarttime: absenceType === "half" ? startTime : undefined,
+          absenceendtime: absenceType === "half" ? endTime : undefined,
+          createdbyuserid: "current-user-id",
+          absencereason: reason,
+          approvalstatus: approvalStatus,
+          requester_note: additionalNotes || undefined,
+        }
       });
       setShowResultDialog(true);
     } finally {
@@ -482,7 +500,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       />
 
       <Dialog open={showResultDialog} onOpenChange={setShowResultDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {resultStatus?.success ? (
@@ -498,8 +516,62 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
               )}
             </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-center text-lg">{resultStatus?.message}</p>
+          <div className="py-4 space-y-4">
+            <p className="text-center text-lg font-semibold">{resultStatus?.message}</p>
+            
+            {resultStatus?.data && (
+              <div className="space-y-2 border border-gray-300 bg-gray-50 p-4 rounded-md">
+                <div className="font-semibold text-sm mb-3">Request Details:</div>
+                <div className="space-y-1 text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Student ID:</span>
+                    <span>{resultStatus.data.studentid}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Absence Type:</span>
+                    <span>{resultStatus.data.absencetype}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Absence Date:</span>
+                    <span>{resultStatus.data.absencedate}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Full Day:</span>
+                    <span>{resultStatus.data.fullday ? 'Yes' : 'No'}</span>
+                  </div>
+                  {resultStatus.data.absencestarttime && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <span className="font-medium">Start Time:</span>
+                      <span>{resultStatus.data.absencestarttime}</span>
+                    </div>
+                  )}
+                  {resultStatus.data.absenceendtime && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <span className="font-medium">End Time:</span>
+                      <span>{resultStatus.data.absenceendtime}</span>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Created By User ID:</span>
+                    <span>{resultStatus.data.createdbyuserid}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Absence Reason:</span>
+                    <span>{resultStatus.data.absencereason}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <span className="font-medium">Approval Status:</span>
+                    <span>{resultStatus.data.approvalstatus}</span>
+                  </div>
+                  {resultStatus.data.requester_note && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <span className="font-medium">Requester Note:</span>
+                      <span>{resultStatus.data.requester_note}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button onClick={handleResultDialogClose} className="w-full">
