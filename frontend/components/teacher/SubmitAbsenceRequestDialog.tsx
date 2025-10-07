@@ -344,11 +344,12 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                   <SelectValue placeholder="Select Reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="illness">Illness</SelectItem>
-                  <SelectItem value="appointment">Medical Appointment</SelectItem>
-                  <SelectItem value="family">Family Emergency</SelectItem>
-                  <SelectItem value="personal">Personal</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="Illness">Illness</SelectItem>
+                  <SelectItem value="MedicalAppointment">Medical Appointment</SelectItem>
+                  <SelectItem value="FamilyEmergency">Family Emergency</SelectItem>
+                  <SelectItem value="FamilyVacation">Family Vacation</SelectItem>
+                  <SelectItem value="Hajj/Umrah">Hajj/Umrah</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
