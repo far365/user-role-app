@@ -387,7 +387,14 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                       const oneYearFromNow = new Date(today);
                       oneYearFromNow.setFullYear(today.getFullYear() + 1);
                       const dayOfWeek = date.getDay();
-                      return date < today || date > oneYearFromNow || dayOfWeek === 0 || dayOfWeek === 6;
+                      
+                      const isAbsenceDate = absenceHistory.some((req) => {
+                        const absenceDate = new Date(req.absencedate);
+                        absenceDate.setHours(0, 0, 0, 0);
+                        return absenceDate.getTime() === date.getTime();
+                      });
+                      
+                      return date < today || date > oneYearFromNow || dayOfWeek === 0 || dayOfWeek === 6 || isAbsenceDate;
                     }}
                     initialFocus
                   />
