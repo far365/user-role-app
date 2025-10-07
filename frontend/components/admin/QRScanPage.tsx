@@ -476,20 +476,37 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   const startCamera = async () => {
     try {
       console.log("[QR Scanner] Starting camera...");
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" } 
-      });
       
-      setStream(mediaStream);
-      setIsCameraOpen(true);
+      const constraints = {
+        video: { 
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+      
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("[QR Scanner] Media stream acquired");
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play();
-        console.log("[QR Scanner] Camera started successfully");
+        videoRef.current.setAttribute('playsinline', 'true');
         
-        // Start scanning
-        scanFromCamera();
+        // Wait for video to be ready
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+              console.log("[QR Scanner] Video metadata loaded");
+              resolve();
+            };
+          }
+        });
+        
+        await videoRef.current.play();
+        console.log("[QR Scanner] Video playing, dimensions:", videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+        
+        setStream(mediaStream);
+        setIsCameraOpen(true);
       }
     } catch (error) {
       console.error("[QR Scanner] Failed to start camera:", error);
@@ -523,7 +540,8 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   };
 
   const scanFromCamera = () => {
-    if (!videoRef.current || !canvasRef.current || !isCameraOpen) {
+    if (!videoRef.current || !canvasRef.current) {
+      console.log("[QR Scanner] Missing video or canvas ref");
       return;
     }
 
@@ -531,19 +549,37 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
-    if (!ctx) return;
+    if (!ctx) {
+      console.log("[QR Scanner] Failed to get canvas context");
+      return;
+    }
+
+    console.log("[QR Scanner] Starting camera scan loop");
 
     const scan = () => {
-      if (!isCameraOpen || !video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      if (!isCameraOpen || !video) {
+        return;
+      }
+
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
         animationFrameRef.current = requestAnimationFrame(scan);
         return;
       }
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const width = video.videoWidth;
+      const height = video.videoHeight;
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      if (width === 0 || height === 0) {
+        console.log("[QR Scanner] Video dimensions not ready yet");
+        animationFrameRef.current = requestAnimationFrame(scan);
+        return;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(video, 0, 0, width, height);
+
+      const imageData = ctx.getImageData(0, 0, width, height);
       const code = jsQR(imageData.data, imageData.width, imageData.height, {
         inversionAttempts: "attemptBoth",
       });
@@ -569,14 +605,13 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
           
           // Stop camera after successful scan
           stopCamera();
+          return;
         } else {
           console.error("[QR Scanner] Failed to parse QR code data from camera");
         }
       }
 
-      if (isCameraOpen) {
-        animationFrameRef.current = requestAnimationFrame(scan);
-      }
+      animationFrameRef.current = requestAnimationFrame(scan);
     };
 
     scan();
@@ -595,10 +630,11 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   }, [stream]);
 
   useEffect(() => {
-    if (isCameraOpen && videoRef.current) {
+    if (isCameraOpen && stream && videoRef.current) {
+      console.log("[QR Scanner] Camera open effect triggered, starting scan");
       scanFromCamera();
     }
-  }, [isCameraOpen]);
+  }, [isCameraOpen, stream]);
 
   const isAlternateContact = scanResult?.data?.parent && scanResult?.data?.alternatePickupBy;
 
