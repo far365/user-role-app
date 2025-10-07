@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ViewAbsenceHistoryDialog } from "./ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
@@ -42,6 +42,8 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   const [absenceHistory, setAbsenceHistory] = useState<AbsenceRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResultDialog, setShowResultDialog] = useState(false);
+  const [resultStatus, setResultStatus] = useState<{ success: boolean; message: string } | null>(null);
   const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
@@ -204,10 +206,11 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       });
 
       if (response.status === "Success") {
-        toast({
-          title: "Success",
-          description: `Absence request ${userRole === "Teacher" ? "submitted and approved" : "submitted"} successfully`,
+        setResultStatus({
+          success: true,
+          message: `Absence request ${userRole === "Teacher" ? "submitted and approved" : "submitted"} successfully`
         });
+        setShowResultDialog(true);
         
         setAbsenceType("full");
         setAbsenceCategory("UnapprovedAbsence");
@@ -218,22 +221,21 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         setAdditionalNotes("");
         
         onSubmitted?.();
-        onClose();
       } else {
         console.error("Insert absence error:", response.message);
-        toast({
-          title: "Error",
-          description: response.message || "Failed to submit absence request",
-          variant: "destructive",
+        setResultStatus({
+          success: false,
+          message: response.message || "Failed to submit absence request"
         });
+        setShowResultDialog(true);
       }
     } catch (error) {
       console.error("Failed to submit absence request:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive",
+      setResultStatus({
+        success: false,
+        message: error instanceof Error ? error.message : "An unexpected error occurred"
       });
+      setShowResultDialog(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -248,6 +250,13 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
     setReason("");
     setAdditionalNotes("");
     onClose();
+  };
+
+  const handleResultDialogClose = () => {
+    setShowResultDialog(false);
+    if (resultStatus?.success) {
+      onClose();
+    }
   };
 
   return (
@@ -471,6 +480,34 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         isOpen={isViewHistoryOpen}
         onClose={() => setIsViewHistoryOpen(false)}
       />
+
+      <Dialog open={showResultDialog} onOpenChange={setShowResultDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {resultStatus?.success ? (
+                <>
+                  <CheckCircle2 className="h-6 w-6 text-green-600" />
+                  <span>Success</span>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-6 w-6 text-red-600" />
+                  <span>Error</span>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-lg">{resultStatus?.message}</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleResultDialogClose} className="w-full">
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
