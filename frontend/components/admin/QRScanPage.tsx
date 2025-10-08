@@ -316,6 +316,13 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   };
 
   const handleAddToQueue = async () => {
+    console.log("[QR Scanner] *** BUTTON CLICKED - handleAddToQueue triggered ***");
+    
+    toast({
+      title: "Button Clicked",
+      description: "Add to Queue button was clicked - processing...",
+    });
+    
     if (!scanResult?.success || !scanResult.data) {
       console.error("[QR Scanner] No valid scan data available for adding to queue");
       toast({
