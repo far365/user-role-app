@@ -350,7 +350,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       
       // Get students for this parent
       console.log("[QR Scanner] Fetching students for parent:", parentId);
-      const studentsResponse = await backend.student.getStudentsByParent({ parentId });
+      const studentsResponse = await backend.student.getByParentID({ parentID: parentId });
       console.log("[QR Scanner] Students response:", studentsResponse);
       
       if (!studentsResponse.students || studentsResponse.students.length === 0) {
