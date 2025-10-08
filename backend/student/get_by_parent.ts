@@ -92,15 +92,12 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
       });
 
       if (allStudents && allStudents.length > 0) {
-        console.log(`[Student API] First student record structure from Supabase:`, Object.keys(allStudents[0]));
-        console.log(`[Student API] First student data from Supabase:`, allStudents[0]);
-        
-        // Check if any students have the parentid we're looking for
         const matchingStudents = allStudents.filter(s => s.parentid === parentID);
-        console.log(`[Student API] Students with parentid '${parentID}' in Supabase sample:`, matchingStudents.length);
-        if (matchingStudents.length > 0) {
-          console.log(`[Student API] Matching students found in Supabase sample:`, matchingStudents);
-        }
+        console.log(`[Student API] Sample data: ${allStudents.length} records (${matchingStudents.length} match parentid '${parentID}')`, {
+          columns: Object.keys(allStudents[0]),
+          firstRecord: allStudents[0],
+          matchingSample: matchingStudents[0] || null
+        });
       } else {
         console.log(`[Student API] ⚠️  CRITICAL: studentrcd table in Supabase appears to be empty!`);
         console.log(`[Student API] This explains why no students are found for parent ${parentID}`);
@@ -120,21 +117,15 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
         .select('*')
         .eq('parentid', parentID);
 
-      console.log(`[Student API] Supabase Approach 1 (.eq): ${studentRows1?.length || 0} records, error: ${error1?.message || 'none'}`);
-      if (error1) {
-        console.log(`[Student API] Supabase error1 details:`, { code: error1.code, details: error1.details, hint: error1.hint });
-      }
-
-      // Approach 2: .filter()
       const { data: studentRows2, error: error2 } = await supabase
         .from('studentrcd')
         .select('*')
         .filter('parentid', 'eq', parentID);
 
-      console.log(`[Student API] Supabase Approach 2 (.filter): ${studentRows2?.length || 0} records, error: ${error2?.message || 'none'}`);
-      if (error2) {
-        console.log(`[Student API] Supabase error2 details:`, { code: error2.code, details: error2.details, hint: error2.hint });
-      }
+      console.log(`[Student API] Query results - .eq: ${studentRows1?.length || 0} records, .filter: ${studentRows2?.length || 0} records`, {
+        error1: error1 ? { code: error1.code, msg: error1.message } : null,
+        error2: error2 ? { code: error2.code, msg: error2.message } : null
+      });
 
       // Use the first successful approach
       const studentRows = studentRows1 || studentRows2 || [];
@@ -168,35 +159,26 @@ export const getByParentID = api<{ parentID: string }, GetStudentsByParentRespon
         return { students: [] };
       }
 
-      // Log the raw data to see what we're working with
-      console.log(`[Student API] Found ${studentRows.length} students in Supabase! Processing...`);
-      console.log(`[Student API] First student raw data from Supabase:`, studentRows[0]);
-      console.log(`[Student API] Available columns from Supabase:`, Object.keys(studentRows[0]));
-
-      const students: Student[] = studentRows.map((row, index) => {
-        console.log(`[Student API] Processing Supabase student ${index + 1}:`, row);
-        
-        const student = {
-          studentId: String(row.studentid || row.student_id || ''),
-          studentStatus: row.studentstatus || row.student_status || 'Active',
-          studentName: row.studentname || row.student_name || '',
-          grade: row.grade || '',
-          classBuilding: row.classbuilding || row.class_building || '',
-          parentId: row.parentid || row.parent_id || '',
-          attendanceStatus: row.attendencestatus || row.attendance_status || '',
-          dismissalInstructions: row.dismissalinstructions || row.dismissal_instructions || '',
-          otherNote: row.othernote || row.other_note || '',
-          createdAt: row.created_at ? new Date(row.created_at) : new Date(),
-          updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
-        };
-        
-        console.log(`[Student API] Mapped Supabase student ${index + 1}:`, student);
-        return student;
+      console.log(`[Student API] Found ${studentRows.length} students, processing...`, {
+        firstStudent: studentRows[0],
+        columns: Object.keys(studentRows[0])
       });
 
-      console.log(`[Student API] === FINAL SUPABASE RESULT ===`);
-      console.log(`[Student API] Successfully found ${students.length} students in Supabase for parent ${parentID}`);
-      console.log(`[Student API] Students from Supabase:`, students);
+      const students: Student[] = studentRows.map((row) => ({
+        studentId: String(row.studentid || row.student_id || ''),
+        studentStatus: row.studentstatus || row.student_status || 'Active',
+        studentName: row.studentname || row.student_name || '',
+        grade: row.grade || '',
+        classBuilding: row.classbuilding || row.class_building || '',
+        parentId: row.parentid || row.parent_id || '',
+        attendanceStatus: row.attendencestatus || row.attendance_status || '',
+        dismissalInstructions: row.dismissalinstructions || row.dismissal_instructions || '',
+        otherNote: row.othernote || row.other_note || '',
+        createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+        updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+      }));
+
+      console.log(`[Student API] === FINAL RESULT: ${students.length} students for parent ${parentID} ===`, students);
       
       return { students };
 
