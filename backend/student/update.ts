@@ -111,8 +111,7 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
         throw APIError.notFound("Student record not found");
       }
 
-      console.log(`[Student API] Current student record:`, currentStudent);
-      console.log(`[Student API] Available fields in current record:`, Object.keys(currentStudent));
+      console.log(`[Student API] Current student:`, { ...currentStudent, fields: Object.keys(currentStudent) });
 
       // Check if trying to remove parentId when one already exists
       const currentParentId = currentStudent.parentid || currentStudent.parent_id || '';
@@ -149,7 +148,7 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
         }
       });
 
-      console.log(`[Student API] Final update fields:`, updateFields);
+      console.log(`[Student API] Update fields:`, updateFields);
 
       // Validate that we have at least one field to update besides updated_at
       const fieldsToUpdate = Object.keys(updateFields).filter(key => key !== 'updated_at');
@@ -295,8 +294,7 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
         throw APIError.internal("Update succeeded but no data returned. This may indicate a database configuration issue.");
       }
 
-      console.log(`[Student API] Successfully updated student data:`, updatedStudentRow);
-      console.log(`[Student API] Updated record fields:`, Object.keys(updatedStudentRow));
+      console.log(`[Student API] Updated student:`, { ...updatedStudentRow, fields: Object.keys(updatedStudentRow) });
 
       // Map the database fields back to our Student interface
       const student: Student = {
@@ -313,7 +311,7 @@ export const update = api<UpdateStudentRequest, UpdateStudentResponse>(
         updatedAt: updatedStudentRow.updated_at ? new Date(updatedStudentRow.updated_at) : new Date(),
       };
 
-      console.log(`[Student API] Mapped student response:`, student);
+      console.log(`[Student API] Response:`, student);
       console.log(`[Student API] === STUDENT UPDATE DEBUG END ===`);
       
       return { student };
