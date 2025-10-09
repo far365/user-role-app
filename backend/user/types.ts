@@ -1,4 +1,4 @@
-export type UserRole = "Parent" | "Admin" | "Teacher" | "Dispatch";
+export type UserRole = "Parent" | "Admin" | "Teacher" | "Dispatch" | "QRScanner";
 export type UserStatus = "Active" | "Disabled";
 
 export interface User {

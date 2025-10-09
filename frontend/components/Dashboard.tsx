@@ -6,6 +6,7 @@ import { AdminDashboard } from "./role-dashboards/AdminDashboard";
 import { ParentDashboard } from "./role-dashboards/ParentDashboard";
 import { TeacherDashboard } from "./role-dashboards/TeacherDashboard";
 import { DispatchDashboard } from "./role-dashboards/DispatchDashboard";
+import { QRScannerDashboard } from "./role-dashboards/QRScannerDashboard";
 import type { User as UserType } from "~backend/user/types";
 
 interface DashboardProps {
@@ -29,6 +30,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         return "bg-green-100 text-green-800";
       case "Dispatch":
         return "bg-purple-100 text-purple-800";
+      case "QRScanner":
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -44,6 +47,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         return <TeacherDashboard user={user} />;
       case "Dispatch":
         return <DispatchDashboard user={user} />;
+      case "QRScanner":
+        return <QRScannerDashboard user={user} />;
       default:
         return null;
     }
