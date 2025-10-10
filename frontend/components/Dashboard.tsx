@@ -110,27 +110,6 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Last Login</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm">
-                    {formatDate(user.lastLoginDTTM)}
-                  </span>
-                </div>
-                {user.lastDeviceID && (
-                  <div className="flex items-center space-x-2">
-                    <Smartphone className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm font-mono text-gray-600">
-                      {user.lastDeviceID}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
           </div>
         )}
