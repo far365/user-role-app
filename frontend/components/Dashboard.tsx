@@ -132,23 +132,6 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Account Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-sm">
-                  <span className="font-medium">Created:</span>
-                  <br />
-                  {formatDate(user.createdAt)}
-                </div>
-                <div className="text-sm">
-                  <span className="font-medium">Updated:</span>
-                  <br />
-                  {formatDate(user.updatedAt)}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
