@@ -320,6 +320,8 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
 
   const handleAddToQueue = async () => {
     console.log("[QR Scanner] *** BUTTON CLICKED - handleAddToQueue triggered ***");
+    console.log("[QR Scanner] Current scanResult:", scanResult);
+    console.log("[QR Scanner] showConfirmDialog state:", showConfirmDialog);
     
     if (!scanResult?.success || !scanResult.data) {
       console.error("[QR Scanner] No valid scan data available for adding to queue");
@@ -334,6 +336,9 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     const qrData = scanResult.data;
     const parentId = qrData.parentId;
     
+    console.log("[QR Scanner] QR Data:", qrData);
+    console.log("[QR Scanner] Parent ID:", parentId);
+    
     if (!parentId) {
       console.error("[QR Scanner] No parent ID in QR code data");
       toast({
@@ -346,6 +351,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
     
     const now = new Date();
     const alternateName = qrData.alternatePickupBy || null;
+    const contactDisplayName = qrData.alternatePickupBy || qrData.name || 'Contact';
     
     const submissionData = {
       isQrScan: true,
@@ -356,11 +362,15 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       dismissalQrScannedAt: now,
       alternateName: alternateName,
       qrScannerId: user.userId,
-      userId: user.userId
+      userId: user.userId,
+      contactDisplayName: contactDisplayName
     };
     
+    console.log("[QR Scanner] Setting pending submission:", submissionData);
     setPendingSubmission(submissionData);
+    console.log("[QR Scanner] Setting showConfirmDialog to true");
     setShowConfirmDialog(true);
+    console.log("[QR Scanner] Dialog state should now be:", true);
   };
 
   const confirmAddToQueue = async () => {
@@ -373,16 +383,14 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
       console.log("[QR Scanner] Submitting data:", pendingSubmission);
       
-      const updateResponse = await backend.queue.updateDismissalStatusByParentId(pendingSubmission);
+      const { contactDisplayName, ...apiData } = pendingSubmission;
+      const updateResponse = await backend.queue.updateDismissalStatusByParentId(apiData);
       
       console.log("[QR Scanner] Update response:", updateResponse);
-      
-      const contactDisplayName = qrData.alternatePickupBy || qrData.name || 'Contact';
       
       if (updateResponse.success) {
         console.log("[QR Scanner] Successfully added to queue");
         
-        // Create debug message showing the API result
         const debugInfo = JSON.stringify(updateResponse.result, null, 2);
         
         toast({
