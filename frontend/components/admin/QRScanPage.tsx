@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Upload, QrCode, Camera, CheckCircle, AlertCircle, User, Phone, Calendar, IdCard, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import jsQR from "jsqr";
@@ -39,6 +40,8 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   const [isAddingToQueue, setIsAddingToQueue] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingSubmission, setPendingSubmission] = useState<any | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -318,11 +321,6 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   const handleAddToQueue = async () => {
     console.log("[QR Scanner] *** BUTTON CLICKED - handleAddToQueue triggered ***");
     
-    toast({
-      title: "Button Clicked",
-      description: "Add to Queue button was clicked - processing...",
-    });
-    
     if (!scanResult?.success || !scanResult.data) {
       console.error("[QR Scanner] No valid scan data available for adding to queue");
       toast({
@@ -333,41 +331,49 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       return;
     }
 
+    const qrData = scanResult.data;
+    const parentId = qrData.parentId;
+    
+    if (!parentId) {
+      console.error("[QR Scanner] No parent ID in QR code data");
+      toast({
+        title: "Missing Parent ID",
+        description: "QR code does not contain a parent ID. Cannot add to queue.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const now = new Date();
+    const alternateName = qrData.alternatePickupBy || null;
+    
+    const submissionData = {
+      isQrScan: true,
+      parentId: parentId,
+      dismissalQueueStatus: "InQueue",
+      addToQueueMethod: "QR",
+      dismissedAt: now,
+      dismissalQrScannedAt: now,
+      alternateName: alternateName,
+      qrScannerId: user.userId,
+      userId: user.userId
+    };
+    
+    setPendingSubmission(submissionData);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmAddToQueue = async () => {
+    if (!pendingSubmission) return;
+    
     try {
       setIsAddingToQueue(true);
-      const qrData = scanResult.data;
+      setShowConfirmDialog(false);
       
       console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
-      console.log("[QR Scanner] QR data to process:", qrData);
+      console.log("[QR Scanner] Submitting data:", pendingSubmission);
       
-      const parentId = qrData.parentId;
-      
-      if (!parentId) {
-        console.error("[QR Scanner] No parent ID in QR code data");
-        toast({
-          title: "Missing Parent ID",
-          description: "QR code does not contain a parent ID. Cannot add to queue.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log("[QR Scanner] Parent ID:", parentId);
-      
-      const now = new Date();
-      const alternateName = qrData.alternatePickupBy || null;
-      
-      const updateResponse = await backend.queue.updateDismissalStatusByParentId({
-        isQrScan: true,
-        parentId: parentId,
-        dismissalQueueStatus: "InQueue",
-        addToQueueMethod: "QR",
-        dismissedAt: now,
-        dismissalQrScannedAt: now,
-        alternateName: alternateName,
-        qrScannerId: user.userId,
-        userId: user.userId
-      });
+      const updateResponse = await backend.queue.updateDismissalStatusByParentId(pendingSubmission);
       
       console.log("[QR Scanner] Update response:", updateResponse);
       
@@ -421,8 +427,14 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       });
     } finally {
       setIsAddingToQueue(false);
+      setPendingSubmission(null);
       console.log("[QR Scanner] === ADD TO QUEUE COMPLETE ===");
     }
+  };
+
+  const cancelAddToQueue = () => {
+    setShowConfirmDialog(false);
+    setPendingSubmission(null);
   };
 
   const handleClearScan = () => {
@@ -961,6 +973,65 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Submission to Dismissal Queue</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please review the data that will be submitted to the API:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          {pendingSubmission && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 my-4">
+              <h4 className="font-semibold text-gray-900 mb-3">Submission Data:</h4>
+              <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="font-medium text-gray-700">Parent ID:</div>
+                  <div className="text-gray-900">{pendingSubmission.parentId}</div>
+                  
+                  <div className="font-medium text-gray-700">Dismissal Queue Status:</div>
+                  <div className="text-gray-900">{pendingSubmission.dismissalQueueStatus}</div>
+                  
+                  <div className="font-medium text-gray-700">Add to Queue Method:</div>
+                  <div className="text-gray-900">{pendingSubmission.addToQueueMethod}</div>
+                  
+                  <div className="font-medium text-gray-700">Is QR Scan:</div>
+                  <div className="text-gray-900">{pendingSubmission.isQrScan ? 'Yes' : 'No'}</div>
+                  
+                  <div className="font-medium text-gray-700">QR Scanner ID:</div>
+                  <div className="text-gray-900">{pendingSubmission.qrScannerId}</div>
+                  
+                  <div className="font-medium text-gray-700">User ID:</div>
+                  <div className="text-gray-900">{pendingSubmission.userId}</div>
+                  
+                  {pendingSubmission.alternateName && (
+                    <>
+                      <div className="font-medium text-gray-700">Alternate Name:</div>
+                      <div className="text-gray-900">{pendingSubmission.alternateName}</div>
+                    </>
+                  )}
+                  
+                  <div className="font-medium text-gray-700">Dismissed At:</div>
+                  <div className="text-gray-900">{new Date(pendingSubmission.dismissedAt).toLocaleString()}</div>
+                  
+                  <div className="font-medium text-gray-700">QR Scanned At:</div>
+                  <div className="text-gray-900">{new Date(pendingSubmission.dismissalQrScannedAt).toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelAddToQueue}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAddToQueue} className="bg-green-600 hover:bg-green-700">
+              Confirm & Submit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Instructions */}
       <Card className="border-green-200 bg-green-50">
