@@ -375,9 +375,13 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       
       if (updateResponse.success) {
         console.log("[QR Scanner] Successfully added to queue");
+        
+        // Create debug message showing the API result
+        const debugInfo = JSON.stringify(updateResponse.result, null, 2);
+        
         toast({
           title: "Added to Queue",
-          description: `${contactDisplayName} has been added to the dismissal queue.`,
+          description: `${contactDisplayName} has been added to the dismissal queue. API Result: ${debugInfo}`,
         });
         
         setScanResult(null);
