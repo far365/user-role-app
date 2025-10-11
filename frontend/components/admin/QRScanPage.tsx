@@ -340,7 +340,6 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
       console.log("[QR Scanner] QR data to process:", qrData);
       
-      // Get parent ID from QR data
       const parentId = qrData.parentId;
       
       if (!parentId) {
@@ -355,76 +354,42 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       
       console.log("[QR Scanner] Parent ID:", parentId);
       
-      // Get students for this parent
-      console.log("[QR Scanner] Fetching students for parent:", parentId);
-      const studentsResponse = await backend.student.getByParentID({ parentID: parentId });
-      console.log("[QR Scanner] Students response:", studentsResponse);
+      const now = new Date();
+      const alternateName = qrData.alternatePickupBy || null;
       
-      if (!studentsResponse.students || studentsResponse.students.length === 0) {
-        console.error("[QR Scanner] No students found for parent:", parentId);
-        toast({
-          title: "No Students Found",
-          description: `No students found for parent ID: ${parentId}`,
-          variant: "destructive",
-        });
-        return;
-      }
+      const updateResponse = await backend.queue.updateDismissalStatusByParentId({
+        isQrScan: true,
+        parentId: parentId,
+        dismissalQueueStatus: "InQueue",
+        addToQueueMethod: "QR",
+        dismissedAt: now,
+        dismissalQrScannedAt: now,
+        alternateName: alternateName,
+        qrScannerId: user.userId,
+        userId: user.userId
+      });
       
-      const students = studentsResponse.students;
-      console.log("[QR Scanner] Found", students.length, "student(s)");
-      
-      // Update each student's dismissal status
-      let successCount = 0;
-      let errorCount = 0;
-      
-      for (const student of students) {
-        try {
-          console.log("[QR Scanner] Updating student:", student.studentId);
-          
-          const updateResponse = await backend.student.updateDismissalStatusByStudent({
-            studentId: student.studentId,
-            dismissalQueueStatus: "InQueue",
-            addToQueueMethod: "QRScan",
-            dismissedAt: new Date(),
-            userId: user.userId
-          });
-          
-          console.log("[QR Scanner] Update response for", student.studentId, ":", updateResponse);
-          
-          if (updateResponse.success) {
-            successCount++;
-          } else {
-            errorCount++;
-            console.error("[QR Scanner] Failed to update student:", student.studentId, updateResponse.error);
-          }
-        } catch (studentError) {
-          errorCount++;
-          console.error("[QR Scanner] Error updating student:", student.studentId, studentError);
-        }
-      }
+      console.log("[QR Scanner] Update response:", updateResponse);
       
       const contactDisplayName = qrData.alternatePickupBy || qrData.name || 'Contact';
       
-      console.log("[QR Scanner] Update complete - Success:", successCount, "Errors:", errorCount);
-      
-      if (successCount > 0) {
+      if (updateResponse.success) {
         console.log("[QR Scanner] Successfully added to queue");
         toast({
           title: "Added to Queue",
-          description: `${contactDisplayName} has been added to the dismissal queue. ${successCount} student record(s) updated.`,
+          description: `${contactDisplayName} has been added to the dismissal queue.`,
         });
         
-        // Clear the scan result after successful addition
         setScanResult(null);
         setSelectedFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
       } else {
-        console.log("[QR Scanner] No records were updated");
+        console.log("[QR Scanner] Update failed:", updateResponse.error);
         toast({
           title: "Update Failed",
-          description: `Failed to update student records for ${contactDisplayName}.`,
+          description: updateResponse.error || `Failed to update records for ${contactDisplayName}.`,
           variant: "destructive",
         });
       }

@@ -249,6 +249,7 @@ import { showSQL as api_queue_show_sql_showSQL } from "~backend/queue/show_sql";
 import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/test_raw_sql";
 import { updateDismissalQueueByQRScan as api_queue_update_dismissal_queue_by_qr_scan_updateDismissalQueueByQRScan } from "~backend/queue/update_dismissal_queue_by_qr_scan";
 import { updateDismissalStatusByStudent as api_queue_update_dismissal_status_updateDismissalStatusByStudent } from "~backend/queue/update_dismissal_status";
+import { updateDismissalStatusByParentId as api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId } from "~backend/queue/update_dismissal_status_by_parentid";
 
 export namespace queue {
 
@@ -272,6 +273,7 @@ export namespace queue {
             this.showSQL = this.showSQL.bind(this)
             this.testRawSQL = this.testRawSQL.bind(this)
             this.updateDismissalQueueByQRScan = this.updateDismissalQueueByQRScan.bind(this)
+            this.updateDismissalStatusByParentId = this.updateDismissalStatusByParentId.bind(this)
             this.updateDismissalStatusByStudent = this.updateDismissalStatusByStudent.bind(this)
         }
 
@@ -417,6 +419,12 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/update-dismissal-queue-by-qr-scan`, {method: "PUT", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_update_dismissal_queue_by_qr_scan_updateDismissalQueueByQRScan>
+        }
+
+        public async updateDismissalStatusByParentId(params: RequestType<typeof api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId>): Promise<ResponseType<typeof api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/update-dismissal-status-by-parentid`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId>
         }
 
         /**
