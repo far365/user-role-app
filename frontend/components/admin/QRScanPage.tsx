@@ -321,7 +321,6 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
   const handleAddToQueue = async () => {
     console.log("[QR Scanner] *** BUTTON CLICKED - handleAddToQueue triggered ***");
     console.log("[QR Scanner] Current scanResult:", scanResult);
-    console.log("[QR Scanner] showConfirmDialog state:", showConfirmDialog);
     
     if (!scanResult?.success || !scanResult.data) {
       console.error("[QR Scanner] No valid scan data available for adding to queue");
@@ -353,24 +352,101 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
     const alternateName = qrData.alternatePickupBy || null;
     const contactDisplayName = qrData.alternatePickupBy || qrData.name || 'Contact';
     
-    const submissionData = {
-      isQrScan: true,
-      parentId: parentId,
-      dismissalQueueStatus: "InQueue",
-      addToQueueMethod: "QR",
-      dismissedAt: now,
-      dismissalQrScannedAt: now,
-      alternateName: alternateName,
-      qrScannerId: user.userID,
-      userId: user.userID,
-      contactDisplayName: contactDisplayName
-    };
+    // COMMENTED OUT CONFIRMATION DIALOG - DIRECT SUBMISSION
+    // const submissionData = {
+    //   isQrScan: true,
+    //   parentId: parentId,
+    //   dismissalQueueStatus: "InQueue",
+    //   addToQueueMethod: "QR",
+    //   dismissedAt: now,
+    //   dismissalQrScannedAt: now,
+    //   alternateName: alternateName,
+    //   qrScannerId: user.userID,
+    //   userId: user.userID,
+    //   contactDisplayName: contactDisplayName
+    // };
+    // 
+    // console.log("[QR Scanner] Setting pending submission:", submissionData);
+    // setPendingSubmission(submissionData);
+    // console.log("[QR Scanner] Setting showConfirmDialog to true");
+    // setShowConfirmDialog(true);
+    // console.log("[QR Scanner] Dialog state should now be:", true);
     
-    console.log("[QR Scanner] Setting pending submission:", submissionData);
-    setPendingSubmission(submissionData);
-    console.log("[QR Scanner] Setting showConfirmDialog to true");
-    setShowConfirmDialog(true);
-    console.log("[QR Scanner] Dialog state should now be:", true);
+    // DIRECT SUBMISSION WITHOUT CONFIRMATION DIALOG
+    try {
+      setIsAddingToQueue(true);
+      
+      console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
+      
+      const apiData = {
+        isQrScan: true,
+        parentId: parentId,
+        dismissalQueueStatus: "InQueue",
+        addToQueueMethod: "QR",
+        dismissedAt: now,
+        dismissalQrScannedAt: now,
+        alternateName: alternateName,
+        qrScannerId: user.userID,
+        userId: user.userID
+      };
+      
+      console.log("[QR Scanner] API Data:", JSON.stringify(apiData, null, 2));
+      console.log("[QR Scanner] About to call backend.queue.updateDismissalStatusByParentId");
+      
+      const updateResponse = await backend.queue.updateDismissalStatusByParentId(apiData);
+      
+      console.log("[QR Scanner] *** API CALL COMPLETED ***");
+      console.log("[QR Scanner] Update response:", JSON.stringify(updateResponse, null, 2));
+      
+      if (updateResponse.success) {
+        console.log("[QR Scanner] Successfully added to queue");
+        
+        const debugInfo = JSON.stringify(updateResponse.result, null, 2);
+        
+        toast({
+          title: "Added to Queue",
+          description: `${contactDisplayName} has been added to the dismissal queue. API Result: ${debugInfo}`,
+        });
+        
+        setScanResult(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        console.log("[QR Scanner] Update failed:", updateResponse.error);
+        toast({
+          title: "Update Failed",
+          description: updateResponse.error || `Failed to update records for ${contactDisplayName}.`,
+          variant: "destructive",
+        });
+      }
+      
+      console.log("[QR Scanner] Cleared scan result and file selection");
+      
+    } catch (error) {
+      console.error("[QR Scanner] Failed to add to queue:", error);
+      
+      let errorMessage = "Failed to add to dismissal queue. Please try again.";
+      
+      if (error instanceof Error) {
+        console.error("[QR Scanner] Error details:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        errorMessage = `Failed to add to queue: ${error.message}`;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToQueue(false);
+      console.log("[QR Scanner] === ADD TO QUEUE COMPLETE ===");
+    }
   };
 
   const confirmAddToQueue = async () => {
@@ -994,8 +1070,8 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
         </Card>
       )}
 
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      {/* CONFIRMATION DIALOG - COMMENTED OUT FOR DIRECT SUBMISSION */}
+      {/* <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Submission to Dismissal Queue</AlertDialogTitle>
@@ -1058,7 +1134,7 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog> */}
 
       {/* Instructions */}
       <Card className="border-green-200 bg-green-50">
