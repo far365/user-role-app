@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,6 +62,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedDismissalGroup, setSelectedDismissalGroup] = useState<string>("");
+  const [selectionMode, setSelectionMode] = useState<"grade" | "dismissal">("grade");
   const [studentRecords, setStudentRecords] = useState<AttendanceDismissalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -381,62 +384,85 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             </div>
           )}
           
-          {/* Grade Selection and Refresh */}
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <Select value={selectedGrade} onValueChange={handleGradeSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Class/Grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {grades.map((grade) => (
-                    <SelectItem key={grade.name} value={grade.name}>
-                      {grade.name} - Building {grade.building}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Radio Selection Mode */}
+          <RadioGroup value={selectionMode} onValueChange={(value) => {
+            setSelectionMode(value as "grade" | "dismissal");
+            if (value === "grade") {
+              setSelectedDismissalGroup("");
+            } else {
+              setSelectedGrade("");
+            }
+          }} className="flex gap-6">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="grade" id="select-grade" />
+              <Label htmlFor="select-grade" className="cursor-pointer">Select by Grade</Label>
             </div>
-            
-            {selectedGrade && (
-              <Button 
-                onClick={handleRefresh} 
-                variant="outline" 
-                size="sm"
-                disabled={isLoading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            )}
-          </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="dismissal" id="select-dismissal" />
+              <Label htmlFor="select-dismissal" className="cursor-pointer">Select by Dismissal Group</Label>
+            </div>
+          </RadioGroup>
+
+          {/* Grade Selection */}
+          {selectionMode === "grade" && (
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <Select value={selectedGrade} onValueChange={handleGradeSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Class/Grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade.name} value={grade.name}>
+                        {grade.name} - Building {grade.building}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedGrade && (
+                <Button 
+                  onClick={handleRefresh} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Dismissal Group Selection */}
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <Select 
-                value={selectedDismissalGroup} 
-                onValueChange={(value) => {
-                  setSelectedDismissalGroup(value);
-                  toast({
-                    title: "Not Yet Implemented",
-                    description: "Dismissal group filtering is coming soon",
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Dismissal Group" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bus1">Bus 1</SelectItem>
-                  <SelectItem value="bus2">Bus 2</SelectItem>
-                  <SelectItem value="bus3">Bus 3</SelectItem>
-                  <SelectItem value="walkers">Walkers</SelectItem>
-                  <SelectItem value="carpool">Carpool</SelectItem>
-                </SelectContent>
-              </Select>
+          {selectionMode === "dismissal" && (
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <Select 
+                  value={selectedDismissalGroup} 
+                  onValueChange={(value) => {
+                    setSelectedDismissalGroup(value);
+                    toast({
+                      title: "Not Yet Implemented",
+                      description: "Dismissal group filtering is coming soon",
+                    });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Dismissal Group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bus1">Bus 1</SelectItem>
+                    <SelectItem value="bus2">Bus 2</SelectItem>
+                    <SelectItem value="bus3">Bus 3</SelectItem>
+                    <SelectItem value="walkers">Walkers</SelectItem>
+                    <SelectItem value="carpool">Carpool</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
