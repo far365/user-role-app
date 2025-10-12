@@ -114,7 +114,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       console.log(`Loading student data for grade: ${grade}`);
       
       const response = await backend.queue.getAttendanceDismissalStatusByGrade({
-        timezone: 'America/Los_Angeles',
+        timezone: 'America/Chicago',
         grade: grade
       });
       
@@ -168,7 +168,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     setIsLoadingCounts(true);
     try {
       const response = await backend.queue.attendanceAndDismissalQueueCountsByGrade({
-        sch_tz: 'America/Los_Angeles',
+        sch_tz: 'America/Chicago',
         p_grade: grade
       });
       console.log("Status counts response:", response);
