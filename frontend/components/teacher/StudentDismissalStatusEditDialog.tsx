@@ -29,14 +29,14 @@ interface StudentDismissalStatusEditDialogProps {
 
 const dismissalStatuses = [
   { value: "Standby", label: "Standby", description: "Student is waiting to be called for pickup" },
-  { value: "InQueue", label: "In Queue", description: "Student is in the pickup queue" },
-  { value: "Released", label: "Released", description: "Student has been released for pickup" },
-  { value: "Collected", label: "Collected", description: "Student has been picked up" },
-  { value: "Unknown", label: "Unknown", description: "Status is unclear or needs verification" },
-  { value: "NoShow", label: "No Show", description: "Parent/guardian did not arrive for pickup" },
+  { value: "InQueue", label: "In Queue", description: "Parent/Alternate Pickup is in the pickup queue" },
+  { value: "Released", label: "Released", description: "Student has been released from class" },
+  { value: "Collected", label: "Collected", description: "Student has been picked up by parents" },
+  { value: "Unknown", label: "Unknown", description: "Status is unclear - Dismissal queue not started" },
+  { value: "NoShow", label: "No Show", description: "Parent/guardian did not arrive for pickup - Is this status needed?" },
   { value: "EarlyDismissal", label: "Early Dismissal", description: "Student was dismissed early" },
   { value: "DirectPickup", label: "Direct Pickup", description: "Student was picked up directly from classroom" },
-  { value: "LatePickup", label: "Late Pickup", description: "Student will be or was picked up late" },
+  { value: "LatePickup", label: "Late Pickup", description: "Parents indicated they will be late for pickup" },
   { value: "AfterCare", label: "After Care", description: "Student goes to after-school care" }
 ];
 
