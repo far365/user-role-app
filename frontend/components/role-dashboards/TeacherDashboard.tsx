@@ -59,6 +59,7 @@ interface StatusCount {
 export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedDismissalGroup, setSelectedDismissalGroup] = useState<string>("");
   const [studentRecords, setStudentRecords] = useState<AttendanceDismissalRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -408,6 +409,33 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 Refresh
               </Button>
             )}
+          </div>
+
+          {/* Dismissal Group Selection */}
+          <div className="flex items-center space-x-4">
+            <div className="flex-1">
+              <Select 
+                value={selectedDismissalGroup} 
+                onValueChange={(value) => {
+                  setSelectedDismissalGroup(value);
+                  toast({
+                    title: "Not Yet Implemented",
+                    description: "Dismissal group filtering is coming soon",
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Dismissal Group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bus1">Bus 1</SelectItem>
+                  <SelectItem value="bus2">Bus 2</SelectItem>
+                  <SelectItem value="bus3">Bus 3</SelectItem>
+                  <SelectItem value="walkers">Walkers</SelectItem>
+                  <SelectItem value="carpool">Carpool</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
