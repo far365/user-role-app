@@ -361,8 +361,8 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       dismissedAt: now,
       dismissalQrScannedAt: now,
       alternateName: alternateName,
-      qrScannerId: user.userId,
-      userId: user.userId,
+      qrScannerId: user.userID,
+      userId: user.userID,
       contactDisplayName: contactDisplayName
     };
     
