@@ -66,7 +66,7 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       // Phone: 1234567890
       // Parent ID: p0001 (optional)
       // Date: 12/1/2024
-      
+console.log("[QR Scanner] *** Entering QR Scan Page ***");     
       const lines = rawData.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       console.log("[QR Scanner] Split lines:", lines);
       
