@@ -1049,8 +1049,9 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
               console.log("[QR Scanner] Cancel button clicked");
               cancelAddToQueue();
             }}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
+            <AlertDialogAction onClick={(e) => {
               console.log("[QR Scanner] *** CONFIRM BUTTON CLICKED ***");
+              e.preventDefault();
               confirmAddToQueue();
             }} className="bg-green-600 hover:bg-green-700">
               Confirm & Submit
