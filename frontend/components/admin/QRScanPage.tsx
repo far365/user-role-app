@@ -374,19 +374,31 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   };
 
   const confirmAddToQueue = async () => {
-    if (!pendingSubmission) return;
+    console.log("[QR Scanner] *** confirmAddToQueue CALLED ***");
+    console.log("[QR Scanner] pendingSubmission:", pendingSubmission);
+    
+    if (!pendingSubmission) {
+      console.error("[QR Scanner] No pending submission, returning early");
+      return;
+    }
     
     try {
+      console.log("[QR Scanner] Setting isAddingToQueue to true");
       setIsAddingToQueue(true);
+      console.log("[QR Scanner] Closing dialog");
       setShowConfirmDialog(false);
       
       console.log("[QR Scanner] === ADDING TO DISMISSAL QUEUE ===");
-      console.log("[QR Scanner] Submitting data:", pendingSubmission);
+      console.log("[QR Scanner] Full pendingSubmission object:", JSON.stringify(pendingSubmission, null, 2));
       
       const { contactDisplayName, ...apiData } = pendingSubmission;
+      console.log("[QR Scanner] API Data (without contactDisplayName):", JSON.stringify(apiData, null, 2));
+      console.log("[QR Scanner] About to call backend.queue.updateDismissalStatusByParentId");
+      
       const updateResponse = await backend.queue.updateDismissalStatusByParentId(apiData);
       
-      console.log("[QR Scanner] Update response:", updateResponse);
+      console.log("[QR Scanner] *** API CALL COMPLETED ***");
+      console.log("[QR Scanner] Update response:", JSON.stringify(updateResponse, null, 2));
       
       if (updateResponse.success) {
         console.log("[QR Scanner] Successfully added to queue");
@@ -1033,8 +1045,14 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
           )}
           
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelAddToQueue}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmAddToQueue} className="bg-green-600 hover:bg-green-700">
+            <AlertDialogCancel onClick={() => {
+              console.log("[QR Scanner] Cancel button clicked");
+              cancelAddToQueue();
+            }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              console.log("[QR Scanner] *** CONFIRM BUTTON CLICKED ***");
+              confirmAddToQueue();
+            }} className="bg-green-600 hover:bg-green-700">
               Confirm & Submit
             </AlertDialogAction>
           </AlertDialogFooter>
