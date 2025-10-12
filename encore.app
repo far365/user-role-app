@@ -1,3 +1,3 @@
 {
-  "id": "school-attendance-dismissal"
+  "id": "school-manager"
 }
