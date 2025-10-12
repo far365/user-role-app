@@ -319,6 +319,7 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
   };
 
   const handleAddToQueue = async () => {
+    alert("BUTTON WAS CLICKED!");
     console.log("[QR Scanner] *** BUTTON CLICKED - handleAddToQueue triggered ***");
     console.log("[QR Scanner] Current scanResult:", scanResult);
     
