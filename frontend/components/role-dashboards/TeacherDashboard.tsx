@@ -754,7 +754,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       </div>
                       
                       {/* Row 3: Dismissal Info (2 columns) */}
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4 mb-2">
                         <div className="text-sm text-gray-600">
                           {student.DismissalStatusAndTime || 'No dismissal info'}
                         </div>
@@ -765,6 +765,16 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                           >
                             {getDismissalStatus(student.DismissalStatusAndTime)}
                           </button>
+                        </div>
+                      </div>
+                      
+                      {/* Row 4: Dismissal Method and Pickup By */}
+                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                        <div>
+                          {student.DismissalMethod || 'Method: Unknown'}
+                        </div>
+                        <div>
+                          {student.DismissalPickupBy || 'Pickup: Unknown'}
                         </div>
                       </div>
                     </div>
