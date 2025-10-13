@@ -768,13 +768,17 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                         </div>
                       </div>
                       
-                      {/* Row 4: Dismissal Method and Pickup By */}
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>
+                      {/* Row 4: Dismissal Method and Pickup By (only if alternate) */}
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="text-gray-600">
                           {student.DismissalMethod || 'Method: Unknown'}
                         </div>
                         <div>
-                          {student.DismissalPickupBy || 'Pickup: Unknown'}
+                          {student.DismissalPickupBy?.toLowerCase().includes('alternate') && (
+                            <span className="text-red-600 font-medium">
+                              {student.DismissalPickupBy}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
