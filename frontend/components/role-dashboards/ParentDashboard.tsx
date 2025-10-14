@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Bug, Car, Users, User, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Bug, Car, Users, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw, FileText } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
+import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -44,6 +45,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [isRefreshingDismissalStatus, setIsRefreshingDismissalStatus] = useState(false);
+  const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
+  const [selectedStudentForAbsence, setSelectedStudentForAbsence] = useState<{ studentid: string; StudentName: string; grade: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
@@ -663,23 +666,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       )}
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
-<Button
-          variant="ghost"
-          className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
-          onClick={() => handleNavigate('teacher-setup')}
-        >
-          <GraduationCap className="h-5 w-5 mr-3" />
-          Absences
-        </Button>
-<Button
-          variant="ghost"
-          className="justify-start h-12 px-4 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
-          onClick={() => handleNavigate('teacher-setup')}
-        >
-          <GraduationCap className="h-5 w-5 mr-3" />
-          Emergency Contacts
-        </Button>
-        {Object.keys(validationErrors).length > 0 && (
+      </div>
+      {Object.keys(validationErrors).length > 0 && (
           <Card className="border-red-200 bg-red-50">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center space-x-2 text-red-800 text-sm">
@@ -702,7 +690,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             </CardContent>
           </Card>
         )}
-      </div>
       {parentData && (
         <div className="space-y-6">
           {/* Non-Editable Information */}
@@ -757,9 +744,27 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     {studentData.map((student, index) => (
                       <div key={student.studentId} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {student.studentName} - {student.grade} - {student.classBuilding}
-                          </p>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-medium text-gray-900">
+                              {student.studentName} - {student.grade} - {student.classBuilding}
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                              onClick={() => {
+                                setSelectedStudentForAbsence({
+                                  studentid: student.studentId,
+                                  StudentName: student.studentName,
+                                  grade: student.grade
+                                });
+                                setIsSubmitAbsenceDialogOpen(true);
+                              }}
+                            >
+                              <FileText className="w-3 h-3 mr-1" />
+                              Submit Absence Request
+                            </Button>
+                          </div>
                           <p className="text-xs text-gray-900">
                             Arrival Status: Tardy at 7:58 AM - 15 mins late
                           </p>
@@ -1192,6 +1197,28 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             </Card>
           )}
         </div>
+      )}
+      
+      {selectedStudentForAbsence && (
+        <SubmitAbsenceRequestDialog
+          student={{
+            studentid: selectedStudentForAbsence.studentid,
+            StudentName: selectedStudentForAbsence.StudentName
+          }}
+          grade={selectedStudentForAbsence.grade}
+          isOpen={isSubmitAbsenceDialogOpen}
+          onClose={() => {
+            setIsSubmitAbsenceDialogOpen(false);
+            setSelectedStudentForAbsence(null);
+          }}
+          onSubmitted={() => {
+            toast({
+              title: "Success",
+              description: "Absence request submitted successfully",
+            });
+          }}
+          userRole="Parent"
+        />
       )}
     </div>
   );
