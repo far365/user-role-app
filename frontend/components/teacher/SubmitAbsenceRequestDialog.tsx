@@ -31,7 +31,7 @@ interface SubmitAbsenceRequestDialogProps {
 
 export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, onSubmitted, userRole }: SubmitAbsenceRequestDialogProps) {
   const [absenceType, setAbsenceType] = useState<"full" | "half">("full");
-  const [absenceCategory, setAbsenceCategory] = useState<"UnapprovedAbsence" | "No Show">("UnapprovedAbsence");
+  const [absenceCategory, setAbsenceCategory] = useState<"UnapprovedAbsence" | "No Show">(userRole === "Parent" ? "UnapprovedAbsence" : "UnapprovedAbsence");
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [startTime, setStartTime] = useState("9:00am");
   const [endTime, setEndTime] = useState("10:00am");
@@ -216,7 +216,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
         setShowResultDialog(true);
         
         setAbsenceType("full");
-        setAbsenceCategory("UnapprovedAbsence");
+        setAbsenceCategory(userRole === "Parent" ? "UnapprovedAbsence" : "UnapprovedAbsence");
         setStartDate(undefined);
         setStartTime("9:00am");
         setEndTime("10:00am");
@@ -261,7 +261,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
   const handleCancel = () => {
     setAbsenceType("full");
-    setAbsenceCategory("UnapprovedAbsence");
+    setAbsenceCategory(userRole === "Parent" ? "UnapprovedAbsence" : "UnapprovedAbsence");
     setStartDate(undefined);
     setStartTime("9:00am");
     setEndTime("10:00am");
@@ -354,24 +354,26 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
               </Select>
             </div>
 
-            <div className="space-y-3">
-              <Label className="font-medium">Absence Type</Label>
-              <RadioGroup
-                value={absenceCategory}
-                onValueChange={(value) => setAbsenceCategory(value as "UnapprovedAbsence" | "No Show")}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="UnapprovedAbsence" id="unapproved" />
-                    <Label htmlFor="unapproved" className="font-normal">Unapproved Absence</Label>
+            {userRole !== "Parent" && (
+              <div className="space-y-3">
+                <Label className="font-medium">Absence Type</Label>
+                <RadioGroup
+                  value={absenceCategory}
+                  onValueChange={(value) => setAbsenceCategory(value as "UnapprovedAbsence" | "No Show")}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="UnapprovedAbsence" id="unapproved" />
+                      <Label htmlFor="unapproved" className="font-normal">Unapproved Absence</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="No Show" id="noshow" />
+                      <Label htmlFor="noshow" className="font-normal">No Show</Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="No Show" id="noshow" />
-                    <Label htmlFor="noshow" className="font-normal">No Show</Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
+                </RadioGroup>
+              </div>
+            )}
 
             <div className="space-y-3">
               <Label className="font-medium">Duration</Label>
