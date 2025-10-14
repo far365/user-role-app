@@ -470,14 +470,15 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {selectedGrade && (
         <div className="flex flex-col gap-2.5">
           <div className="flex gap-2.5">
-            <Button 
+{/*            <Button 
               variant="outline" 
               className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
             >
               <UserX className="h-4 w-4 mr-1.5" />
               Absence
             </Button>
-            <Button 
+*/}
+						<Button 
               variant="outline" 
               className="inline-flex items-center h-10 px-3 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-sm"
             >
