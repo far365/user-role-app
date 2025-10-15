@@ -12,7 +12,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
-import { ViewAbsenceHistoryDialog } from "./ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
 import type { AbsenceRecord } from "~backend/student/pending_and_approved_absences_by_student";
 import type { UserRole } from "~backend/user/types";
@@ -37,7 +36,6 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   const [endTime, setEndTime] = useState("10:00am");
   const [reason, setReason] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
-  const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
   const [classTimings, setClassTimings] = useState<{ startTime: string; endTime: string } | null>(null);
   const [absenceHistory, setAbsenceHistory] = useState<AbsenceRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -301,14 +299,6 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <Button
-              variant="link"
-              className="text-blue-600 hover:text-blue-800 underline p-0 h-auto"
-              onClick={() => setIsViewHistoryOpen(true)}
-            >
-              View Absence History/Details
-            </Button>
-
             <div className="space-y-3 border border-gray-300 bg-gray-50 p-4 rounded-md">
               <div className="font-medium text-xs">Currently Pending/Approved Request</div>
               <div className="space-y-4 text-xs">
@@ -486,21 +476,6 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <ViewAbsenceHistoryDialog
-        student={student}
-        absenceHistory={absenceHistory.map((req: AbsenceRecord) => ({
-          date: new Date(req.absencedate).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit' }),
-          type: req.fullday ? 'Full Day' : 'Half Day',
-          status: req.approvalstatus,
-          startTime: req.absencestarttm,
-          endTime: req.absenceendtm,
-          reason: req.absencereason,
-          notes: req.requester_note
-        }))}
-        isOpen={isViewHistoryOpen}
-        onClose={() => setIsViewHistoryOpen(false)}
-      />
 
       <Dialog open={showResultDialog} onOpenChange={setShowResultDialog}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">

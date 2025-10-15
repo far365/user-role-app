@@ -2,24 +2,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, CalendarPlus, MessageSquare, CheckCircle, XCircle, AlertCircle, X } from "lucide-react";
+import { Calendar, Clock, CalendarPlus, MessageSquare, CheckCircle, XCircle, AlertCircle, X, History } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
+import { ViewAbsenceHistoryDialog } from "../teacher/ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
-
-interface AbsenceRecord {
-  absencercdid: number;
-  absencedate: string;
-  fullday: boolean;
-  absencestarttm?: string;
-  absenceendtm?: string;
-  approvalstatus: string;
-  absencereason?: string;
-  requester_note?: string;
-  approver_note?: string;
-  createdon: string;
-  updatedon?: string;
-}
+import type { AbsenceRecord } from "~backend/student/pending_and_approved_absences_by_student";
 
 interface StudentAbsenceCardProps {
   studentId: string;
@@ -32,6 +20,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
+  const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -239,6 +228,16 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
             </div>
           ))}
         </div>
+        <div className="mt-4">
+          <Button
+            variant="link"
+            className="text-blue-600 hover:text-blue-800 underline p-0 h-auto"
+            onClick={() => setIsViewHistoryOpen(true)}
+          >
+            <History className="w-4 h-4 mr-1" />
+            History
+          </Button>
+        </div>
       </CardContent>
       
       <SubmitAbsenceRequestDialog
@@ -257,6 +256,24 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           window.location.reload();
         }}
         userRole="Parent"
+      />
+      
+      <ViewAbsenceHistoryDialog
+        student={{
+          studentid: studentId,
+          StudentName: studentName
+        }}
+        absenceHistory={absences.map((req) => ({
+          date: new Date(req.absencedate).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit' }),
+          type: req.fullday ? 'Full Day' : 'Half Day',
+          status: req.approvalstatus,
+          startTime: req.absencestarttm,
+          endTime: req.absenceendtm,
+          reason: req.absencereason,
+          notes: req.requester_note
+        }))}
+        isOpen={isViewHistoryOpen}
+        onClose={() => setIsViewHistoryOpen(false)}
       />
     </Card>
   );
