@@ -573,26 +573,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     {studentData.map((student, index) => (
                       <div key={student.studentId} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                         <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="mb-2">
                             <p className="text-sm font-medium text-gray-900">
                               {student.studentName} - {student.grade} - {student.classBuilding}
                             </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
-                              onClick={() => {
-                                setSelectedStudentForAbsence({
-                                  studentid: student.studentId,
-                                  StudentName: student.studentName,
-                                  grade: student.grade
-                                });
-                                setIsSubmitAbsenceDialogOpen(true);
-                              }}
-                            >
-                              <FileText className="w-3 h-3 mr-1" />
-                              Submit Absence Request
-                            </Button>
                           </div>
                           <p className="text-xs text-gray-900">
                             Arrival Status: Tardy at 7:58 AM - 15 mins late
@@ -742,7 +726,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       <ManageAbsencesDialog
         isOpen={isManageAbsencesDialogOpen}
         onClose={() => setIsManageAbsencesDialogOpen(false)}
-        students={studentData.map(s => ({ studentId: s.studentId, studentName: s.studentName }))}
+        students={studentData.map(s => ({ studentId: s.studentId, studentName: s.studentName, grade: s.grade }))}
       />
     </div>
   );

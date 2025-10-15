@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Calendar, Clock, FileText, MessageSquare, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import backend from "~backend/client";
 
 interface AbsenceRecord {
@@ -21,12 +24,15 @@ interface AbsenceRecord {
 interface StudentAbsenceCardProps {
   studentId: string;
   studentName: string;
+  grade: string;
 }
 
-export function StudentAbsenceCard({ studentId, studentName }: StudentAbsenceCardProps) {
+export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbsenceCardProps) {
   const [absences, setAbsences] = useState<AbsenceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchAbsences = async () => {
@@ -122,9 +128,20 @@ export function StudentAbsenceCard({ studentId, studentName }: StudentAbsenceCar
   return (
     <Card className="border-blue-100">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-blue-900">
-          Absences for {studentName}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-semibold text-blue-900">
+            Absences for {studentName}
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+            onClick={() => setIsSubmitAbsenceDialogOpen(true)}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Submit Absence Request
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -201,6 +218,24 @@ export function StudentAbsenceCard({ studentId, studentName }: StudentAbsenceCar
           ))}
         </div>
       </CardContent>
+      
+      <SubmitAbsenceRequestDialog
+        student={{
+          studentid: studentId,
+          StudentName: studentName
+        }}
+        grade={grade}
+        isOpen={isSubmitAbsenceDialogOpen}
+        onClose={() => setIsSubmitAbsenceDialogOpen(false)}
+        onSubmitted={() => {
+          toast({
+            title: "Success",
+            description: "Absence request submitted successfully",
+          });
+          window.location.reload();
+        }}
+        userRole="Parent"
+      />
     </Card>
   );
 }

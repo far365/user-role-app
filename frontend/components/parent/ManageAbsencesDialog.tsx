@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 interface Student {
   studentId: string;
   studentName: string;
+  grade: string;
 }
 
 interface ManageAbsencesDialogProps {
@@ -31,6 +32,7 @@ export function ManageAbsencesDialog({ isOpen, onClose, students }: ManageAbsenc
                 key={student.studentId}
                 studentId={student.studentId}
                 studentName={student.studentName}
+                grade={student.grade}
               />
             ))
           )}
