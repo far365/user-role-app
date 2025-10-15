@@ -194,25 +194,6 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                     {getApprovalStatusBadge(absence.approvalstatus)}
                   </div>
                 </div>
-                
-                {absence.approvalstatus.toLowerCase() === 'pending' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 self-start"
-                    onClick={() => handleCancelPendingRequest(absence.absencercdid)}
-                    disabled={cancellingId === absence.absencercdid}
-                  >
-                    {cancellingId === absence.absencercdid ? (
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
-                    ) : (
-                      <>
-                        <X className="w-4 h-4 mr-2" />
-                        Cancel Request
-                      </>
-                    )}
-                  </Button>
-                )}
               </div>
 
               {absence.absencereason && (
@@ -232,6 +213,27 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                 <div className="flex items-start gap-2 mt-2 pl-6 text-xs">
                   <MessageSquare className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
                   <span className="text-green-800 flex-1">{absence.approver_note}</span>
+                </div>
+              )}
+              
+              {absence.approvalstatus.toLowerCase() === 'pending' && (
+                <div className="flex justify-end mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400"
+                    onClick={() => handleCancelPendingRequest(absence.absencercdid)}
+                    disabled={cancellingId === absence.absencercdid}
+                  >
+                    {cancellingId === absence.absencercdid ? (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                    ) : (
+                      <>
+                        <X className="w-3 h-3 mr-1.5" />
+                        Cancel
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </div>
