@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, FileText, MessageSquare, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Calendar, Clock, FileText, MessageSquare, CheckCircle, XCircle, AlertCircle, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import backend from "~backend/client";
@@ -32,6 +32,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,6 +75,34 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
         return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
       default:
         return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
+    }
+  };
+
+  const handleCancelPendingRequest = async (absencercdid: number) => {
+    setCancellingId(absencercdid);
+    try {
+      await backend.student.rejectAbsenceRequest({
+        absencercdid: absencercdid.toString(),
+        p_approver_note: "Cancelled by parent",
+        p_userid: studentId
+      });
+
+      toast({
+        title: "Success",
+        description: "Absence request cancelled successfully",
+      });
+
+      const response = await backend.student.pendingAndApprovedAbsencesByStudent({ studentid: studentId });
+      setAbsences(response.absences);
+    } catch (err) {
+      console.error("Failed to cancel absence request:", err);
+      toast({
+        title: "Error",
+        description: "Failed to cancel absence request",
+        variant: "destructive",
+      });
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -154,7 +183,27 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                     {formatDate(absence.absencedate)}
                   </span>
                 </div>
-                {getApprovalStatusBadge(absence.approvalstatus)}
+                <div className="flex items-center gap-2">
+                  {getApprovalStatusBadge(absence.approvalstatus)}
+                  {absence.approvalstatus.toLowerCase() === 'pending' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleCancelPendingRequest(absence.absencercdid)}
+                      disabled={cancellingId === absence.absencercdid}
+                    >
+                      {cancellingId === absence.absencercdid ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                      ) : (
+                        <>
+                          <X className="w-4 h-4 mr-1" />
+                          Cancel
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
