@@ -165,7 +165,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           <Button
             variant="outline"
             size="sm"
-            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 w-full sm:w-auto"
+            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 sm:w-auto shrink-0"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
             <CalendarPlus className="w-4 h-4 mr-2" />
@@ -199,7 +199,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
+                    className="text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400 self-start"
                     onClick={() => handleCancelPendingRequest(absence.absencercdid)}
                     disabled={cancellingId === absence.absencercdid}
                   >
