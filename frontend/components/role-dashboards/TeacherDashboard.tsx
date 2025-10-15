@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown } from "lucide-react";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
@@ -726,7 +726,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-[0.65rem] px-2 py-1 h-6 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                          className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-7 px-2 text-xs"
                           onClick={() => {
                             setSelectedStudentForAbsence({
                               studentid: student.studentid,
@@ -735,7 +735,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                             setIsSubmitAbsenceDialogOpen(true);
                           }}
                         >
-                          ✨ Submit Absence Request
+                          <CalendarPlus className="w-3 h-3 mr-1.5" />
+                          New
                         </Button>
                       </div>
                       
