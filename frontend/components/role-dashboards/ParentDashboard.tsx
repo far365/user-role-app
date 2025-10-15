@@ -488,12 +488,12 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       <div className="space-y-3">
         <h3 className="text-xl font-bold text-gray-900">Parent Dashboard</h3>
         {parentData && (
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2">
             <Button 
               onClick={() => setIsEditDialogOpen(true)} 
               variant="outline" 
               size="sm"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 w-fit"
             >
               <Edit className="w-4 h-4 mr-2" />
               Edit Parent and Alternate Info
@@ -502,20 +502,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               onClick={() => setShowManageAbsencesPage(true)}
               variant="outline"
               size="sm"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50 w-fit"
               disabled={studentData.length === 0}
             >
               <FileText className="w-4 h-4 mr-2" />
               Manage Absences
             </Button>
-            <Button
+            {/* <Button
               onClick={handleSubmitQRCode}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 w-fit"
             >
               <QrCode className="w-4 h-4 mr-2" />
               Submit QR Code
-            </Button>
+            </Button> */}
           </div>
         )}
       </div>
