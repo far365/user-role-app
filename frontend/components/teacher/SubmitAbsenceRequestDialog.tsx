@@ -282,14 +282,14 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="text-2xl">
               Submit Absence Request
-              {userRole && (
-                <Badge variant="outline" className="text-xs">
-                  {userRole}
-                </Badge>
-              )}
             </DialogTitle>
+            {userRole && (
+              <Badge variant="outline" className="text-xs w-fit">
+                {userRole}
+              </Badge>
+            )}
             <DialogDescription className="text-xl font-bold text-gray-900">
               {student.StudentName}
             </DialogDescription>
