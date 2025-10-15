@@ -291,14 +291,16 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             <DialogDescription className="text-xl font-bold text-gray-900">
               {student.StudentName}
             </DialogDescription>
-            {classTimings && (
-              <div className="text-sm text-muted-foreground mt-2">
-                Normal Class Hours: {formatTime(classTimings.startTime)} - {formatTime(classTimings.endTime)}
-              </div>
-            )}
           </DialogHeader>
+          
+          {classTimings && (
+            <div className="text-sm text-muted-foreground mt-2 px-6">
+              Normal Class Hours: {formatTime(classTimings.startTime)} - {formatTime(classTimings.endTime)}
+            </div>
+          )}
 
-          <div className="space-y-4 py-2">
+          <div className="px-6">
+            <div className="space-y-4 py-2">
             <div className="space-y-3 border border-gray-300 bg-gray-50 p-4 rounded-md">
               <div className="font-medium text-xs">Currently Pending/Approved Request</div>
               <div className="space-y-4 text-xs">
@@ -461,6 +463,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                 </div>
               </div>
             )}
+            </div>
           </div>
 
           <DialogFooter className="gap-2">
