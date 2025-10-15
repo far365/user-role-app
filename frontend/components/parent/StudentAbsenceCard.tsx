@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, FileText, MessageSquare, CheckCircle, XCircle, AlertCircle, X } from "lucide-react";
+import { Calendar, Clock, CalendarPlus, MessageSquare, CheckCircle, XCircle, AlertCircle, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import backend from "~backend/client";
@@ -167,8 +167,8 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
             className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
-            <FileText className="w-4 h-4 mr-2" />
-            Submit Absence Request
+            <CalendarPlus className="w-4 h-4 mr-2" />
+            New
           </Button>
         </div>
       </CardHeader>
