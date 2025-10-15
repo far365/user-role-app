@@ -485,18 +485,38 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 whitespace-nowrap">Parent Dashboard</h3>
+      <div className="space-y-3">
+        <h3 className="text-xl font-bold text-gray-900">Parent Dashboard</h3>
         {parentData && (
-          <Button 
-            onClick={() => setIsEditDialogOpen(true)} 
-            variant="outline" 
-            size="sm"
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Parent and Alternate Info
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => setIsEditDialogOpen(true)} 
+              variant="outline" 
+              size="sm"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Parent and Alternate Info
+            </Button>
+            <Button
+              onClick={() => setIsManageAbsencesDialogOpen(true)}
+              variant="outline"
+              size="sm"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              disabled={studentData.length === 0}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Manage Absences
+            </Button>
+            <Button
+              onClick={handleSubmitQRCode}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <QrCode className="w-4 h-4 mr-2" />
+              Submit QR Code
+            </Button>
+          </div>
         )}
       </div>
       {parentData && (
@@ -616,25 +636,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* Manage Absences Button */}
-          <div className="flex justify-center gap-4">
-            <Button
-              onClick={() => setIsManageAbsencesDialogOpen(true)}
-              variant="outline"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50"
-              disabled={studentData.length === 0}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Manage Absences
-            </Button>
-            <Button
-              onClick={handleSubmitQRCode}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <QrCode className="w-4 h-4 mr-2" />
-              Submit QR Code
-            </Button>
-          </div>
+
           {/* Student Debug Information */}
           {showStudentDebug && studentDebugData && (
             <Card className="border-yellow-200 bg-yellow-50">
