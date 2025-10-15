@@ -473,7 +473,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
+            <Button onClick={handleSubmit} disabled={isSubmitting || !startDate || !reason}>
               {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>
           </DialogFooter>
