@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import { EditParentInfoDialog } from "./EditParentInfoDialog";
-import { StudentAbsenceCard } from "../parent/StudentAbsenceCard";
+import { ManageAbsencesDialog } from "../parent/ManageAbsencesDialog";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -49,6 +49,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [isRefreshingDismissalStatus, setIsRefreshingDismissalStatus] = useState(false);
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
   const [selectedStudentForAbsence, setSelectedStudentForAbsence] = useState<{ studentid: string; StudentName: string; grade: string } | null>(null);
+  const [isManageAbsencesDialogOpen, setIsManageAbsencesDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
@@ -615,22 +616,17 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             </CardContent>
           </Card>
 
-          {/* Absence Cards for Each Student */}
-          {studentData.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Absence Records</h3>
-              {studentData.map((student) => (
-                <StudentAbsenceCard
-                  key={student.studentId}
-                  studentId={student.studentId}
-                  studentName={student.studentName}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Submit QR Code Button */}
-          <div className="flex justify-center">
+          {/* Manage Absences Button */}
+          <div className="flex justify-center gap-4">
+            <Button
+              onClick={() => setIsManageAbsencesDialogOpen(true)}
+              variant="outline"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              disabled={studentData.length === 0}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Manage Absences
+            </Button>
             <Button
               onClick={handleSubmitQRCode}
               className="bg-blue-600 hover:bg-blue-700"
@@ -740,6 +736,12 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
           onUpdate={(updatedParent) => setParentData(updatedParent)}
         />
       )}
+
+      <ManageAbsencesDialog
+        isOpen={isManageAbsencesDialogOpen}
+        onClose={() => setIsManageAbsencesDialogOpen(false)}
+        students={studentData.map(s => ({ studentId: s.studentId, studentName: s.studentName }))}
+      />
     </div>
   );
 }
