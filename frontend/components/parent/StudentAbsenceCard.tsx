@@ -154,10 +154,10 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           <Button
             variant="outline"
             size="sm"
-            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0"
+            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-7 px-2 text-xs"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
-            <CalendarPlus className="w-4 h-4 mr-2" />
+            <CalendarPlus className="w-3 h-3 mr-1.5" />
             New
           </Button>
         </div>
@@ -210,15 +210,15 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400 h-6 px-2 text-xs"
                     onClick={() => handleCancelPendingRequest(absence.absencercdid)}
                     disabled={cancellingId === absence.absencercdid}
                   >
                     {cancellingId === absence.absencercdid ? (
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-blue-600"></div>
                     ) : (
                       <>
-                        <X className="w-3 h-3 mr-1.5" />
+                        <X className="w-3 h-3 mr-1" />
                         Cancel
                       </>
                     )}
@@ -231,10 +231,10 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
         <div className="mt-4">
           <Button
             variant="link"
-            className="text-blue-600 hover:text-blue-800 underline p-0 h-auto"
+            className="text-blue-600 hover:text-blue-800 underline p-0 h-auto text-xs"
             onClick={() => setIsViewHistoryOpen(true)}
           >
-            <History className="w-4 h-4 mr-1" />
+            <History className="w-3 h-3 mr-1" />
             History
           </Button>
         </div>

@@ -493,27 +493,27 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               onClick={() => setIsEditDialogOpen(true)} 
               variant="outline" 
               size="sm"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 w-fit"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 w-fit h-8 px-3 text-sm"
             >
-              <Edit className="w-4 h-4 mr-2" />
+              <Edit className="w-3.5 h-3.5 mr-1.5" />
               Edit Parent and Alternate Info
             </Button>
             <Button
               onClick={() => setShowManageAbsencesPage(true)}
               variant="outline"
               size="sm"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50 w-fit"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50 w-fit h-8 px-3 text-sm"
               disabled={studentData.length === 0}
             >
-              <FileText className="w-4 h-4 mr-2" />
+              <FileText className="w-3.5 h-3.5 mr-1.5" />
               Manage Absences
             </Button>
             {/* <Button
               onClick={handleSubmitQRCode}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 w-fit"
+              className="bg-blue-600 hover:bg-blue-700 w-fit h-8 px-3 text-sm"
             >
-              <QrCode className="w-4 h-4 mr-2" />
+              <QrCode className="w-3.5 h-3.5 mr-1.5" />
               Submit QR Code
             </Button> */}
           </div>
@@ -534,9 +534,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   variant="outline"
                   size="sm"
                   disabled={isRefreshingDismissalStatus || studentData.length === 0}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50 h-8 px-3 text-sm"
                 >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshingDismissalStatus ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshingDismissalStatus ? 'animate-spin' : ''}`} />
                   {isRefreshingDismissalStatus ? 'Refreshing...' : 'Refresh Status'}
                 </Button>
               </CardTitle>
@@ -610,9 +610,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     onClick={handleStudentDebug}
                     variant="outline"
                     size="sm"
-                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50 h-8 px-3 text-sm"
                   >
-                    <TestTube className="w-4 h-4 mr-2" />
+                    <TestTube className="w-3.5 h-3.5 mr-1.5" />
                     Debug Students
                   </Button>
                 </div>
