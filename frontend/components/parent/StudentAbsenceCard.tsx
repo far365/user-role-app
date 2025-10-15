@@ -157,14 +157,15 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   return (
     <Card className="border-blue-100">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <CardTitle className="text-base font-semibold text-blue-900">
-            Absences for {studentName}
+            {studentName}
+            <span className="text-sm font-normal text-gray-600 ml-2">Grade {grade}</span>
           </CardTitle>
           <Button
             variant="outline"
             size="sm"
-            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 w-full sm:w-auto"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
             <CalendarPlus className="w-4 h-4 mr-2" />
@@ -173,59 +174,64 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {absences.map((absence) => (
-            <div key={absence.absencercdid} className="border rounded-md p-2 bg-gray-50">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                  <div className="text-sm font-medium text-gray-900 truncate">
-                    {formatDate(absence.absencedate)}
+            <div key={absence.absencercdid} className="border rounded-lg p-3 bg-gray-50">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900">
+                        {formatDate(absence.absencedate)}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-0.5">
+                        {absence.fullday ? "Full Day" : `${formatTime(absence.absencestarttm)} - ${formatTime(absence.absenceendtm)}`}
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-600 flex-shrink-0">
-                    {absence.fullday ? "Full Day" : `${formatTime(absence.absencestarttm)}-${formatTime(absence.absenceendtm)}`}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {getApprovalStatusBadge(absence.approvalstatus)}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {getApprovalStatusBadge(absence.approvalstatus)}
-                  {absence.approvalstatus.toLowerCase() === 'pending' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => handleCancelPendingRequest(absence.absencercdid)}
-                      disabled={cancellingId === absence.absencercdid}
-                    >
-                      {cancellingId === absence.absencercdid ? (
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
-                      ) : (
-                        <>
-                          <X className="w-3 h-3 mr-1" />
-                          Cancel
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
+                
+                {absence.approvalstatus.toLowerCase() === 'pending' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-red-600 border-red-300 hover:bg-red-50 hover:border-red-400"
+                    onClick={() => handleCancelPendingRequest(absence.absencercdid)}
+                    disabled={cancellingId === absence.absencercdid}
+                  >
+                    {cancellingId === absence.absencercdid ? (
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                    ) : (
+                      <>
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel Request
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
 
               {absence.absencereason && (
-                <div className="text-xs text-gray-700 mt-1 ml-6">
+                <div className="text-xs text-gray-700 mt-2 pl-6">
                   <span className="font-medium">Reason:</span> {absence.absencereason}
                 </div>
               )}
 
               {absence.requester_note && (
-                <div className="flex items-start gap-1.5 mt-1 ml-6 text-xs">
+                <div className="flex items-start gap-2 mt-2 pl-6 text-xs">
                   <MessageSquare className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-blue-800">{absence.requester_note}</span>
+                  <span className="text-blue-800 flex-1">{absence.requester_note}</span>
                 </div>
               )}
 
               {absence.approver_note && (
-                <div className="flex items-start gap-1.5 mt-1 ml-6 text-xs">
+                <div className="flex items-start gap-2 mt-2 pl-6 text-xs">
                   <MessageSquare className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-green-800">{absence.approver_note}</span>
+                  <span className="text-green-800 flex-1">{absence.approver_note}</span>
                 </div>
               )}
             </div>

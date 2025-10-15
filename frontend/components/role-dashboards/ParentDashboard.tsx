@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import { EditParentInfoDialog } from "./EditParentInfoDialog";
-import { ManageAbsencesDialog } from "../parent/ManageAbsencesDialog";
+import { ManageAbsencesPage } from "../parent/ManageAbsencesPage";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Parent } from "~backend/parent/types";
@@ -49,7 +49,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [isRefreshingDismissalStatus, setIsRefreshingDismissalStatus] = useState(false);
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
   const [selectedStudentForAbsence, setSelectedStudentForAbsence] = useState<{ studentid: string; StudentName: string; grade: string } | null>(null);
-  const [isManageAbsencesDialogOpen, setIsManageAbsencesDialogOpen] = useState(false);
+  const [showManageAbsencesPage, setShowManageAbsencesPage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
@@ -499,7 +499,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               Edit Parent and Alternate Info
             </Button>
             <Button
-              onClick={() => setIsManageAbsencesDialogOpen(true)}
+              onClick={() => setShowManageAbsencesPage(true)}
               variant="outline"
               size="sm"
               className="border-purple-300 text-purple-700 hover:bg-purple-50"
@@ -723,11 +723,14 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         />
       )}
 
-      <ManageAbsencesDialog
-        isOpen={isManageAbsencesDialogOpen}
-        onClose={() => setIsManageAbsencesDialogOpen(false)}
-        students={studentData.map(s => ({ studentId: s.studentId, studentName: s.studentName, grade: s.grade }))}
-      />
+      {showManageAbsencesPage && (
+        <div className="fixed inset-0 z-50 bg-white">
+          <ManageAbsencesPage
+            students={studentData.map(s => ({ studentId: s.studentId, studentName: s.studentName, grade: s.grade }))}
+            onBack={() => setShowManageAbsencesPage(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }
