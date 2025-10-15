@@ -157,7 +157,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   return (
     <Card className="border-blue-100">
       <CardHeader className="pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base font-semibold text-blue-900">
             {studentName}
             <span className="text-sm font-normal text-gray-600 ml-2">Grade {grade}</span>
@@ -165,7 +165,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           <Button
             variant="outline"
             size="sm"
-            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 sm:w-auto shrink-0"
+            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
             <CalendarPlus className="w-4 h-4 mr-2" />
