@@ -119,19 +119,29 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
   };
 
   const handleSubmit = async () => {
+    const errors: string[] = [];
+
     if (!startDate) {
-      toast({
-        title: "Invalid Date",
-        description: "Please select a start date",
-        variant: "destructive",
-      });
-      return;
+      errors.push("Start date is required");
     }
 
     if (!reason) {
+      errors.push("Reason is required");
+    }
+
+    if (errors.length > 0) {
       toast({
         title: "Validation Error",
-        description: "Please select a reason",
+        description: (
+          <div>
+            <p className="mb-2">Please fix the following:</p>
+            <ul className="list-disc pl-4">
+              {errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         variant: "destructive",
       });
       return;
@@ -473,7 +483,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
             >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting || !startDate || !reason}>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>
           </DialogFooter>
