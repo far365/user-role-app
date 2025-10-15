@@ -35,7 +35,7 @@ export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         <div className="space-y-4">
           {students.length === 0 ? (
             <div className="text-center py-12">
