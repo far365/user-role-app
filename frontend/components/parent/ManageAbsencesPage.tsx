@@ -15,8 +15,8 @@ interface ManageAbsencesPageProps {
 
 export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-10 bg-white border-b shadow-sm">
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+      <div className="flex-shrink-0 bg-white border-b shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <Button
@@ -35,22 +35,24 @@ export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 pb-32">
-        <div className="space-y-4">
-          {students.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No students found</p>
-            </div>
-          ) : (
-            students.map((student) => (
-              <StudentAbsenceCard
-                key={student.studentId}
-                studentId={student.studentId}
-                studentName={student.studentName}
-                grade={student.grade}
-              />
-            ))
-          )}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="space-y-4">
+            {students.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No students found</p>
+              </div>
+            ) : (
+              students.map((student) => (
+                <StudentAbsenceCard
+                  key={student.studentId}
+                  studentId={student.studentId}
+                  studentName={student.studentName}
+                  grade={student.grade}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
