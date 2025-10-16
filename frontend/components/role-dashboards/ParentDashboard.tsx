@@ -112,7 +112,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
      
       // Fetch dismissal status for each student
       studentsWithDismissalStatus.forEach(student => {
-        fetchDismissalStatusForStudent(student);
+        fetchDismissalStatusForStudent(student, parentID);
       });
      
       if (response.students.length === 0) {
@@ -132,8 +132,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsLoadingStudents(false);
     }
   };
-  const fetchDismissalStatusForStudent = async (student: StudentWithDismissalStatus) => {
-    if (!student.studentId || !parentData?.parentID) {
+  const fetchDismissalStatusForStudent = async (student: StudentWithDismissalStatus, parentID?: string) => {
+    const effectiveParentID = parentID || parentData?.parentID;
+    if (!student.studentId || !effectiveParentID) {
       setStudentData(prev =>
         prev.map(s =>
           s.studentId === student.studentId
@@ -152,14 +153,14 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         )
       );
       
-      console.log(`Fetching attendance/dismissal status for parent ${parentData.parentID}`);
+      console.log(`Fetching attendance/dismissal status for parent ${effectiveParentID}`);
      
       const response = await backend.queue.getAttendanceDismissalStatusByParent({
         timezone: 'America/Chicago',
-        parentId: parentData.parentID
+        parentId: effectiveParentID
       });
       
-      console.log(`Attendance/dismissal response for parent ${parentData.parentID}:`, response);
+      console.log(`Attendance/dismissal response for parent ${effectiveParentID}:`, response);
      
       const studentRecord = response.data.find(record => record.studentid === student.studentId);
      
