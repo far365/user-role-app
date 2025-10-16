@@ -577,7 +577,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                       <div key={student.studentId} className="p-4 border rounded-lg bg-white">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-base font-bold text-gray-900">
-                            {student.studentName}
+                            {student.studentName} <span className="text-sm font-normal text-gray-500">({student.grade})</span>
                           </h4>
                         </div>
                         
