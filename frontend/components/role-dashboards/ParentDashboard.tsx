@@ -38,6 +38,7 @@ interface ValidationErrors {
 }
 interface StudentWithDismissalStatus extends Student {
   dismissalStatus?: string;
+  attendanceStatus?: string;
   isLoadingDismissalStatus?: boolean;
   dismissalStatusError?: string;
 }
@@ -130,8 +131,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     }
   };
   const fetchDismissalStatusForStudent = async (student: StudentWithDismissalStatus) => {
-    if (!student.studentId) {
-      // Update student to show no ID available
+    if (!student.studentId || !parentData?.parentID) {
       setStudentData(prev =>
         prev.map(s =>
           s.studentId === student.studentId
@@ -142,7 +142,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       return;
     }
     try {
-      // Update student to show loading state
       setStudentData(prev =>
         prev.map(s =>
           s.studentId === student.studentId
@@ -150,39 +149,37 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             : s
         )
       );
-      console.log(`Fetching dismissal status for student ${student.studentId} in grade ${student.grade}`);
+      
+      console.log(`Fetching attendance/dismissal status for parent ${parentData.parentID}`);
      
-      // Get the dismissal queue list for this student's grade
-      const response = await backend.queue.getQueueListByGrade({ grade: student.grade });
-      console.log(`Dismissal queue response for grade ${student.grade}:`, response);
+      const response = await backend.queue.getAttendanceDismissalStatusByParent({
+        timezone: 'America/Chicago',
+        parentId: parentData.parentID
+      });
+      
+      console.log(`Attendance/dismissal response for parent ${parentData.parentID}:`, response);
      
-      if (!response.queueId) {
-        // No open queue
-        setStudentData(prev =>
-          prev.map(s =>
-            s.studentId === student.studentId
-              ? { ...s, dismissalStatus: undefined, isLoadingDismissalStatus: false, dismissalStatusError: "Queue info not available" }
-              : s
-          )
-        );
-        return;
-      }
-     
-      // Find this student in the dismissal queue records
-      const studentRecord = response.records.find(record => record.studentId === student.studentId);
+      const studentRecord = response.data.find(record => record.studentid === student.studentId);
      
       if (studentRecord) {
-        // Update student with dismissal status
+        const dismissalStatus = studentRecord.DismissalStatusAndTime?.match(/Dismissal:\s*(\w+)/)?.[1] || 'Unknown';
+        const attendanceStatus = studentRecord.AttendanceStatusAndTime || '';
+        
         setStudentData(prev =>
           prev.map(s =>
             s.studentId === student.studentId
-              ? { ...s, dismissalStatus: studentRecord.dismissalQueueStatus, isLoadingDismissalStatus: false, dismissalStatusError: undefined }
+              ? { 
+                  ...s, 
+                  dismissalStatus,
+                  attendanceStatus,
+                  isLoadingDismissalStatus: false, 
+                  dismissalStatusError: undefined 
+                }
               : s
           )
         );
-        console.log(`Found dismissal status for student ${student.studentId}: ${studentRecord.dismissalQueueStatus}`);
+        console.log(`Found status for student ${student.studentId}: ${dismissalStatus}`);
       } else {
-        // Student not found in dismissal queue
         setStudentData(prev =>
           prev.map(s =>
             s.studentId === student.studentId
@@ -190,12 +187,12 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               : s
           )
         );
-        console.log(`Student ${student.studentId} not found in dismissal queue for grade ${student.grade}`);
+        console.log(`Student ${student.studentId} not found in response`);
       }
     } catch (error) {
-      console.error(`Failed to fetch dismissal status for student ${student.studentId}:`, error);
+      console.error(`Failed to fetch status for student ${student.studentId}:`, error);
      
-      let errorMessage = "Queue info not available";
+      let errorMessage = "Status unavailable";
       if (error instanceof Error) {
         if (error.message.includes("No open queue")) {
           errorMessage = "Queue info not available";
@@ -204,7 +201,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         }
       }
      
-      // Update student with error state
       setStudentData(prev =>
         prev.map(s =>
           s.studentId === student.studentId
@@ -578,12 +574,11 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                               {student.studentName} - {student.grade} - {student.classBuilding}
                             </p>
                           </div>
-                          <p className="text-xs text-gray-900">
-                            Arrival Status: Tardy at 7:58 AM - 15 mins late
-                          </p>
-                          <p className="text-xs text-gray-900">
-                            Dismissal Status: as of 3:45pm
-                          </p>
+                          {student.attendanceStatus && (
+                            <p className="text-xs text-gray-900">
+                              {student.attendanceStatus}
+                            </p>
+                          )}
                           <div className="mt-1">
                             {student.isLoadingDismissalStatus ? (
                               <div className="flex items-center space-x-2">
