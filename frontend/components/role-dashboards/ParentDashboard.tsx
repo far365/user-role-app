@@ -39,6 +39,8 @@ interface ValidationErrors {
 interface StudentWithDismissalStatus extends Student {
   dismissalStatus?: string;
   attendanceStatus?: string;
+  dismissalMethod?: string;
+  dismissalPickupBy?: string;
   isLoadingDismissalStatus?: boolean;
   dismissalStatusError?: string;
 }
@@ -164,6 +166,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       if (studentRecord) {
         const dismissalStatus = studentRecord.DismissalStatusAndTime?.match(/Dismissal:\s*(\w+)/)?.[1] || 'Unknown';
         const attendanceStatus = studentRecord.AttendanceStatusAndTime || '';
+        const dismissalMethod = studentRecord.DismissalMethod || '';
+        const dismissalPickupBy = studentRecord.DismissalPickupBy || '';
         
         setStudentData(prev =>
           prev.map(s =>
@@ -172,6 +176,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   ...s, 
                   dismissalStatus,
                   attendanceStatus,
+                  dismissalMethod,
+                  dismissalPickupBy,
                   isLoadingDismissalStatus: false, 
                   dismissalStatusError: undefined 
                 }
@@ -567,35 +573,50 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                 ) : (
                   <div className="mt-1 space-y-2">
                     {studentData.map((student, index) => (
-                      <div key={student.studentId} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
-                        <div className="flex-1">
-                          <div className="mb-2">
-                            <p className="text-sm font-medium text-gray-900">
-                              {student.studentName} - {student.grade} - {student.classBuilding}
-                            </p>
+                      <div key={student.studentId} className="p-4 border rounded-lg bg-white">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-base font-bold text-gray-900">
+                            {student.studentName}
+                          </h4>
+                        </div>
+                        
+                        {student.isLoadingDismissalStatus ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                            <span className="text-sm text-gray-500">Loading...</span>
                           </div>
-                          {student.attendanceStatus && (
-                            <p className="text-xs text-gray-900">
-                              {student.attendanceStatus}
-                            </p>
-                          )}
-                          <div className="mt-1">
-                            {student.isLoadingDismissalStatus ? (
-                              <div className="flex items-center space-x-2">
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
-                                <span className="text-xs text-gray-500">Loading...</span>
+                        ) : student.dismissalStatusError ? (
+                          <p className="text-sm text-gray-500">{student.dismissalStatusError}</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {student.attendanceStatus && (
+                              <div className="text-sm text-gray-700">
+                                {student.attendanceStatus}
                               </div>
-                            ) : student.dismissalStatus ? (
-                              <Badge className={getDismissalStatusColor(student.dismissalStatus)}>
-                                {student.dismissalStatus}
-                              </Badge>
-                            ) : (
-                              <span className="text-xs text-gray-500">
-                                {student.dismissalStatusError || 'Status unavailable'}
-                              </span>
+                            )}
+                            
+                            {student.dismissalStatus && (
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-700">Dismissal:</span>
+                                <Badge className={getDismissalStatusColor(student.dismissalStatus)}>
+                                  {student.dismissalStatus}
+                                </Badge>
+                              </div>
+                            )}
+                            
+                            {student.dismissalMethod && (
+                              <p className="text-sm text-gray-700">
+                                Method: {student.dismissalMethod}
+                              </p>
+                            )}
+                            
+                            {student.dismissalPickupBy && student.dismissalPickupBy.toLowerCase().includes('alternate') && (
+                              <p className="text-sm text-red-600 font-medium">
+                                {student.dismissalPickupBy}
+                              </p>
                             )}
                           </div>
-                        </div>
+                        )}
                       </div>
                     ))}
                   </div>
