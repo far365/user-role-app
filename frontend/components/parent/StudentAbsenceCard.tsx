@@ -145,7 +145,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
 
   return (
     <Card className="border-blue-100">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base font-semibold text-blue-900">
             {studentName}
