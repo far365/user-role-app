@@ -44,7 +44,7 @@ export function QRScannerDashboard({ user }: QRScannerDashboardProps) {
           onClick={() => handleNavigate('qr-scan')}
         >
           <QrCode className="h-5 w-5 mr-3" />
-          Scan QR Code
+          Scan Dismissal QR Code
         </Button>
         <Button 
           variant="ghost" 
@@ -52,7 +52,7 @@ export function QRScannerDashboard({ user }: QRScannerDashboardProps) {
           onClick={() => handleNavigate('student-qr-verify')}
         >
           <UserPlus className="h-5 w-5 mr-3" />
-          Generate QR Code for Student
+          Scan QR Code for Student
         </Button>
       </div>
     </div>

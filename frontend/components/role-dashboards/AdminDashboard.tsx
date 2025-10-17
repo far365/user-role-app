@@ -59,7 +59,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
           onClick={() => handleNavigate('qr-scan')}
         >
           <QrCode className="h-5 w-5 mr-3" />
-          Scan QR Code
+          Scan Dismissal QR Code
         </Button>
 
         <Button 

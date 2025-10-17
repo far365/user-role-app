@@ -333,7 +333,7 @@ export function StudentQRVerifyPage({ user, onBack }: StudentQRVerifyPageProps) 
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Generate QR Code for Student</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Scan QR Code for Student</h2>
         <p className="text-gray-600">Scan student ID QR code to verify and generate new code</p>
       </div>
 
