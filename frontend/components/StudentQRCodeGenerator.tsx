@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QrCode } from "lucide-react";
 import QRCode from "qrcode";
+import backend from "~backend/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface StudentQRCodeGeneratorProps {
   studentId: string;
@@ -14,6 +16,7 @@ export function StudentQRCodeGenerator({ studentId, studentName, grade }: Studen
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
 
   const generateQRCode = async () => {
     if (!studentId) {
@@ -23,7 +26,8 @@ export function StudentQRCodeGenerator({ studentId, studentName, grade }: Studen
     setIsGenerating(true);
     
     try {
-      const qrData = studentId;
+      const response = await backend.student.generateQRToken({ studentId });
+      const qrData = response.token;
       
       const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
         width: 96,
@@ -37,6 +41,11 @@ export function StudentQRCodeGenerator({ studentId, studentName, grade }: Studen
       setQrCodeUrl(qrCodeDataUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate QR code",
+        variant: "destructive"
+      });
     } finally {
       setIsGenerating(false);
     }
