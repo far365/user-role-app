@@ -428,6 +428,12 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                       
                       return date < today || date > oneYearFromNow || dayOfWeek === 0 || dayOfWeek === 6 || isAbsenceDate;
                     }}
+                    modifiers={{
+                      friday: (date) => date.getDay() === 5
+                    }}
+                    modifiersClassNames={{
+                      friday: "bg-yellow-200 hover:bg-yellow-300"
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
