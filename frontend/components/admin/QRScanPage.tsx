@@ -33,6 +33,11 @@ interface ScanResult {
   rawData?: string;
 }
 
+interface ScannedQRTracker {
+  parentId: string;
+  timestamp: number;
+}
+
 export function QRScanPage({ user, onBack }: QRScanPageProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
@@ -46,7 +51,32 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const recentlyScannedRef = useRef<Map<string, number>>(new Map());
   const { toast } = useToast();
+
+  const DUPLICATE_SCAN_COOLDOWN_MS = 30000;
+
+  const isDuplicateScan = (parentId: string): boolean => {
+    const now = Date.now();
+    const lastScanTime = recentlyScannedRef.current.get(parentId);
+    
+    if (lastScanTime && (now - lastScanTime) < DUPLICATE_SCAN_COOLDOWN_MS) {
+      const secondsRemaining = Math.ceil((DUPLICATE_SCAN_COOLDOWN_MS - (now - lastScanTime)) / 1000);
+      console.log(`[QR Scanner] Duplicate scan detected for ${parentId}. ${secondsRemaining}s remaining in cooldown.`);
+      return true;
+    }
+    
+    return false;
+  };
+
+  const markAsScanned = (parentId: string) => {
+    recentlyScannedRef.current.set(parentId, Date.now());
+    
+    setTimeout(() => {
+      recentlyScannedRef.current.delete(parentId);
+      console.log(`[QR Scanner] Cooldown expired for ${parentId}`);
+    }, DUPLICATE_SCAN_COOLDOWN_MS);
+  };
 
   const parseQRCodeData = (rawData: string): QRCodeData | null => {
     try {
@@ -266,6 +296,26 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
       console.log("[QR Scanner] Parsed QR code data:", parsedData);
       
       if (parsedData) {
+        if (parsedData.parentId && isDuplicateScan(parsedData.parentId)) {
+          const lastScanTime = recentlyScannedRef.current.get(parsedData.parentId);
+          const secondsRemaining = lastScanTime 
+            ? Math.ceil((DUPLICATE_SCAN_COOLDOWN_MS - (Date.now() - lastScanTime)) / 1000)
+            : 30;
+          
+          setScanResult({
+            success: false,
+            error: `This QR code was recently scanned. Please wait ${secondsRemaining} seconds before scanning again.`,
+            rawData: rawData
+          });
+          
+          toast({
+            title: "Duplicate Scan Detected",
+            description: `This QR code was recently scanned. Please wait ${secondsRemaining} seconds.`,
+            variant: "destructive",
+          });
+          return;
+        }
+        
         setScanResult({
           success: true,
           data: parsedData,
@@ -425,6 +475,9 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
       
       console.log("[QR Scanner] Cleared scan result and file selection");
       
+      if (parentId) {
+        markAsScanned(parentId);
+      }
     } catch (error) {
       console.error("[QR Scanner] Failed to add to queue:", error);
       
@@ -680,6 +733,22 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
         const parsedData = parseQRCodeData(code.data);
         
         if (parsedData) {
+          if (parsedData.parentId && isDuplicateScan(parsedData.parentId)) {
+            const lastScanTime = recentlyScannedRef.current.get(parsedData.parentId);
+            const secondsRemaining = lastScanTime 
+              ? Math.ceil((DUPLICATE_SCAN_COOLDOWN_MS - (Date.now() - lastScanTime)) / 1000)
+              : 30;
+            
+            toast({
+              title: "Duplicate Scan Detected",
+              description: `This QR code was recently scanned. Please wait ${secondsRemaining} seconds.`,
+              variant: "destructive",
+            });
+            
+            animationFrameRef.current = requestAnimationFrame(scan);
+            return;
+          }
+          
           setScanResult({
             success: true,
             data: parsedData,
