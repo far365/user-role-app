@@ -74,9 +74,9 @@ export function StudentQRCodeGenerator({ studentId, studentName, grade }: Studen
         <Button 
           variant="outline" 
           size="sm" 
-          className="border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-800"
+          className="border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-800 text-xs h-8 px-3"
         >
-          <QrCode className="w-4 h-4 mr-2" />
+          <QrCode className="w-3 h-3 mr-1.5" />
           Generate Student QR Code
         </Button>
       </DialogTrigger>

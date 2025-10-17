@@ -492,14 +492,14 @@ export function StudentSetupPage({ onBack }: StudentSetupPageProps) {
                           </div>
                         )}
                       </div>
-                      <div className="mt-3 flex gap-2">
+                      <div className="mt-3 flex flex-col gap-2 items-start">
                         <Button 
                           onClick={() => handleEditStudent(student)}
                           variant="outline"
                           size="sm"
-                          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                          className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs h-8 px-3"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
+                          <Edit className="w-3 h-3 mr-1.5" />
                           Edit Student
                         </Button>
                         <StudentQRCodeGenerator 
