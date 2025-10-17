@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { QrCode } from "lucide-react";
+import { QrCode, UserPlus } from "lucide-react";
 import { QRScanPage } from "../admin/QRScanPage";
+import { StudentQRVerifyPage } from "../admin/StudentQRVerifyPage";
 import type { User } from "~backend/user/types";
 
 interface QRScannerDashboardProps {
@@ -23,6 +24,10 @@ export function QRScannerDashboard({ user }: QRScannerDashboardProps) {
     return <QRScanPage user={user} onBack={handleBackToDashboard} />;
   }
 
+  if (currentPage === 'student-qr-verify') {
+    return <StudentQRVerifyPage user={user} onBack={handleBackToDashboard} />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -40,6 +45,14 @@ export function QRScannerDashboard({ user }: QRScannerDashboardProps) {
         >
           <QrCode className="h-5 w-5 mr-3" />
           Scan QR Code
+        </Button>
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-blue-700 hover:text-blue-800 hover:bg-blue-50"
+          onClick={() => handleNavigate('student-qr-verify')}
+        >
+          <UserPlus className="h-5 w-5 mr-3" />
+          Generate QR Code for Student
         </Button>
       </div>
     </div>
