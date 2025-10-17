@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Plus, Search, Edit, User, AlertCircle, Bug, GraduationCap, Building, FileText, StickyNote, Users, Phone } from "lucide-react";
 import { StudentEditDialog } from "./StudentEditDialog";
+import { StudentQRCodeGenerator } from "../StudentQRCodeGenerator";
 import backend from "~backend/client";
 import type { Student } from "~backend/student/types";
 import type { Parent } from "~backend/parent/types";
@@ -491,7 +492,7 @@ export function StudentSetupPage({ onBack }: StudentSetupPageProps) {
                           </div>
                         )}
                       </div>
-                      <div className="mt-3">
+                      <div className="mt-3 flex gap-2">
                         <Button 
                           onClick={() => handleEditStudent(student)}
                           variant="outline"
@@ -501,6 +502,11 @@ export function StudentSetupPage({ onBack }: StudentSetupPageProps) {
                           <Edit className="w-4 h-4 mr-2" />
                           Edit Student
                         </Button>
+                        <StudentQRCodeGenerator 
+                          studentId={student.studentId}
+                          studentName={student.studentName}
+                          grade={student.grade}
+                        />
                       </div>
                     </div>
                   </div>

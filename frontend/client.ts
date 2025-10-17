@@ -451,6 +451,7 @@ export namespace queue {
  */
 import { approveAbsenceRequest as api_student_approve_absence_request_approveAbsenceRequest } from "~backend/student/approve_absence_request";
 import { debug as api_student_debug_debug } from "~backend/student/debug";
+import { generateQRToken as api_student_generate_qr_token_generateQRToken } from "~backend/student/generate_qr_token";
 import { getByParentID as api_student_get_by_parent_getByParentID } from "~backend/student/get_by_parent";
 import { insertAbsence as api_student_insert_absence_insertAbsence } from "~backend/student/insert_absence";
 import { pendingAbsenceApprovalsByGrade as api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade } from "~backend/student/pending_absence_approvals_by_grade";
@@ -464,6 +465,7 @@ import {
 import { update as api_student_update_update } from "~backend/student/update";
 import { updateStudentAttendanceStatus as api_student_update_attendance_status_by_student_updateStudentAttendanceStatus } from "~backend/student/update_attendance_status_by_student";
 import { updateDismissalStatusByStudent as api_student_update_dismissal_status_by_student_updateDismissalStatusByStudent } from "~backend/student/update_dismissal_status_by_student";
+import { verifyQRToken as api_student_verify_qr_token_verifyQRToken } from "~backend/student/verify_qr_token";
 
 export namespace student {
 
@@ -474,6 +476,7 @@ export namespace student {
             this.baseClient = baseClient
             this.approveAbsenceRequest = this.approveAbsenceRequest.bind(this)
             this.debug = this.debug.bind(this)
+            this.generateQRToken = this.generateQRToken.bind(this)
             this.getByParentID = this.getByParentID.bind(this)
             this.insertAbsence = this.insertAbsence.bind(this)
             this.pendingAbsenceApprovalsByGrade = this.pendingAbsenceApprovalsByGrade.bind(this)
@@ -485,6 +488,7 @@ export namespace student {
             this.update = this.update.bind(this)
             this.updateDismissalStatusByStudent = this.updateDismissalStatusByStudent.bind(this)
             this.updateStudentAttendanceStatus = this.updateStudentAttendanceStatus.bind(this)
+            this.verifyQRToken = this.verifyQRToken.bind(this)
         }
 
         public async approveAbsenceRequest(params: RequestType<typeof api_student_approve_absence_request_approveAbsenceRequest>): Promise<ResponseType<typeof api_student_approve_absence_request_approveAbsenceRequest>> {
@@ -500,6 +504,12 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/debug/${encodeURIComponent(params.parentID)}`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_debug_debug>
+        }
+
+        public async generateQRToken(params: RequestType<typeof api_student_generate_qr_token_generateQRToken>): Promise<ResponseType<typeof api_student_generate_qr_token_generateQRToken>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/qr/generate`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_generate_qr_token_generateQRToken>
         }
 
         /**
@@ -606,6 +616,12 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/update-attendance-status`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_update_attendance_status_by_student_updateStudentAttendanceStatus>
+        }
+
+        public async verifyQRToken(params: RequestType<typeof api_student_verify_qr_token_verifyQRToken>): Promise<ResponseType<typeof api_student_verify_qr_token_verifyQRToken>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/qr/verify`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_verify_qr_token_verifyQRToken>
         }
     }
 }
