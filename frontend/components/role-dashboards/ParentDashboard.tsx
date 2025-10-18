@@ -41,6 +41,8 @@ interface StudentWithDismissalStatus extends Student {
   attendanceStatus?: string;
   dismissalMethod?: string;
   dismissalPickupBy?: string;
+  attendanceStatusAndTime?: string;
+  dismissalStatusAndTime?: string;
   isLoadingDismissalStatus?: boolean;
   dismissalStatusError?: string;
 }
@@ -169,6 +171,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         const attendanceStatus = studentRecord.AttendanceStatusAndTime || '';
         const dismissalMethod = studentRecord.DismissalMethod || '';
         const dismissalPickupBy = studentRecord.DismissalPickupBy || '';
+        const attendanceStatusAndTime = studentRecord.AttendanceStatusAndTime || '';
+        const dismissalStatusAndTime = studentRecord.DismissalStatusAndTime || '';
         
         setStudentData(prev =>
           prev.map(s =>
@@ -179,6 +183,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                   attendanceStatus,
                   dismissalMethod,
                   dismissalPickupBy,
+                  attendanceStatusAndTime,
+                  dismissalStatusAndTime,
                   isLoadingDismissalStatus: false, 
                   dismissalStatusError: undefined 
                 }
@@ -359,6 +365,31 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getAttendanceStatus = (statusText: string) => {
+    if (!statusText) return 'Unknown';
+    const match = statusText.match(/Attendance:\s*(\w+)/);
+    return match ? match[1] : 'Unknown';
+  };
+
+  const getDismissalStatus = (statusText: string) => {
+    if (!statusText) return 'Unknown';
+    const match = statusText.match(/Dismissal:\s*(\w+)/);
+    return match ? match[1] : 'Unknown';
+  };
+
+  const removeStatusFromText = (statusText: string, statusType: 'Attendance' | 'Dismissal') => {
+    if (!statusText) return '';
+    const regex = new RegExp(`${statusType}:\\s*\\w+\\s*`);
+    const result = statusText.replace(regex, `${statusType}: `).trim();
+    
+    if (result.match(new RegExp(`^${statusType}:\\s*at\\s+Unknown$`, 'i'))) {
+      return '';
+    }
+    
+    return result;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -590,32 +621,36 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                           <p className="text-sm text-gray-500">{student.dismissalStatusError}</p>
                         ) : (
                           <div className="space-y-2">
-                            {student.attendanceStatus && (
-                              <div className="text-sm text-gray-700">
-                                {student.attendanceStatus}
+                            <div className="grid grid-cols-2 gap-4 mb-3">
+                              <div className="text-sm text-gray-500 italic">
+                                {removeStatusFromText(student.attendanceStatusAndTime || '', 'Attendance') || 'No attendance info'}
                               </div>
-                            )}
-                            
-                            {student.dismissalStatus && (
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm text-gray-700">Dismissal:</span>
-                                <Badge className={getDismissalStatusColor(student.dismissalStatus)}>
-                                  {student.dismissalStatus}
-                                </Badge>
+                              <div className="text-sm font-medium text-blue-600">
+                                {getAttendanceStatus(student.attendanceStatusAndTime || '')}
                               </div>
-                            )}
+                            </div>
                             
-                            {student.dismissalMethod && (
-                              <p className="text-sm text-gray-700">
-                                Method: {student.dismissalMethod}
-                              </p>
-                            )}
+                            <div className="grid grid-cols-2 gap-4 mb-2">
+                              <div className="text-sm text-gray-500 italic">
+                                {removeStatusFromText(student.dismissalStatusAndTime || '', 'Dismissal') || 'No dismissal info'}
+                              </div>
+                              <div className="text-sm font-medium text-green-600">
+                                {getDismissalStatus(student.dismissalStatusAndTime || '')}
+                              </div>
+                            </div>
                             
-                            {student.dismissalPickupBy && student.dismissalPickupBy.toLowerCase().includes('alternate') && (
-                              <p className="text-sm text-red-600 font-medium">
-                                {student.dismissalPickupBy}
-                              </p>
-                            )}
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div className="text-gray-600">
+                                {student.dismissalMethod || 'Method: Unknown'}
+                              </div>
+                              <div>
+                                {student.dismissalPickupBy && student.dismissalPickupBy.toLowerCase().includes('alternate') && (
+                                  <span className="text-red-600 font-medium">
+                                    {student.dismissalPickupBy}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
