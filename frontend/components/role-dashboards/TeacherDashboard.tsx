@@ -345,7 +345,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     if (!statusText) return '';
     // Remove the status word, keeping only the timestamp/additional info
     const regex = new RegExp(`${statusType}:\\s*\\w+\\s*`);
-    return statusText.replace(regex, `${statusType}: `);
+    const result = statusText.replace(regex, `${statusType}: `).trim();
+    
+    // If result is "Attendance: at Unknown" or "Dismissal: at Unknown", return empty
+    if (result.match(new RegExp(`^${statusType}:\\s*at\\s+Unknown$`, 'i'))) {
+      return '';
+    }
+    
+    return result;
   };
 
   return (
