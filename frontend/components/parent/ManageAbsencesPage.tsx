@@ -36,8 +36,8 @@ export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="space-y-4">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="space-y-2">
             {students.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-600">No students found</p>
