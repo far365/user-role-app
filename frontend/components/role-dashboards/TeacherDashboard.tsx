@@ -757,7 +757,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       
                       {/* Row 2: Attendance Info (2 columns) */}
                       <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-500 italic">
                           {removeStatusFromText(student.AttendanceStatusAndTime, 'Attendance') || 'No attendance info'}
                         </div>
                         <div>
@@ -772,7 +772,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       
                       {/* Row 3: Dismissal Info (2 columns) */}
                       <div className="grid grid-cols-2 gap-4 mb-2">
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-gray-500 italic">
                           {removeStatusFromText(student.DismissalStatusAndTime, 'Dismissal') || 'No dismissal info'}
                         </div>
                         <div>
