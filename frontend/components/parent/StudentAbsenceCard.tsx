@@ -154,7 +154,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           <Button
             variant="outline"
             size="sm"
-            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-7 px-2 text-xs"
+            className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-6 px-2 text-xs"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
             <CalendarPlus className="w-3 h-3 mr-1.5" />
