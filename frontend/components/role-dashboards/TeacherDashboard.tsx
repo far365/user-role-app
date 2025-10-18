@@ -340,6 +340,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     return match ? match[1] : 'Unknown';
   };
 
+  // Remove status word from status text to avoid redundancy
+  const removeStatusFromText = (statusText: string, statusType: 'Attendance' | 'Dismissal') => {
+    if (!statusText) return '';
+    // Remove the status word, keeping only the timestamp/additional info
+    const regex = new RegExp(`${statusType}:\\s*\\w+\\s*`);
+    return statusText.replace(regex, `${statusType}: `);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -743,7 +751,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       {/* Row 2: Attendance Info (2 columns) */}
                       <div className="grid grid-cols-2 gap-4 mb-3">
                         <div className="text-sm text-gray-600">
-                          {student.AttendanceStatusAndTime || 'No attendance info'}
+                          {removeStatusFromText(student.AttendanceStatusAndTime, 'Attendance') || 'No attendance info'}
                         </div>
                         <div>
                           <button
@@ -758,7 +766,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                       {/* Row 3: Dismissal Info (2 columns) */}
                       <div className="grid grid-cols-2 gap-4 mb-2">
                         <div className="text-sm text-gray-600">
-                          {student.DismissalStatusAndTime || 'No dismissal info'}
+                          {removeStatusFromText(student.DismissalStatusAndTime, 'Dismissal') || 'No dismissal info'}
                         </div>
                         <div>
                           <button
