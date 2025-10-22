@@ -8,6 +8,8 @@ export const getCurrent = api(
     const { data, error } = await supabase
       .rpc("get_current_academic_year");
 
+    console.log("Raw API response:", JSON.stringify({ data, error }, null, 2));
+
     if (error) {
       throw APIError.notFound("No current academic year found");
     }
