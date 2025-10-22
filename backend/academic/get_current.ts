@@ -14,9 +14,13 @@ export const getCurrent = api(
     if (error) {
       throw new Error(error.message);
     }
-    if (Array.isArray(data)) {
-      return data[0] as AcademicYear;
-    }
-    return data as AcademicYear;
+    
+    const rawData = Array.isArray(data) ? data[0] : data;
+    
+    return {
+      ayid: rawData.ayid,
+      start_date: rawData.FirstDay,
+      end_date: rawData.LastDay,
+    };
   }
 );
