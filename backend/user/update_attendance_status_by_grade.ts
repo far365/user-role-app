@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 
 export interface UpdateAttendanceStatusByGradeRequest {
   grade: string;
-  arrivalStatus: "OnTime" | "OnTime-M" | "Tardy" | "Tardy-M" | "NoShow" | "Unknown";
+  arrivalStatus: "OnTime" | "OnTime-M" | "Tardy" | "Tardy-M" | "ExcusedDelay" | "NoShow" | "Unknown";
   userid: string;
 }
 
