@@ -36,7 +36,8 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
     { value: "Tardy", label: "Tardy" },
     { value: "Tardy-M", label: "Tardy-M" },
     { value: "NoShow", label: "NoShow" },
-    { value: "Unknown", label: "Unknown" }
+    { value: "Unknown", label: "Unknown" },
+    { value: "ExcusedDelay", label: "ExcusedDelay" }
   ];
 
   const handleSubmit = async () => {

@@ -30,7 +30,8 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user }: Attenda
     { value: "Tardy", label: "Tardy" },
     { value: "Tardy-M", label: "Tardy-M" },
     { value: "NoShow", label: "NoShow" },
-    { value: "Unknown", label: "Unknown" }
+    { value: "Unknown", label: "Unknown" },
+    { value: "ExcusedDelay", label: "ExcusedDelay" }
   ];
 
   const handleSubmit = async () => {
