@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 import type { AcademicYear } from "./types";
 
-export const getCurrent = api(
+export const getCurrentYear = api(
   { method: "GET", path: "/academic/current", expose: true },
   async (): Promise<AcademicYear> => {
     const { data, error } = await supabase.rpc("get_current_academic_year");
