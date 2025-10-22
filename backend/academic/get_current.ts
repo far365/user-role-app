@@ -6,10 +6,7 @@ export const getCurrent = api(
   { method: "GET", path: "/academic/current", expose: true },
   async (): Promise<AcademicYear> => {
     const { data, error } = await supabase
-      .from("academicyear")
-      .select("ayid, start_date, end_date")
-      .eq("is_current", true)
-      .single();
+      .rpc("get_current_academic_year");
 
     if (error) {
       throw APIError.notFound("No current academic year found");
