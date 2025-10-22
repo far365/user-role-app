@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
+import type { ArrivalStatus } from "@/types";
 
 interface AttendanceStatusDialogProps {
   student: {
@@ -19,8 +20,6 @@ interface AttendanceStatusDialogProps {
   onClose: () => void;
   onStatusUpdated: () => void;
 }
-
-type ArrivalStatus = "OnTime" | "OnTime-M" | "Tardy" | "Tardy-M" | "NoShow" | "Unknown";
 
 export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose, onStatusUpdated }: AttendanceStatusDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<ArrivalStatus>("OnTime");

@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
+import type { ArrivalStatus } from "@/types";
 
 interface AttendanceUpdateDialogProps {
   isOpen: boolean;
@@ -14,8 +15,6 @@ interface AttendanceUpdateDialogProps {
   grade: string;
   user: UserType;
 }
-
-type ArrivalStatus = "OnTime" | "OnTime-M" | "Tardy" | "Tardy-M" | "NoShow" | "Unknown";
 
 export function AttendanceUpdateDialog({ isOpen, onClose, grade, user }: AttendanceUpdateDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<ArrivalStatus>("OnTime");
