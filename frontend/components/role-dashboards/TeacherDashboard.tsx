@@ -672,41 +672,29 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       )}
 
       {/* Student List Section */}
-      <Card>
-        <Collapsible open={isStudentListOpen} onOpenChange={setIsStudentListOpen}>
-          <CardHeader>
-            <CollapsibleTrigger className="w-full">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="w-5 h-5" />
-                  <span>Student List</span>
-                  {selectedGrade && (
+      {selectedGrade && (
+        <Card>
+          <Collapsible open={isStudentListOpen} onOpenChange={setIsStudentListOpen}>
+            <CardHeader>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Student List</span>
                     <Badge variant="secondary" className="ml-2">
                       {studentRecords.length} students
                     </Badge>
-                  )}
-                </CardTitle>
-                <ChevronDown className={`w-5 h-5 transition-transform ${isStudentListOpen ? 'transform rotate-180' : ''}`} />
-              </div>
-            </CollapsibleTrigger>
-            <CardDescription>
-              {selectedGrade 
-                ? `Students in ${selectedGrade} with attendance and dismissal status`
-                : "Select a grade to view students"
-              }
-            </CardDescription>
-          </CardHeader>
-          <CollapsibleContent>
-            <CardContent>
-              {!selectedGrade ? (
-                <div className="text-center py-8">
-                  <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 font-medium">No grade selected</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Please select a class/grade to view student data
-                  </p>
+                  </CardTitle>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${isStudentListOpen ? 'transform rotate-180' : ''}`} />
                 </div>
-              ) : isLoading ? (
+              </CollapsibleTrigger>
+              <CardDescription>
+                Students in {selectedGrade} with attendance and dismissal status
+              </CardDescription>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent>
+                {isLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-3"></div>
                   <p className="text-gray-600">Loading student data...</p>
@@ -796,10 +784,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
+      )}
 
       {/* Individual Student Attendance Status Dialog */}
       {selectedStudent && (
