@@ -110,15 +110,15 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       
       console.log("[LoginForm] Testing backend connection...");
       
-      // Try to call a simple endpoint to test connectivity
-      const response = await backend.user.list();
+      // Try to call the academic year endpoint to test connectivity
+      const response = await backend.academic.getCurrentYear();
       console.log("[LoginForm] Backend connection test successful:", response);
       
-      setDebugInfo(`Connection test successful. Found ${response.users.length} users in database.`);
+      setDebugInfo(`Connection test successful. Current academic year: ${response.ayid}`);
       
       toast({
         title: "Connection Test",
-        description: `Successfully connected to backend. Found ${response.users.length} users.`,
+        description: `Successfully connected to backend. Current academic year: ${response.ayid}`,
       });
     } catch (error) {
       console.error("[LoginForm] Connection test failed:", error);
