@@ -7,9 +7,9 @@ export const getCurrentYear = api(
   async (): Promise<AcademicYear> => {
     const { data, error } = await supabase.rpc("get_current_academic_year");
     
-    console.log("Raw RPC response:", JSON.stringify({ data, error }, null, 2));
-    console.log("Data type:", typeof data);
-    console.log("Is array:", Array.isArray(data));
+    //console.log("Raw RPC response:", JSON.stringify({ data, error }, null, 2));
+    //console.log("Data type:", typeof data);
+    //console.log("Is array:", Array.isArray(data));
     
     if (error) {
       throw new Error(error.message);
