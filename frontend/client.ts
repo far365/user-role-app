@@ -33,6 +33,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
  * Client is an API client for the  Encore application.
  */
 export class Client {
+    public readonly academic: academic.ServiceClient
     public readonly grades: grades.ServiceClient
     public readonly parent: parent.ServiceClient
     public readonly queue: queue.ServiceClient
@@ -52,6 +53,7 @@ export class Client {
         this.target = target
         this.options = options ?? {}
         const base = new BaseClient(this.target, this.options)
+        this.academic = new academic.ServiceClient(base)
         this.grades = new grades.ServiceClient(base)
         this.parent = new parent.ServiceClient(base)
         this.queue = new queue.ServiceClient(base)
@@ -85,6 +87,29 @@ export interface ClientOptions {
 
     /** Default RequestInit to be used for the client */
     requestInit?: Omit<RequestInit, "headers"> & { headers?: Record<string, string> }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { getCurrentYear as api_academic_get_current_year_getCurrentYear } from "~backend/academic/get_current_year";
+
+export namespace academic {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getCurrentYear = this.getCurrentYear.bind(this)
+        }
+
+        public async getCurrentYear(): Promise<ResponseType<typeof api_academic_get_current_year_getCurrentYear>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/academic/current`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_get_current_year_getCurrentYear>
+        }
+    }
 }
 
 /**
