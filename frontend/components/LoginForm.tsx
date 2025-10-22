@@ -222,13 +222,14 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 {debugInfo}
               </div>
               <div className="mt-3 text-xs text-yellow-700">
-                <p><strong>Common Issues:</strong></p>
-                <ul className="list-disc list-inside mt-1 space-y-1">
+                {/* <p><strong>Common Issues:</strong></p>
+								                <ul className="list-disc list-inside mt-1 space-y-1">
                   <li>Check that your Supabase URL and API key are correctly set in the Infrastructure tab</li>
                   <li>Ensure the usersrcd table exists in your Supabase database</li>
                   <li>Verify that the table has the correct column names (loginid, userrole, etc.)</li>
                   <li>Check that RLS (Row Level Security) policies allow access to the data</li>
                 </ul>
+								*/}
               </div>
             </CardContent>
           </Card>
