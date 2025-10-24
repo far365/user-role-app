@@ -521,6 +521,22 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       )}
       <div className="space-y-3">
         <h3 className="text-xl font-bold text-gray-900">Parent Dashboard</h3>
+        
+        {/* Upcoming Events/Activities Reminders */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Bell className="w-5 h-5" />
+              <span>Upcoming Event/Activities Reminder(s)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-gray-700">
+              Group Photos
+            </div>
+          </CardContent>
+        </Card>
+
         {parentData && (
           <div className="flex flex-col gap-2">
             <Button 
@@ -688,21 +704,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     Debug Students
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Events/Activities Reminders */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Bell className="w-5 h-5" />
-                <span>Upcoming Event/Activities Reminder(s)</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-gray-700">
-                Group Photos
               </div>
             </CardContent>
           </Card>
