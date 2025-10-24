@@ -543,7 +543,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
               Manage Absences
             </Button>
             <Button
-              onClick={() => window.open('https://houstonacademy.org', '_blank')}
+              onClick={() => window.open('https://hquranacademy.org', '_blank')}
               variant="outline"
               size="sm"
               className="border-green-300 text-green-700 hover:bg-green-50 w-fit h-8 px-3 text-sm"
