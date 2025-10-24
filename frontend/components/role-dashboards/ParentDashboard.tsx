@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Bug, Car, Users, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw, FileText, ExternalLink } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Bug, Car, Users, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw, FileText, ExternalLink, Bell } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -616,9 +616,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     {studentData.map((student, index) => (
                       <div key={student.studentId} className="p-4 border rounded-lg bg-white">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-base font-bold text-gray-900">
-                            {student.studentName} <span className="text-sm font-normal text-gray-500">({student.grade})</span>
-                          </h4>
+                          <div>
+                            <h4 className="text-base font-bold text-gray-900">
+                              {student.studentName} <span className="text-sm font-normal text-gray-500">({student.grade})</span>
+                            </h4>
+                            <a
+                              href={`https://hquranacademy.org/grade-${student.grade.toLowerCase()}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 mt-1"
+                            >
+                              {student.grade} info
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
                         </div>
                         
                         {student.isLoadingDismissalStatus ? (
@@ -681,6 +692,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             </CardContent>
           </Card>
 
+          {/* Upcoming Events/Activities Reminders */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Bell className="w-5 h-5" />
+                <span>Upcoming Event/Activities Reminder(s)</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-gray-700">
+                Group Photos
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Student Debug Information */}
           {showStudentDebug && studentDebugData && (
