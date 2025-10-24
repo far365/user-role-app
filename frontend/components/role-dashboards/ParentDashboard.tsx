@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Bug, Car, Users, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw, FileText } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Bug, Car, Users, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw, FileText, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -541,6 +541,15 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             >
               <FileText className="w-3.5 h-3.5 mr-1.5" />
               Manage Absences
+            </Button>
+            <Button
+              onClick={() => window.open('https://houstonacademy.org', '_blank')}
+              variant="outline"
+              size="sm"
+              className="border-green-300 text-green-700 hover:bg-green-50 w-fit h-8 px-3 text-sm"
+            >
+              <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+              Quick Links
             </Button>
             {/* <Button
               onClick={handleSubmitQRCode}
