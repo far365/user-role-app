@@ -28,6 +28,7 @@ export function StudentQRVerifyPage({ user, onBack }: StudentQRVerifyPageProps) 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [showResultDialog, setShowResultDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -174,6 +175,51 @@ export function StudentQRVerifyPage({ user, onBack }: StudentQRVerifyPageProps) 
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUpdateAttendance = async () => {
+    if (!verificationResult?.valid || !verificationResult.studentId) {
+      toast({
+        title: "No Valid Scan",
+        description: "Please scan a valid student QR code first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      const response = await backend.queue.updateAttendanceStatusByQRCode({
+        studentId: verificationResult.studentId,
+        userId: user.userID
+      });
+      
+      if (response.success) {
+        toast({
+          title: "Attendance Updated",
+          description: `Student ${verificationResult.studentId} attendance updated via QR code`,
+        });
+        
+        setShowResultDialog(false);
+        handleClearScan();
+      } else {
+        toast({
+          title: "Update Failed",
+          description: "Failed to update attendance status",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update attendance:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update attendance",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -495,13 +541,24 @@ export function StudentQRVerifyPage({ user, onBack }: StudentQRVerifyPageProps) 
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
+            {verificationResult?.valid && (
+              <Button 
+                onClick={handleUpdateAttendance}
+                disabled={isProcessing}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {isProcessing ? "Processing..." : "Update Attendance"}
+              </Button>
+            )}
             <Button 
               onClick={() => {
                 setShowResultDialog(false);
                 handleClearScan();
               }}
-              variant={verificationResult?.valid ? "default" : "destructive"}
+              variant={verificationResult?.valid ? "outline" : "destructive"}
+              disabled={isProcessing}
             >
               Close
             </Button>
