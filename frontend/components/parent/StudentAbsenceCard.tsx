@@ -131,14 +131,44 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   if (absences.length === 0) {
     return (
       <Card className="border-gray-100">
-        <CardHeader className="py-2 pb-1">
-          <CardTitle className="text-sm font-semibold text-gray-900">
-            Absences for {studentName}
-          </CardTitle>
+        <CardHeader className="py-2 pb-0">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm font-semibold text-gray-900">
+              {studentName}
+              <span className="text-xs font-normal text-gray-600 ml-1.5">Grade {grade}</span>
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-6 px-2 text-xs"
+              onClick={() => setIsSubmitAbsenceDialogOpen(true)}
+            >
+              <CalendarPlus className="w-3 h-3 mr-1" />
+              New
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="py-2">
           <p className="text-xs text-gray-600">No absence records found</p>
         </CardContent>
+        
+        <SubmitAbsenceRequestDialog
+          student={{
+            studentid: studentId,
+            StudentName: studentName
+          }}
+          grade={grade}
+          isOpen={isSubmitAbsenceDialogOpen}
+          onClose={() => setIsSubmitAbsenceDialogOpen(false)}
+          onSubmitted={() => {
+            toast({
+              title: "Success",
+              description: "Absence request submitted successfully",
+            });
+            window.location.reload();
+          }}
+          userRole="Parent"
+        />
       </Card>
     );
   }
