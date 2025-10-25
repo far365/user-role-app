@@ -171,6 +171,54 @@ export function StudentQRScanPage({ user, onBack }: StudentQRScanPageProps) {
     }
   };
 
+  const handleUpdateAttendance = async () => {
+    if (!scanResult?.success || !scanResult.studentId) {
+      toast({
+        title: "No Valid Scan",
+        description: "Please scan a valid student QR code first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      const response = await backend.queue.updateAttendanceStatusByQRCode({
+        studentId: scanResult.studentId,
+        userId: user.userID
+      });
+      
+      if (response.success) {
+        toast({
+          title: "Attendance Updated",
+          description: `${scanResult.studentName} attendance updated via QR code`,
+        });
+        
+        setScanResult(null);
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        toast({
+          title: "Update Failed",
+          description: "Failed to update attendance status",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("[Student QR Scanner] Failed to update attendance:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update attendance",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleMarkAsDismissed = async () => {
     if (!scanResult?.success || !scanResult.studentId) {
       toast({
@@ -574,7 +622,16 @@ export function StudentQRScanPage({ user, onBack }: StudentQRScanPageProps) {
                   </p>
                 </div>
 
-                <div className="flex justify-center pt-4">
+                <div className="flex justify-center gap-4 pt-4">
+                  <Button 
+                    onClick={handleUpdateAttendance}
+                    size="lg"
+                    disabled={isProcessing}
+                    className="bg-blue-600 hover:bg-blue-700 px-8"
+                  >
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    {isProcessing ? 'Processing...' : 'Update Attendance'}
+                  </Button>
                   <Button 
                     onClick={handleMarkAsDismissed}
                     size="lg"
