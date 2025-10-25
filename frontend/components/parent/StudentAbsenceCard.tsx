@@ -150,6 +150,16 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
         </CardHeader>
         <CardContent className="py-2">
           <p className="text-xs text-gray-600">No absence records found</p>
+          <div className="mt-1.5">
+            <Button
+              variant="link"
+              className="text-blue-600 hover:text-blue-800 underline p-0 h-auto text-xs"
+              onClick={() => setIsViewHistoryOpen(true)}
+            >
+              <History className="w-3 h-3 mr-1" />
+              History
+            </Button>
+          </div>
         </CardContent>
         
         <SubmitAbsenceRequestDialog
@@ -168,6 +178,15 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
             window.location.reload();
           }}
           userRole="Parent"
+        />
+        
+        <ViewAbsenceHistoryDialog
+          student={{
+            studentid: studentId,
+            StudentName: studentName
+          }}
+          isOpen={isViewHistoryOpen}
+          onClose={() => setIsViewHistoryOpen(false)}
         />
       </Card>
     );
