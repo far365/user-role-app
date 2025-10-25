@@ -111,7 +111,7 @@ export function ViewAbsenceHistoryDialog({ student, isOpen, onClose }: ViewAbsen
                 </div>
                 <div className="text-base text-foreground mb-3">
                   {request.type}
-                  {request.startTime && request.endTime && ` (${request.startTime} - ${request.endTime})`}
+                  {request.type === 'Half Day' && request.startTime && request.endTime && ` (${request.startTime} - ${request.endTime})`}
                 </div>
                 {request.reason && (
                   <div className="text-sm text-foreground/80">
