@@ -398,7 +398,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
             <div className="space-y-2">
               <Label>Start Date:</Label>
-              <Popover>
+              <Popover modal={true}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -408,7 +408,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                     {startDate ? format(startDate, "EEE M/d/yy") : "Select date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
                   <Calendar
                     mode="single"
                     selected={startDate}
