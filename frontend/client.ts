@@ -273,6 +273,7 @@ import { getQueueListByGrade as api_queue_get_queue_list_by_grade_getQueueListBy
 import { list as api_queue_list_list } from "~backend/queue/list";
 import { showSQL as api_queue_show_sql_showSQL } from "~backend/queue/show_sql";
 import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/test_raw_sql";
+import { updateAttendanceStatusByQRCode as api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode } from "~backend/queue/update_attendance_status_by_qr_code";
 import { updateDismissalQueueByQRScan as api_queue_update_dismissal_queue_by_qr_scan_updateDismissalQueueByQRScan } from "~backend/queue/update_dismissal_queue_by_qr_scan";
 import { updateDismissalStatusByStudent as api_queue_update_dismissal_status_updateDismissalStatusByStudent } from "~backend/queue/update_dismissal_status";
 import { updateDismissalStatusByParentId as api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId } from "~backend/queue/update_dismissal_status_by_parentid";
@@ -299,6 +300,7 @@ export namespace queue {
             this.list = this.list.bind(this)
             this.showSQL = this.showSQL.bind(this)
             this.testRawSQL = this.testRawSQL.bind(this)
+            this.updateAttendanceStatusByQRCode = this.updateAttendanceStatusByQRCode.bind(this)
             this.updateDismissalQueueByQRScan = this.updateDismissalQueueByQRScan.bind(this)
             this.updateDismissalStatusByParentId = this.updateDismissalStatusByParentId.bind(this)
             this.updateDismissalStatusByStudent = this.updateDismissalStatusByStudent.bind(this)
@@ -443,6 +445,12 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/test-raw-sql`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_test_raw_sql_testRawSQL>
+        }
+
+        public async updateAttendanceStatusByQRCode(params: RequestType<typeof api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode>): Promise<ResponseType<typeof api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/update-attendance-status-by-qr-code`, {method: "PUT", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode>
         }
 
         /**
