@@ -173,7 +173,27 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                     {formatDate(absence.absencedate)}
                   </div>
                 </div>
-                {getApprovalStatusBadge(absence.approvalstatus)}
+                <div className="flex items-center gap-1.5">
+                  {getApprovalStatusBadge(absence.approvalstatus)}
+                  {absence.approvalstatus.toLowerCase() === 'pending' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400 h-6 px-2 text-xs"
+                      onClick={() => handleCancelPendingRequest(absence.absencercdid)}
+                      disabled={cancellingId === absence.absencercdid}
+                    >
+                      {cancellingId === absence.absencercdid ? (
+                        <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-blue-600"></div>
+                      ) : (
+                        <>
+                          <X className="w-3 h-3 mr-1" />
+                          Cancel
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="text-xs text-gray-600 pl-6">
                 {absence.fullday ? "Full Day" : `${formatTime(absence.absencestarttm)} - ${formatTime(absence.absenceendtm)}`}
@@ -196,27 +216,6 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
                 <div className="flex items-start gap-1.5 mt-1 pl-6 text-xs">
                   <MessageSquare className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
                   <span className="text-green-800 flex-1">{absence.approver_note}</span>
-                </div>
-              )}
-              
-              {absence.approvalstatus.toLowerCase() === 'pending' && (
-                <div className="flex justify-end mt-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400 h-6 px-2 text-xs"
-                    onClick={() => handleCancelPendingRequest(absence.absencercdid)}
-                    disabled={cancellingId === absence.absencercdid}
-                  >
-                    {cancellingId === absence.absencercdid ? (
-                      <div className="animate-spin rounded-full h-2.5 w-2.5 border-b-2 border-blue-600"></div>
-                    ) : (
-                      <>
-                        <X className="w-3 h-3 mr-1" />
-                        Cancel
-                      </>
-                    )}
-                  </Button>
                 </div>
               )}
             </div>
