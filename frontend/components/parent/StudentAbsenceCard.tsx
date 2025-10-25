@@ -98,15 +98,15 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   if (isLoading) {
     return (
       <Card className="border-blue-100">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-blue-900">
+        <CardHeader className="py-2 pb-1">
+          <CardTitle className="text-sm font-semibold text-blue-900">
             Absences for {studentName}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="ml-2 text-sm text-gray-600">Loading absences...</span>
+        <CardContent className="py-2">
+          <div className="flex items-center justify-center py-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="ml-2 text-xs text-gray-600">Loading absences...</span>
           </div>
         </CardContent>
       </Card>
@@ -116,13 +116,13 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   if (error) {
     return (
       <Card className="border-red-100">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-red-900">
+        <CardHeader className="py-2 pb-1">
+          <CardTitle className="text-sm font-semibold text-red-900">
             Absences for {studentName}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-red-600">{error}</p>
+        <CardContent className="py-2">
+          <p className="text-xs text-red-600">{error}</p>
         </CardContent>
       </Card>
     );
@@ -131,13 +131,13 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   if (absences.length === 0) {
     return (
       <Card className="border-gray-100">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-gray-900">
+        <CardHeader className="py-2 pb-1">
+          <CardTitle className="text-sm font-semibold text-gray-900">
             Absences for {studentName}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-600">No absence records found</p>
+        <CardContent className="py-2">
+          <p className="text-xs text-gray-600">No absence records found</p>
         </CardContent>
       </Card>
     );
@@ -145,11 +145,11 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
 
   return (
     <Card className="border-blue-100 bg-gray-50">
-      <CardHeader className="py-3 pb-1">
+      <CardHeader className="py-2 pb-1">
         <div className="flex items-center justify-between gap-2">
-          <CardTitle className="text-base font-semibold text-blue-900">
+          <CardTitle className="text-sm font-semibold text-blue-900">
             {studentName}
-            <span className="text-sm font-normal text-gray-600 ml-2">Grade {grade}</span>
+            <span className="text-xs font-normal text-gray-600 ml-1.5">Grade {grade}</span>
           </CardTitle>
           <Button
             variant="outline"
@@ -157,16 +157,16 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
             className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-6 px-2 text-xs"
             onClick={() => setIsSubmitAbsenceDialogOpen(true)}
           >
-            <CalendarPlus className="w-3 h-3 mr-1.5" />
+            <CalendarPlus className="w-3 h-3 mr-1" />
             New
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
+      <CardContent className="py-2">
+        <div className="space-y-1.5">
           {absences.map((absence) => (
-            <div key={absence.absencercdid} className="border rounded-lg p-2 bg-white">
-              <div className="flex items-center justify-between gap-2 mb-1.5">
+            <div key={absence.absencercdid} className="border rounded-lg p-1.5 bg-white">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
                   <div className="text-sm font-medium text-gray-900">
@@ -180,27 +180,27 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
               </div>
 
               {absence.absencereason && (
-                <div className="text-xs text-gray-700 mt-1.5 pl-6">
+                <div className="text-xs text-gray-700 mt-1 pl-6">
                   <span className="font-medium">Reason:</span> {absence.absencereason}
                 </div>
               )}
 
               {absence.requester_note && (
-                <div className="flex items-start gap-2 mt-1.5 pl-6 text-xs">
+                <div className="flex items-start gap-1.5 mt-1 pl-6 text-xs">
                   <MessageSquare className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span className="text-blue-800 flex-1">{absence.requester_note}</span>
                 </div>
               )}
 
               {absence.approver_note && (
-                <div className="flex items-start gap-2 mt-1.5 pl-6 text-xs">
+                <div className="flex items-start gap-1.5 mt-1 pl-6 text-xs">
                   <MessageSquare className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
                   <span className="text-green-800 flex-1">{absence.approver_note}</span>
                 </div>
               )}
               
               {absence.approvalstatus.toLowerCase() === 'pending' && (
-                <div className="flex justify-end mt-1.5">
+                <div className="flex justify-end mt-1">
                   <Button
                     variant="outline"
                     size="sm"
@@ -222,7 +222,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
             </div>
           ))}
         </div>
-        <div className="mt-2">
+        <div className="mt-1.5">
           <Button
             variant="link"
             className="text-blue-600 hover:text-blue-800 underline p-0 h-auto text-xs"
