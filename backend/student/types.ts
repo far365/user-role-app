@@ -15,3 +15,11 @@ export interface Student {
 export interface GetStudentsByParentResponse {
   students: Student[];
 }
+
+export interface AbsenceHistoryRecord {
+  [key: string]: any;
+}
+
+export interface GetAbsenceHistoryResponse {
+  absenceHistory: AbsenceHistoryRecord[];
+}
