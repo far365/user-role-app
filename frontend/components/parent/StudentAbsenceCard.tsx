@@ -145,7 +145,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
 
   return (
     <Card className="border-blue-100 bg-gray-50">
-      <CardHeader className="py-2 pb-1">
+      <CardHeader className="py-2 pb-0">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-sm font-semibold text-blue-900">
             {studentName}
@@ -162,7 +162,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="py-2">
+      <CardContent className="pt-1 pb-2 px-6">
         <div className="space-y-1.5">
           {absences.map((absence) => (
             <div key={absence.absencercdid} className="border rounded-lg p-1.5 bg-white">
