@@ -286,15 +286,6 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
           studentid: studentId,
           StudentName: studentName
         }}
-        absenceHistory={absences.map((req) => ({
-          date: new Date(req.absencedate).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit' }),
-          type: req.fullday ? 'Full Day' : 'Half Day',
-          status: req.approvalstatus,
-          startTime: req.absencestarttm,
-          endTime: req.absenceendtm,
-          reason: req.absencereason,
-          notes: req.requester_note
-        }))}
         isOpen={isViewHistoryOpen}
         onClose={() => setIsViewHistoryOpen(false)}
       />

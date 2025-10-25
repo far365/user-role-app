@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import backend from "~backend/client";
 
 interface AbsenceRequest {
   date: string;
@@ -14,14 +16,50 @@ interface AbsenceRequest {
 
 interface ViewAbsenceHistoryDialogProps {
   student: {
+    studentid: string;
     StudentName: string;
   };
-  absenceHistory: AbsenceRequest[];
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function ViewAbsenceHistoryDialog({ student, absenceHistory, isOpen, onClose }: ViewAbsenceHistoryDialogProps) {
+export function ViewAbsenceHistoryDialog({ student, isOpen, onClose }: ViewAbsenceHistoryDialogProps) {
+  const [absenceHistory, setAbsenceHistory] = useState<AbsenceRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAbsenceHistory = async () => {
+      if (!isOpen) return;
+      
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await backend.student.getAbsenceHistoryByStudentID({ studentID: student.studentid });
+        
+        const formattedHistory: AbsenceRequest[] = response.absenceHistory.map((record: any) => ({
+          date: new Date(record.absencedate).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit' }),
+          type: record.fullday ? 'Full Day' : 'Half Day',
+          status: record.approvalstatus,
+          startTime: record.absencestarttm,
+          endTime: record.absenceendtm,
+          reason: record.absencereason,
+          notes: record.requester_note
+        }));
+        
+        setAbsenceHistory(formattedHistory);
+      } catch (err) {
+        console.error('Failed to fetch absence history:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load absence history');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAbsenceHistory();
+  }, [isOpen, student.studentid]);
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
@@ -46,7 +84,18 @@ export function ViewAbsenceHistoryDialog({ student, absenceHistory, isOpen, onCl
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {absenceHistory.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-600">Loading absence history...</span>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-500">
+              {error}
+            </div>
+          ) : absenceHistory.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No absence history found
             </div>
