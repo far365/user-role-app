@@ -63,7 +63,7 @@ export function ViewAbsenceHistoryDialog({ student, isOpen, onClose }: ViewAbsen
   const reasonCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     absenceHistory.forEach((request) => {
-      if (request.reason) {
+      if (request.reason && request.status.toLowerCase() === 'approved') {
         counts[request.reason] = (counts[request.reason] || 0) + 1;
       }
     });
