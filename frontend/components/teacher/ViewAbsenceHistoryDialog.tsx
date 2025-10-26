@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,16 @@ export function ViewAbsenceHistoryDialog({ student, isOpen, onClose }: ViewAbsen
     fetchAbsenceHistory();
   }, [isOpen, student.studentid]);
 
+  const reasonCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    absenceHistory.forEach((request) => {
+      if (request.reason) {
+        counts[request.reason] = (counts[request.reason] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [absenceHistory]);
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
@@ -84,6 +94,21 @@ export function ViewAbsenceHistoryDialog({ student, isOpen, onClose }: ViewAbsen
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {!isLoading && !error && absenceHistory.length > 0 && Object.keys(reasonCounts).length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4 border">
+              <div className="font-semibold text-sm text-gray-700 mb-2">Absence Reason Summary</div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(reasonCounts)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([reason, count]) => (
+                    <Badge key={reason} variant="secondary" className="text-sm">
+                      {reason}: {count}
+                    </Badge>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="text-center py-8">
               <div className="flex items-center justify-center">
