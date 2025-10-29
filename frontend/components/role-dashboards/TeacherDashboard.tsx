@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus } from "lucide-react";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
@@ -90,6 +90,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [isLoadingCounts, setIsLoadingCounts] = useState(false);
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
   const [selectedStudentForAbsence, setSelectedStudentForAbsence] = useState<{ studentid: string; StudentName: string } | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   
   const { toast } = useToast();
 
@@ -688,8 +689,34 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                   <ChevronDown className={`w-5 h-5 transition-transform ${isStudentListOpen ? 'transform rotate-180' : ''}`} />
                 </div>
               </CollapsibleTrigger>
-              <CardDescription>
-                Students in {selectedGrade} with attendance and dismissal status
+              <CardDescription className="flex items-center justify-between">
+                <span>Students in {selectedGrade} with attendance and dismissal status</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewMode("list");
+                    }}
+                    className="h-8 px-3"
+                  >
+                    <List className="w-4 h-4 mr-1.5" />
+                    List
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "outline"}
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewMode("grid");
+                    }}
+                    className="h-8 px-3"
+                  >
+                    <LayoutGrid className="w-4 h-4 mr-1.5" />
+                    Grid
+                  </Button>
+                </div>
               </CardDescription>
             </CardHeader>
             <CollapsibleContent>
@@ -709,77 +736,143 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Student Cards with 3-row layout */}
                   {studentRecords.map((student) => (
                     <div 
                       key={`${student.queueid}-${student.studentid}`}
-                      className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      className="border rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      {/* Row 1: Student Name (bold) + Absence Request Button */}
-                      <div className="mb-3 flex items-center justify-between">
-                        <h4 className="font-bold text-gray-900 text-lg">
-                          {student.StudentName || 'Unknown Student'}
-                        </h4>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-7 px-2 text-xs"
-                          onClick={() => {
-                            setSelectedStudentForAbsence({
-                              studentid: student.studentid,
-                              StudentName: student.StudentName
-                            });
-                            setIsSubmitAbsenceDialogOpen(true);
-                          }}
-                        >
-                          <CalendarPlus className="w-3 h-3 mr-1.5" />
-                          New
-                        </Button>
-                      </div>
-                      
-                      {/* Row 2: Attendance Info (2 columns) */}
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div className="text-sm text-gray-500 italic">
-                          {removeStatusFromText(student.AttendanceStatusAndTime, 'Attendance') || 'No attendance info'}
+                      {viewMode === "list" ? (
+                        <div className="p-4">
+                          {/* Row 1: Student Name (bold) + Absence Request Button */}
+                          <div className="mb-3 flex items-center justify-between">
+                            <h4 className="font-bold text-gray-900 text-lg">
+                              {student.StudentName || 'Unknown Student'}
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-7 px-2 text-xs"
+                              onClick={() => {
+                                setSelectedStudentForAbsence({
+                                  studentid: student.studentid,
+                                  StudentName: student.StudentName
+                                });
+                                setIsSubmitAbsenceDialogOpen(true);
+                              }}
+                            >
+                              <CalendarPlus className="w-3 h-3 mr-1.5" />
+                              New
+                            </Button>
+                          </div>
+                          
+                          {/* Row 2: Attendance Info (2 columns) */}
+                          <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div className="text-sm text-gray-500 italic">
+                              {removeStatusFromText(student.AttendanceStatusAndTime, 'Attendance') || 'No attendance info'}
+                            </div>
+                            <div>
+                              <button
+                                onClick={() => handleAttendanceStatusClick(student)}
+                                className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                              >
+                                {getAttendanceStatus(student.AttendanceStatusAndTime)}
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Row 3: Dismissal Info (2 columns) */}
+                          <div className="grid grid-cols-2 gap-4 mb-2">
+                            <div className="text-sm text-gray-500 italic">
+                              {removeStatusFromText(student.DismissalStatusAndTime, 'Dismissal') || 'No dismissal info'}
+                            </div>
+                            <div>
+                              <button
+                                onClick={() => handleDismissalStatusClick(student)}
+                                className="text-green-600 hover:text-green-800 underline text-sm font-medium"
+                              >
+                                {getDismissalStatus(student.DismissalStatusAndTime)}
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Row 4: Dismissal Method and Pickup By (only if alternate) */}
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="text-gray-600">
+                              {student.DismissalMethod || 'Method: Unknown'}
+                            </div>
+                            <div>
+                              {student.DismissalPickupBy?.toLowerCase().includes('alternate') && (
+                                <span className="text-red-600 font-medium">
+                                  {student.DismissalPickupBy}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <button
-                            onClick={() => handleAttendanceStatusClick(student)}
-                            className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
-                          >
-                            {getAttendanceStatus(student.AttendanceStatusAndTime)}
-                          </button>
+                      ) : (
+                        <div className="p-4">
+                          {/* Student Name + Absence Request Button */}
+                          <div className="mb-3 flex items-center justify-between">
+                            <h4 className="font-bold text-gray-900 text-lg">
+                              {student.StudentName || 'Unknown Student'}
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 shrink-0 h-7 px-2 text-xs"
+                              onClick={() => {
+                                setSelectedStudentForAbsence({
+                                  studentid: student.studentid,
+                                  StudentName: student.StudentName
+                                });
+                                setIsSubmitAbsenceDialogOpen(true);
+                              }}
+                            >
+                              <CalendarPlus className="w-3 h-3 mr-1.5" />
+                              New
+                            </Button>
+                          </div>
+                          
+                          {/* Grid Layout: Attendance and Dismissal Side by Side */}
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Attendance Card */}
+                            <div className="border border-blue-200 rounded-lg p-3 bg-blue-50/50">
+                              <div className="text-xs font-semibold text-blue-800 mb-2">Attendance</div>
+                              <div className="text-sm text-gray-500 italic mb-2">
+                                {removeStatusFromText(student.AttendanceStatusAndTime, 'Attendance') || 'No attendance info'}
+                              </div>
+                              <button
+                                onClick={() => handleAttendanceStatusClick(student)}
+                                className="text-blue-600 hover:text-blue-800 underline text-sm font-medium"
+                              >
+                                {getAttendanceStatus(student.AttendanceStatusAndTime)}
+                              </button>
+                            </div>
+                            
+                            {/* Dismissal Card */}
+                            <div className="border border-green-200 rounded-lg p-3 bg-green-50/50">
+                              <div className="text-xs font-semibold text-green-800 mb-2">Dismissal</div>
+                              <div className="text-sm text-gray-500 italic mb-2">
+                                {removeStatusFromText(student.DismissalStatusAndTime, 'Dismissal') || 'No dismissal info'}
+                              </div>
+                              <button
+                                onClick={() => handleDismissalStatusClick(student)}
+                                className="text-green-600 hover:text-green-800 underline text-sm font-medium"
+                              >
+                                {getDismissalStatus(student.DismissalStatusAndTime)}
+                              </button>
+                              <div className="mt-2 text-sm text-gray-600">
+                                {student.DismissalMethod || 'Method: Unknown'}
+                              </div>
+                              {student.DismissalPickupBy?.toLowerCase().includes('alternate') && (
+                                <div className="mt-1 text-sm text-red-600 font-medium">
+                                  {student.DismissalPickupBy}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      
-                      {/* Row 3: Dismissal Info (2 columns) */}
-                      <div className="grid grid-cols-2 gap-4 mb-2">
-                        <div className="text-sm text-gray-500 italic">
-                          {removeStatusFromText(student.DismissalStatusAndTime, 'Dismissal') || 'No dismissal info'}
-                        </div>
-                        <div>
-                          <button
-                            onClick={() => handleDismissalStatusClick(student)}
-                            className="text-green-600 hover:text-green-800 underline text-sm font-medium"
-                          >
-                            {getDismissalStatus(student.DismissalStatusAndTime)}
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* Row 4: Dismissal Method and Pickup By (only if alternate) */}
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="text-gray-600">
-                          {student.DismissalMethod || 'Method: Unknown'}
-                        </div>
-                        <div>
-                          {student.DismissalPickupBy?.toLowerCase().includes('alternate') && (
-                            <span className="text-red-600 font-medium">
-                              {student.DismissalPickupBy}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
