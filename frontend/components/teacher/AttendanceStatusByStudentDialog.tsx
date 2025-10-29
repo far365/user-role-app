@@ -44,6 +44,16 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
     console.log("  Student Name:", student.StudentName);
     console.log("  Arrival Status:", selectedStatus);
 
+    const currentStatus = getCurrentStatus();
+    if (currentStatus === "NoShow") {
+      toast({
+        title: "Update Not Allowed",
+        description: "Contact System Admin to remove NoShow Absence rcd first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setDebugInfo(null); // Clear previous debug info
     
