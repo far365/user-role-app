@@ -73,7 +73,8 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
       if (response.success) {
         setResultMessage(`Successfully updated attendance for ${student.StudentName} to ${selectedStatus}`);
         setIsError(false);
-        onStatusUpdated(); // Refresh the parent component's data
+        onStatusUpdated();
+        onClose();
       } else {
         setResultMessage(`Failed to update attendance: ${response.error || 'Unknown error'}`);
         setIsError(true);
@@ -104,6 +105,7 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
       
       setResultMessage(`Error updating attendance: ${errorMessage}`);
       setIsError(true);
+      onClose();
       setShowResultDialog(true);
       
       toast({
@@ -126,7 +128,6 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
     setResultMessage("");
     setIsError(false);
     setDebugInfo(null);
-    onClose();
   };
 
   // Extract current attendance status from the status text
