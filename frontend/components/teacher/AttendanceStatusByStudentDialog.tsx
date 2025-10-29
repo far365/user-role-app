@@ -32,9 +32,7 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
 
   const arrivalStatuses: { value: ArrivalStatus; label: string }[] = [
     { value: "OnTime", label: "OnTime" },
-    { value: "OnTime-M", label: "OnTime-M" },
     { value: "Tardy", label: "Tardy" },
-    { value: "Tardy-M", label: "Tardy-M" },
     { value: "NoShow", label: "NoShow" },
     { value: "Unknown", label: "Unknown" },
     { value: "ExcusedDelay", label: "ExcusedDelay" }
