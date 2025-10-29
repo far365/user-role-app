@@ -540,25 +540,62 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                 ) : statusCounts.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4">No status data available</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-3 font-semibold">Status</th>
-                          <th className="text-right py-2 px-3 font-semibold">Count</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {statusCounts.map((row, index) => (
-                          <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
-                            <td className="py-2 px-3">
-                              {row.attendance_status || row.dismissal_status || 'Unknown'}
-                            </td>
-                            <td className="py-2 px-3 text-right font-medium">{row.count}</td>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Attendance Column */}
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">Attendance</h3>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-3 font-semibold">Status</th>
+                            <th className="text-right py-2 px-3 font-semibold">Count</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {statusCounts
+                            .filter(row => row.attendance_status && row.count > 0)
+                            .map((row, index) => (
+                              <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
+                                <td className="py-2 px-3">{row.attendance_status}</td>
+                                <td className="py-2 px-3 text-right font-medium">{row.count}</td>
+                              </tr>
+                            ))}
+                          {statusCounts.filter(row => row.attendance_status && row.count > 0).length === 0 && (
+                            <tr>
+                              <td colSpan={2} className="py-2 px-3 text-center text-gray-500">No data</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Dismissal Column */}
+                    <div>
+                      <h3 className="font-semibold text-sm mb-2">Dismissal</h3>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-3 font-semibold">Status</th>
+                            <th className="text-right py-2 px-3 font-semibold">Count</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {statusCounts
+                            .filter(row => row.dismissal_status && row.count > 0)
+                            .map((row, index) => (
+                              <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
+                                <td className="py-2 px-3">{row.dismissal_status}</td>
+                                <td className="py-2 px-3 text-right font-medium">{row.count}</td>
+                              </tr>
+                            ))}
+                          {statusCounts.filter(row => row.dismissal_status && row.count > 0).length === 0 && (
+                            <tr>
+                              <td colSpan={2} className="py-2 px-3 text-center text-gray-500">No data</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </CardContent>
