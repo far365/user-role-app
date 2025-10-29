@@ -356,6 +356,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     return result;
   };
 
+  // Format alternate pickup to remove timestamp
+  const formatAlternatePickup = (pickupBy: string) => {
+    if (!pickupBy) return '';
+    // If it contains "(alternate)", remove everything after it
+    const match = pickupBy.match(/^(.+?\(alternate\))/);
+    return match ? match[1] : pickupBy;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -840,7 +848,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                             <div>
                               {student.DismissalPickupBy?.toLowerCase().includes('alternate') && (
                                 <span className="text-red-600 font-medium">
-                                  {student.DismissalPickupBy}
+                                  {formatAlternatePickup(student.DismissalPickupBy)}
                                 </span>
                               )}
                             </div>
@@ -903,7 +911,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                               </div>
                               {student.DismissalPickupBy?.toLowerCase().includes('alternate') && (
                                 <div className="mt-1 text-sm text-red-600 font-medium">
-                                  {student.DismissalPickupBy}
+                                  {formatAlternatePickup(student.DismissalPickupBy)}
                                 </div>
                               )}
                             </div>
