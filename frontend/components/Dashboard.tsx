@@ -58,25 +58,25 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 gap-4">
-            <div className="flex items-center space-x-4 min-w-0 flex-1">
-              <User className="w-8 h-8 text-gray-600 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-semibold text-gray-900 truncate">
-                  {user.displayName}
-                </h1>
+          <div className="flex items-center h-16 gap-4">
+            <User className="w-8 h-8 text-gray-600 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg font-semibold text-gray-900 truncate">
+                {user.displayName}
+              </h1>
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center space-x-2">
                   <Badge className={getRoleColor(user.userRole)}>
                     {user.userRole}
                   </Badge>
                   <span className="text-sm text-gray-500">ID: {user.userID}</span>
                 </div>
+                <Button onClick={onLogout} variant="outline" className="h-6 px-3 text-sm flex-shrink-0">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
               </div>
             </div>
-            <Button onClick={onLogout} variant="outline" className="h-6 px-3 text-sm flex-shrink-0">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
           </div>
         </div>
       </header>
