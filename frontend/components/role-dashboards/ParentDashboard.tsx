@@ -504,7 +504,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
     );
   }
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Status and Last Login Header */}
       {parentData && (
         <div className="flex items-center justify-between">
