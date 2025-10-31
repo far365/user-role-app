@@ -6,6 +6,7 @@ import { StudentSetupPage } from "../admin/StudentSetupPage";
 import { QueueSetupPage } from "../admin/QueueSetupPage";
 import { QRScanPage } from "../admin/QRScanPage";
 import { FullDismissalQueuePage } from "../admin/FullDismissalQueuePage";
+import { FullAttendanceBySchoolPage } from "../admin/FullAttendanceBySchoolPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -43,6 +44,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     return <FullDismissalQueuePage user={user} onBack={handleBackToDashboard} />;
   }
 
+  if (currentPage === 'full-attendance-by-school') {
+    return <FullAttendanceBySchoolPage user={user} onBack={handleBackToDashboard} />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -78,6 +83,15 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         >
           <ClipboardList className="h-5 w-5 mr-3" />
           Full Dismissal Queue by Grade
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-cyan-700 hover:text-cyan-800 hover:bg-cyan-50"
+          onClick={() => handleNavigate('full-attendance-by-school')}
+        >
+          <ClipboardList className="h-5 w-5 mr-3" />
+          Full Attendance by School
         </Button>
 
         <Button 
