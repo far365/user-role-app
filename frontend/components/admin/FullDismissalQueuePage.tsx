@@ -72,7 +72,7 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
   const [expandedGrades, setExpandedGrades] = useState<Set<string>>(new Set());
   
   // Auto-refresh state
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   
