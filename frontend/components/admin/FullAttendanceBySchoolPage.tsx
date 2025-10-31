@@ -16,11 +16,10 @@ interface FullAttendanceBySchoolPageProps {
 }
 
 interface StatusCounts {
-  present: number;
-  absent: number;
+  onTime: number;
   tardy: number;
-  excused: number;
-  unexcused: number;
+  noShow: number;
+  excusedDelay: number;
   unknown: number;
   total: number;
 }
@@ -115,11 +114,10 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
           grade: grade.name,
           queueId: null,
           statusCounts: {
-            present: 0,
-            absent: 0,
+            onTime: 0,
             tardy: 0,
-            excused: 0,
-            unexcused: 0,
+            noShow: 0,
+            excusedDelay: 0,
             unknown: 0,
             total: 0
           },
@@ -189,11 +187,10 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
           ...gradeData,
           queueId: null,
           statusCounts: {
-            present: 0,
-            absent: 0,
+            onTime: 0,
             tardy: 0,
-            excused: 0,
-            unexcused: 0,
+            noShow: 0,
+            excusedDelay: 0,
             unknown: 0,
             total: 0
           },
@@ -212,31 +209,27 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
 
   const calculateStatusCounts = (records: AttendanceRecord[]): StatusCounts => {
     const counts = {
-      present: 0,
-      absent: 0,
+      onTime: 0,
       tardy: 0,
-      excused: 0,
-      unexcused: 0,
+      noShow: 0,
+      excusedDelay: 0,
       unknown: 0,
       total: records.length
     };
 
     records.forEach(record => {
       switch (record.attendanceStatus) {
-        case 'Present':
-          counts.present++;
-          break;
-        case 'Absent':
-          counts.absent++;
+        case 'OnTime':
+          counts.onTime++;
           break;
         case 'Tardy':
           counts.tardy++;
           break;
-        case 'Excused':
-          counts.excused++;
+        case 'NoShow':
+          counts.noShow++;
           break;
-        case 'Unexcused':
-          counts.unexcused++;
+        case 'ExcusedDelay':
+          counts.excusedDelay++;
           break;
         case 'Unknown':
           counts.unknown++;
@@ -288,16 +281,14 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Present':
+      case 'OnTime':
         return 'bg-green-100 text-green-800';
-      case 'Absent':
-        return 'bg-red-100 text-red-800';
       case 'Tardy':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Excused':
+      case 'NoShow':
+        return 'bg-red-100 text-red-800';
+      case 'ExcusedDelay':
         return 'bg-blue-100 text-blue-800';
-      case 'Unexcused':
-        return 'bg-orange-100 text-orange-800';
       case 'Unknown':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -307,19 +298,17 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
 
   const getTotalCounts = () => {
     return gradeAttendanceData.reduce((totals, gradeData) => ({
-      present: totals.present + gradeData.statusCounts.present,
-      absent: totals.absent + gradeData.statusCounts.absent,
+      onTime: totals.onTime + gradeData.statusCounts.onTime,
       tardy: totals.tardy + gradeData.statusCounts.tardy,
-      excused: totals.excused + gradeData.statusCounts.excused,
-      unexcused: totals.unexcused + gradeData.statusCounts.unexcused,
+      noShow: totals.noShow + gradeData.statusCounts.noShow,
+      excusedDelay: totals.excusedDelay + gradeData.statusCounts.excusedDelay,
       unknown: totals.unknown + gradeData.statusCounts.unknown,
       total: totals.total + gradeData.statusCounts.total
     }), {
-      present: 0,
-      absent: 0,
+      onTime: 0,
       tardy: 0,
-      excused: 0,
-      unexcused: 0,
+      noShow: 0,
+      excusedDelay: 0,
       unknown: 0,
       total: 0
     });
@@ -441,15 +430,10 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
             <div className="text-2xl font-bold text-slate-900">{totalCounts.total}</div>
           </div>
 					
-					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-              <div className="text-sm font-medium text-green-800">Present</div>
-              <div className="text-lg font-bold text-green-900">{totalCounts.present}</div>
-            </div>
-            
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
-              <div className="text-sm font-medium text-red-800">Absent</div>
-              <div className="text-lg font-bold text-red-900">{totalCounts.absent}</div>
+              <div className="text-sm font-medium text-green-800">OnTime</div>
+              <div className="text-lg font-bold text-green-900">{totalCounts.onTime}</div>
             </div>
             
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
@@ -457,14 +441,14 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
               <div className="text-lg font-bold text-yellow-900">{totalCounts.tardy}</div>
             </div>
             
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
-              <div className="text-sm font-medium text-blue-800">Excused</div>
-              <div className="text-lg font-bold text-blue-900">{totalCounts.excused}</div>
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+              <div className="text-sm font-medium text-red-800">NoShow</div>
+              <div className="text-lg font-bold text-red-900">{totalCounts.noShow}</div>
             </div>
             
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-center">
-              <div className="text-sm font-medium text-orange-800">Unexcused</div>
-              <div className="text-lg font-bold text-orange-900">{totalCounts.unexcused}</div>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
+              <div className="text-sm font-medium text-blue-800">ExcusedDelay</div>
+              <div className="text-lg font-bold text-blue-900">{totalCounts.excusedDelay}</div>
             </div>
             
             <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
@@ -512,14 +496,9 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
               </div>
               
               <div className="flex flex-wrap gap-2 mt-3">
-                {gradeData.statusCounts.present > 0 && (
+                {gradeData.statusCounts.onTime > 0 && (
                   <Badge className="bg-green-100 text-green-800">
-                    Present: {gradeData.statusCounts.present}
-                  </Badge>
-                )}
-                {gradeData.statusCounts.absent > 0 && (
-                  <Badge className="bg-red-100 text-red-800">
-                    Absent: {gradeData.statusCounts.absent}
+                    OnTime: {gradeData.statusCounts.onTime}
                   </Badge>
                 )}
                 {gradeData.statusCounts.tardy > 0 && (
@@ -527,14 +506,14 @@ export function FullAttendanceBySchoolPage({ user, onBack }: FullAttendanceBySch
                     Tardy: {gradeData.statusCounts.tardy}
                   </Badge>
                 )}
-                {gradeData.statusCounts.excused > 0 && (
-                  <Badge className="bg-blue-100 text-blue-800">
-                    Excused: {gradeData.statusCounts.excused}
+                {gradeData.statusCounts.noShow > 0 && (
+                  <Badge className="bg-red-100 text-red-800">
+                    NoShow: {gradeData.statusCounts.noShow}
                   </Badge>
                 )}
-                {gradeData.statusCounts.unexcused > 0 && (
-                  <Badge className="bg-orange-100 text-orange-800">
-                    Unexcused: {gradeData.statusCounts.unexcused}
+                {gradeData.statusCounts.excusedDelay > 0 && (
+                  <Badge className="bg-blue-100 text-blue-800">
+                    ExcusedDelay: {gradeData.statusCounts.excusedDelay}
                   </Badge>
                 )}
                 {gradeData.statusCounts.unknown > 0 && (
