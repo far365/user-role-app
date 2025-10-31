@@ -9,11 +9,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List } from "lucide-react";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List, History } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
+import { ViewAbsenceHistoryDialog } from "../teacher/ViewAbsenceHistoryDialog";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -91,6 +92,8 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
   const [selectedStudentForAbsence, setSelectedStudentForAbsence] = useState<{ studentid: string; StudentName: string } | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
+  const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<{ studentid: string; StudentName: string } | null>(null);
   
   const { toast } = useToast();
 
@@ -853,6 +856,23 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                               )}
                             </div>
                           </div>
+                          
+                          {/* Row 5: Absence History Link */}
+                          <div className="mt-2">
+                            <button
+                              onClick={() => {
+                                setSelectedStudentForHistory({
+                                  studentid: student.studentid,
+                                  StudentName: student.StudentName
+                                });
+                                setIsViewHistoryOpen(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 underline text-sm font-medium inline-flex items-center"
+                            >
+                              <History className="w-3 h-3 mr-1" />
+                              Absence History
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="p-4">
@@ -915,6 +935,23 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
                                 </div>
                               )}
                             </div>
+                          </div>
+                          
+                          {/* Absence History Link */}
+                          <div className="mt-3">
+                            <button
+                              onClick={() => {
+                                setSelectedStudentForHistory({
+                                  studentid: student.studentid,
+                                  StudentName: student.StudentName
+                                });
+                                setIsViewHistoryOpen(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 underline text-sm font-medium inline-flex items-center"
+                            >
+                              <History className="w-3 h-3 mr-1" />
+                              Absence History
+                            </button>
                           </div>
                         </div>
                       )}
@@ -1036,6 +1073,18 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             }
           }}
           userRole={user.userRole}
+        />
+      )}
+
+      {/* View Absence History Dialog */}
+      {selectedStudentForHistory && (
+        <ViewAbsenceHistoryDialog
+          student={selectedStudentForHistory}
+          isOpen={isViewHistoryOpen}
+          onClose={() => {
+            setIsViewHistoryOpen(false);
+            setSelectedStudentForHistory(null);
+          }}
         />
       )}
     </div>
