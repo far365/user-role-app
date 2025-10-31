@@ -256,6 +256,7 @@ import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/d
 import { deleteQueue as api_queue_delete_deleteQueue } from "~backend/queue/delete";
 import { getAttendanceDismissalStatusByGrade as api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade } from "~backend/queue/get_attendance_dismissal_status_by_grade";
 import { getAttendanceDismissalStatusByParent as api_queue_get_attendance_dismissal_status_by_parent_getAttendanceDismissalStatusByParent } from "~backend/queue/get_attendance_dismissal_status_by_parent";
+import { getAttendanceDismissalStatusFullQueue as api_queue_get_attendance_dismissal_status_full_queue_getAttendanceDismissalStatusFullQueue } from "~backend/queue/get_attendance_dismissal_status_full_queue";
 import { getCurrentQueue as api_queue_get_current_getCurrentQueue } from "~backend/queue/get_current";
 import { getQueueCountByGrade as api_queue_get_queue_count_by_grade_getQueueCountByGrade } from "~backend/queue/get_queue_count_by_grade";
 import { getQueueListByGrade as api_queue_get_queue_list_by_grade_getQueueListByGrade } from "~backend/queue/get_queue_list_by_grade";
@@ -283,6 +284,7 @@ export namespace queue {
             this.deleteQueue = this.deleteQueue.bind(this)
             this.getAttendanceDismissalStatusByGrade = this.getAttendanceDismissalStatusByGrade.bind(this)
             this.getAttendanceDismissalStatusByParent = this.getAttendanceDismissalStatusByParent.bind(this)
+            this.getAttendanceDismissalStatusFullQueue = this.getAttendanceDismissalStatusFullQueue.bind(this)
             this.getCurrentQueue = this.getCurrentQueue.bind(this)
             this.getQueueCountByGrade = this.getQueueCountByGrade.bind(this)
             this.getQueueListByGrade = this.getQueueListByGrade.bind(this)
@@ -370,6 +372,12 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/get-attendance-dismissal-status-by-parent`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_attendance_dismissal_status_by_parent_getAttendanceDismissalStatusByParent>
+        }
+
+        public async getAttendanceDismissalStatusFullQueue(): Promise<ResponseType<typeof api_queue_get_attendance_dismissal_status_full_queue_getAttendanceDismissalStatusFullQueue>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/get-attendance-dismissal-status-full-queue`, {method: "POST", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_attendance_dismissal_status_full_queue_getAttendanceDismissalStatusFullQueue>
         }
 
         /**
