@@ -65,7 +65,7 @@ export const list = api<void, ListGradesResponse>(
         name: "10th",
         building: "B",
         sortOrder: 11
-      },
+      } /*,
       {
         name: "11th",
         building: "B",
@@ -75,7 +75,7 @@ export const list = api<void, ListGradesResponse>(
         name: "12th",
         building: "B",
         sortOrder: 13
-      }
+      }*/
     ];
 
     return { grades };
