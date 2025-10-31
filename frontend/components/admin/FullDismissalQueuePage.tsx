@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, RefreshCw, Clock, AlertCircle, GraduationCap, Users, Play, Pause, Building, User, Phone } from "lucide-react";
+import { ArrowLeft, RefreshCw, Clock, AlertCircle, GraduationCap, Users, Play, Pause, User as UserIcon } from "lucide-react";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -31,7 +31,6 @@ interface StatusCounts {
 
 interface GradeQueueData {
   grade: string;
-  building: string;
   queueId: string | null;
   statusCounts: StatusCounts;
   records: DismissalQueueRecord[];
@@ -40,26 +39,16 @@ interface GradeQueueData {
 }
 
 interface DismissalQueueRecord {
-  queueId: string;
-  classBuilding: string;
+  queueid: string;
+  studentid: string;
+  StudentName: string;
+  AttendanceStatusAndTime: string;
+  DismissalStatusAndTime: string;
+  DismissalMethod: string;
+  DismissalPickupBy: string;
   grade: string;
   dismissalQueueStatus: string;
-  parentId?: string;
-  studentId?: string;
-  studentName?: string;
-  parentName?: string;
-  alternateName?: string;
-  qrScannedAt?: Date;
   addToQueueMethod: string;
-  qrScannedAtBuilding?: string;
-  dismissedAt?: Date;
-  dismissedByName?: string;
-  dismissStatus?: string;
-  studentSelfDismiss?: boolean;
-  dismissIssue?: string;
-  pickupConfirmedDTTM?: Date;
-  pickupConfirmedByName?: string;
-  pickupIssue?: string;
 }
 
 export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageProps) {
@@ -139,7 +128,6 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
         // Initialize grade queue data
         const initialGradeData: GradeQueueData[] = gradesResponse.grades.map(grade => ({
           grade: grade.name,
-          building: grade.building,
           queueId: null,
           statusCounts: {
             standby: 0,
@@ -160,8 +148,8 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
         
         setGradeQueueData(initialGradeData);
         
-        // Load dismissal queue data for all grades
-        await loadAllGradeData(gradesResponse.grades);
+        // Load dismissal queue data
+        await loadFullQueueData();
         
       } catch (error) {
         console.error("Failed to load initial data:", error);
@@ -178,73 +166,84 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
     loadInitialData();
   }, [toast]);
 
-  const loadAllGradeData = async (gradesToLoad: Grade[]) => {
-    const promises = gradesToLoad.map(grade => loadGradeQueueData(grade.name));
-    await Promise.all(promises);
-    setLastRefresh(new Date());
-  };
-
-  const loadGradeQueueData = async (gradeName: string) => {
+  const loadFullQueueData = async () => {
     try {
-      console.log(`Loading dismissal queue for grade: ${gradeName}`);
+      console.log('Loading full dismissal queue data');
       
-      const response = await backend.queue.getQueueListByGrade({ grade: gradeName });
-      console.log(`Dismissal queue response for ${gradeName}:`, response);
+      const response = await backend.queue.getAttendanceDismissalStatusFullQueue();
+      console.log('Full dismissal queue response:', response);
       
-      const statusCounts = calculateStatusCounts(response.records);
+      // Parse and enrich records
+      const enrichedRecords = response.data.map(record => ({
+        ...record,
+        dismissalQueueStatus: extractStatus(record.DismissalStatusAndTime),
+        addToQueueMethod: extractMethod(record.DismissalMethod)
+      }));
       
-      // Update the specific grade data
-      setGradeQueueData(prev => 
-        prev.map(gradeData => 
-          gradeData.grade === gradeName 
-            ? {
-                ...gradeData,
-                queueId: response.queueId,
-                statusCounts,
-                records: response.records,
-                isLoading: false,
-                error: undefined
-              }
-            : gradeData
-        )
-      );
-      
-      // Set current queue ID from the first successful response
-      if (response.queueId && !currentQueueId) {
-        setCurrentQueueId(response.queueId);
+      // Get unique queue ID (assuming all records have the same queue ID)
+      const queueId = enrichedRecords.length > 0 ? enrichedRecords[0].queueid : null;
+      if (queueId) {
+        setCurrentQueueId(queueId);
       }
       
-    } catch (error) {
-      console.error(`Failed to load dismissal queue for grade ${gradeName}:`, error);
-      
-      // Update the specific grade data with error
+      // Group records by grade and update grade queue data
       setGradeQueueData(prev => 
-        prev.map(gradeData => 
-          gradeData.grade === gradeName 
-            ? {
-                ...gradeData,
-                queueId: null,
-                statusCounts: {
-                  standby: 0,
-                  inQueue: 0,
-                  released: 0,
-                  collected: 0,
-                  unknown: 0,
-                  noShow: 0,
-                  earlyDismissal: 0,
-                  directPickup: 0,
-                  latePickup: 0,
-                  afterCare: 0,
-                  total: 0
-                },
-                records: [],
-                isLoading: false,
-                error: error instanceof Error ? error.message : "Failed to load data"
-              }
-            : gradeData
-        )
+        prev.map(gradeData => {
+          const gradeRecords = enrichedRecords.filter(r => r.grade === gradeData.grade);
+          const statusCounts = calculateStatusCounts(gradeRecords);
+          
+          return {
+            ...gradeData,
+            queueId,
+            statusCounts,
+            records: gradeRecords,
+            isLoading: false,
+            error: undefined
+          };
+        })
+      );
+      
+      setLastRefresh(new Date());
+      
+    } catch (error) {
+      console.error('Failed to load full dismissal queue:', error);
+      
+      // Update all grades with error
+      setGradeQueueData(prev => 
+        prev.map(gradeData => ({
+          ...gradeData,
+          queueId: null,
+          statusCounts: {
+            standby: 0,
+            inQueue: 0,
+            released: 0,
+            collected: 0,
+            unknown: 0,
+            noShow: 0,
+            earlyDismissal: 0,
+            directPickup: 0,
+            latePickup: 0,
+            afterCare: 0,
+            total: 0
+          },
+          records: [],
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Failed to load data"
+        }))
       );
     }
+  };
+
+  const extractStatus = (statusAndTime: string): string => {
+    // Extract status from "Dismissal: InQueue at 11:17 pm" -> "InQueue"
+    const match = statusAndTime.match(/Dismissal:\s*(\w+)/);
+    return match ? match[1] : 'Unknown';
+  };
+
+  const extractMethod = (methodString: string): string => {
+    // Extract method from "Method: Manual" -> "Manual"
+    const match = methodString.match(/Method:\s*(\w+)/);
+    return match ? match[1] : 'Unknown';
   };
 
   const calculateStatusCounts = (records: DismissalQueueRecord[]): StatusCounts => {
@@ -303,7 +302,7 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await loadAllGradeData(grades);
+      await loadFullQueueData();
       
       // Reset countdown after manual refresh
       if (autoRefreshEnabled) {
@@ -599,8 +598,6 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
                       {gradeData.grade}
                     </CardTitle>
                     <CardDescription className="flex items-center space-x-2">
-                      <Building className="w-3 h-3" />
-                      <span>Building {gradeData.building}</span>
                       {gradeData.isLoading && (
                         <span className="text-blue-600">Loading...</span>
                       )}
@@ -707,11 +704,11 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
                     {/* Student Rows */}
                     {gradeData.records.map((record) => (
                       <div 
-                        key={`${record.queueId}-${record.studentId}`}
+                        key={`${record.queueid}-${record.studentid}`}
                         className="grid grid-cols-4 gap-4 p-2 border rounded text-sm hover:bg-gray-50"
                       >
                         <div className="font-medium">
-                          {record.studentName || 'Unknown Student'}
+                          {record.StudentName || 'Unknown Student'}
                         </div>
                         
                         <div>
@@ -722,10 +719,10 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
                         
                         <div className="text-gray-600">
                           <div className="flex items-center space-x-1">
-                            {record.parentName || record.alternateName ? (
+                            {record.DismissalPickupBy ? (
                               <>
-                                <User className="w-3 h-3" />
-                                <span>{record.alternateName || record.parentName}</span>
+                                <UserIcon className="w-3 h-3" />
+                                <span>{record.DismissalPickupBy}</span>
                               </>
                             ) : (
                               <span className="text-gray-400">No contact</span>
