@@ -156,7 +156,6 @@ import {
     searchByName as api_parent_search_searchByName,
     searchByPhone as api_parent_search_searchByPhone
 } from "~backend/parent/search";
-import { testUserUpdate as api_parent_test_user_update_testUserUpdate } from "~backend/parent/test_user_update";
 import { update as api_parent_update_update } from "~backend/parent/update";
 
 export namespace parent {
@@ -171,7 +170,6 @@ export namespace parent {
             this.searchByAlternateName = this.searchByAlternateName.bind(this)
             this.searchByName = this.searchByName.bind(this)
             this.searchByPhone = this.searchByPhone.bind(this)
-            this.testUserUpdate = this.testUserUpdate.bind(this)
             this.update = this.update.bind(this)
         }
 
@@ -233,15 +231,6 @@ export namespace parent {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/parent/search/phone`, {query, method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_search_searchByPhone>
-        }
-
-        /**
-         * Test endpoint to verify user table update functionality.
-         */
-        public async testUserUpdate(params: RequestType<typeof api_parent_test_user_update_testUserUpdate>): Promise<ResponseType<typeof api_parent_test_user_update_testUserUpdate>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/parent/test-user-update`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_test_user_update_testUserUpdate>
         }
 
         /**
