@@ -24,7 +24,6 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
   const arrivalStatuses: { value: ArrivalStatus; label: string }[] = [
     { value: "OnTime", label: "OnTime" },
     { value: "Tardy", label: "Tardy" },
-    { value: "NoShow", label: "NoShow (Add Absence)" },
     { value: "ExcusedDelay", label: "ExcusedDelay" },
     { value: "Unknown", label: "Unknown" }
   ];
@@ -99,17 +98,7 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
               <Label className="text-base font-medium">Arrival Status</Label>
               <RadioGroup
                 value={selectedStatus}
-                onValueChange={(value) => {
-                  if (value === "NoShow") {
-                    toast({
-                      title: "Status Not Allowed",
-                      description: "This status can't be applied to entire grade",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  setSelectedStatus(value as ArrivalStatus);
-                }}
+                onValueChange={(value) => setSelectedStatus(value as ArrivalStatus)}
                 className="grid grid-cols-2 gap-4"
               >
                 {arrivalStatuses.map((status) => (
