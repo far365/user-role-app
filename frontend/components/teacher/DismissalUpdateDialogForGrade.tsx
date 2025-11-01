@@ -14,9 +14,10 @@ interface DismissalUpdateDialogProps {
   onClose: () => void;
   grade: string;
   user: UserType;
+  onStatusUpdated?: () => void;
 }
 
-export function DismissalUpdateDialog({ isOpen, onClose, grade, user }: DismissalUpdateDialogProps) {
+export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUpdated }: DismissalUpdateDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<DismissalStatus>("Unknown");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
@@ -63,6 +64,9 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user }: Dismissa
       if (response.success) {
         setResultMessage(`Successfully updated dismissal status for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`);
         setIsError(false);
+        if (onStatusUpdated) {
+          onStatusUpdated();
+        }
       } else {
         setResultMessage(`Failed to update dismissal status: ${response.error || 'Unknown error'}`);
         setIsError(true);

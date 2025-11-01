@@ -14,9 +14,10 @@ interface AttendanceUpdateDialogProps {
   onClose: () => void;
   grade: string;
   user: UserType;
+  onStatusUpdated?: () => void;
 }
 
-export function AttendanceUpdateDialog({ isOpen, onClose, grade, user }: AttendanceUpdateDialogProps) {
+export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusUpdated }: AttendanceUpdateDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<ArrivalStatus>("OnTime");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
@@ -55,6 +56,9 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user }: Attenda
       if (response.success) {
         setResultMessage(`Successfully updated attendance for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`);
         setIsError(false);
+        if (onStatusUpdated) {
+          onStatusUpdated();
+        }
       } else {
         setResultMessage(`Failed to update attendance: ${response.error || 'Unknown error'}`);
         setIsError(true);

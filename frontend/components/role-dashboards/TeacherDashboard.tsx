@@ -994,6 +994,12 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         onClose={() => setIsBulkAttendanceDialogOpen(false)}
         grade={selectedGrade}
         user={user}
+        onStatusUpdated={() => {
+          if (selectedGrade) {
+            loadStudentData(selectedGrade);
+            loadStatusCounts(selectedGrade);
+          }
+        }}
       />
 
       {/* Bulk Dismissal Update Dialog */}
@@ -1002,6 +1008,12 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         onClose={() => setIsBulkDismissalDialogOpen(false)}
         grade={selectedGrade}
         user={user}
+        onStatusUpdated={() => {
+          if (selectedGrade) {
+            loadStudentData(selectedGrade);
+            loadStatusCounts(selectedGrade);
+          }
+        }}
       />
 
       {/* Dismissal Status Dialog (reuse existing one) */}
