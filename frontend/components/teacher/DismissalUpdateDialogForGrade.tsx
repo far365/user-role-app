@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
@@ -20,9 +19,6 @@ interface DismissalUpdateDialogProps {
 export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUpdated }: DismissalUpdateDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<DismissalStatus>("Unknown");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showResultDialog, setShowResultDialog] = useState(false);
-  const [resultMessage, setResultMessage] = useState("");
-  const [isError, setIsError] = useState(false);
   const { toast } = useToast();
 
   const dismissalStatuses: { value: DismissalStatus; label: string }[] = [
@@ -62,25 +58,26 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUp
       console.log("✅ DISMISSAL UPDATE DEBUG - API Response:", response);
 
       if (response.success) {
-        setResultMessage(`Successfully updated dismissal status for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`);
-        setIsError(false);
+        toast({
+          title: "Success",
+          description: `Successfully updated dismissal status for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`,
+        });
         if (onStatusUpdated) {
           onStatusUpdated();
         }
+        onClose();
       } else {
-        setResultMessage(`Failed to update dismissal status: ${response.error || 'Unknown error'}`);
-        setIsError(true);
+        toast({
+          title: "Error",
+          description: `Failed to update dismissal status: ${response.error || 'Unknown error'}`,
+          variant: "destructive",
+        });
       }
-      
-      setShowResultDialog(true);
       
     } catch (error) {
       console.error("❌ DISMISSAL UPDATE DEBUG - Error:", error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setResultMessage(`Error updating dismissal status: ${errorMessage}`);
-      setIsError(true);
-      setShowResultDialog(true);
       
       toast({
         title: "Error",
@@ -97,16 +94,8 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUp
     onClose();
   };
 
-  const handleResultDialogClose = () => {
-    setShowResultDialog(false);
-    setResultMessage("");
-    setIsError(false);
-    onClose();
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Update dismissal status for entire grade</DialogTitle>
@@ -163,24 +152,5 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUp
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={showResultDialog} onOpenChange={setShowResultDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {isError ? "Update Failed" : "Update Complete"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {resultMessage}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleResultDialogClose}>
-              OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
   );
 }

@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
@@ -20,9 +19,6 @@ interface AttendanceUpdateDialogProps {
 export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusUpdated }: AttendanceUpdateDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<ArrivalStatus>("OnTime");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showResultDialog, setShowResultDialog] = useState(false);
-  const [resultMessage, setResultMessage] = useState("");
-  const [isError, setIsError] = useState(false);
   const { toast } = useToast();
 
   const arrivalStatuses: { value: ArrivalStatus; label: string }[] = [
@@ -54,25 +50,26 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
       console.log("✅ ATTENDANCE UPDATE DEBUG - API Response:", response);
 
       if (response.success) {
-        setResultMessage(`Successfully updated attendance for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`);
-        setIsError(false);
+        toast({
+          title: "Success",
+          description: `Successfully updated attendance for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`,
+        });
         if (onStatusUpdated) {
           onStatusUpdated();
         }
+        onClose();
       } else {
-        setResultMessage(`Failed to update attendance: ${response.error || 'Unknown error'}`);
-        setIsError(true);
+        toast({
+          title: "Error",
+          description: `Failed to update attendance: ${response.error || 'Unknown error'}`,
+          variant: "destructive",
+        });
       }
-      
-      setShowResultDialog(true);
       
     } catch (error) {
       console.error("❌ ATTENDANCE UPDATE DEBUG - Error:", error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setResultMessage(`Error updating attendance: ${errorMessage}`);
-      setIsError(true);
-      setShowResultDialog(true);
       
       toast({
         title: "Error",
@@ -89,16 +86,8 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
     onClose();
   };
 
-  const handleResultDialogClose = () => {
-    setShowResultDialog(false);
-    setResultMessage("");
-    setIsError(false);
-    onClose();
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Update attendance status for entire grade</DialogTitle>
@@ -153,24 +142,5 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={showResultDialog} onOpenChange={setShowResultDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {isError ? "Update Failed" : "Update Complete"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {resultMessage}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={handleResultDialogClose}>
-              OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
   );
 }
