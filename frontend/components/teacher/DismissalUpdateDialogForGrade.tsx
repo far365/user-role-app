@@ -37,12 +37,15 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user }: Dismissa
   ];
 
   const handleSubmit = async () => {
+    const dismissedAtTimestamp = new Date();
+    
     console.log("🎯 DISMISSAL UPDATE DEBUG - Form Submission:");
     console.log("  Grade:", grade);
     console.log("  Dismissal Status:", selectedStatus);
     console.log("  User ID:", user.userID);
     console.log("  User Display Name:", user.displayName);
     console.log("  Add To Queue Method: Manual (default)");
+    console.log("  Dismissed At:", dismissedAtTimestamp.toISOString());
 
     setIsSubmitting(true);
     
@@ -51,7 +54,7 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user }: Dismissa
         grade: grade,
         dismissalQueueStatus: selectedStatus,
         addToQueueMethod: 'Manual',
-        dismissedAt: null,
+        dismissedAt: dismissedAtTimestamp,
         userId: user.userID
       });
 
@@ -134,6 +137,7 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user }: Dismissa
                 <div>Selected Status: {selectedStatus}</div>
                 <div>User ID: {user.userID}</div>
                 <div>Add To Queue Method: Manual</div>
+                <div>Dismissed At: {new Date().toISOString()}</div>
               </div>
             </div>
           </div>
