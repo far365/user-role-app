@@ -23,12 +23,10 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
 
   const arrivalStatuses: { value: ArrivalStatus; label: string }[] = [
     { value: "OnTime", label: "OnTime" },
-    { value: "OnTime-M", label: "OnTime-M" },
     { value: "Tardy", label: "Tardy" },
-    { value: "Tardy-M", label: "Tardy-M" },
-    { value: "NoShow", label: "NoShow" },
-    { value: "Unknown", label: "Unknown" },
-    { value: "ExcusedDelay", label: "ExcusedDelay" }
+    { value: "NoShow", label: "NoShow (Add Absence)" },
+    { value: "ExcusedDelay", label: "ExcusedDelay" },
+    { value: "Unknown", label: "Unknown" }
   ];
 
   const handleSubmit = async () => {
