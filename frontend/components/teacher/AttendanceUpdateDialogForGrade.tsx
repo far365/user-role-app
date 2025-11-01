@@ -36,6 +36,15 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
     console.log("  User ID:", user.userID);
     console.log("  User Display Name:", user.displayName);
 
+    if (selectedStatus === "NoShow") {
+      toast({
+        title: "Status Not Allowed",
+        description: "This status can't be applied to entire grade",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
