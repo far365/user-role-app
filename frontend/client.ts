@@ -266,6 +266,7 @@ import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/
 import { updateAttendanceStatusByQRCode as api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode } from "~backend/queue/update_attendance_status_by_qr_code";
 import { updateDismissalQueueByQRScan as api_queue_update_dismissal_queue_by_qr_scan_updateDismissalQueueByQRScan } from "~backend/queue/update_dismissal_queue_by_qr_scan";
 import { updateDismissalStatusByStudent as api_queue_update_dismissal_status_updateDismissalStatusByStudent } from "~backend/queue/update_dismissal_status";
+import { updateDismissalStatusByGrade as api_queue_update_dismissal_status_by_grade_updateDismissalStatusByGrade } from "~backend/queue/update_dismissal_status_by_grade";
 import { updateDismissalStatusByParentId as api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId } from "~backend/queue/update_dismissal_status_by_parentid";
 
 export namespace queue {
@@ -293,6 +294,7 @@ export namespace queue {
             this.testRawSQL = this.testRawSQL.bind(this)
             this.updateAttendanceStatusByQRCode = this.updateAttendanceStatusByQRCode.bind(this)
             this.updateDismissalQueueByQRScan = this.updateDismissalQueueByQRScan.bind(this)
+            this.updateDismissalStatusByGrade = this.updateDismissalStatusByGrade.bind(this)
             this.updateDismissalStatusByParentId = this.updateDismissalStatusByParentId.bind(this)
             this.updateDismissalStatusByStudent = this.updateDismissalStatusByStudent.bind(this)
         }
@@ -457,6 +459,12 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/update-dismissal-queue-by-qr-scan`, {method: "PUT", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_update_dismissal_queue_by_qr_scan_updateDismissalQueueByQRScan>
+        }
+
+        public async updateDismissalStatusByGrade(params: RequestType<typeof api_queue_update_dismissal_status_by_grade_updateDismissalStatusByGrade>): Promise<ResponseType<typeof api_queue_update_dismissal_status_by_grade_updateDismissalStatusByGrade>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/update_dismissal_status_by_grade`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_update_dismissal_status_by_grade_updateDismissalStatusByGrade>
         }
 
         public async updateDismissalStatusByParentId(params: RequestType<typeof api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId>): Promise<ResponseType<typeof api_queue_update_dismissal_status_by_parentid_updateDismissalStatusByParentId>> {
