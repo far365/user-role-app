@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List, History } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
+import { DismissalUpdateDialog } from "../teacher/DismissalUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import { ViewAbsenceHistoryDialog } from "../teacher/ViewAbsenceHistoryDialog";
@@ -70,6 +71,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [selectedStudent, setSelectedStudent] = useState<AttendanceDismissalRecord | null>(null);
   const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
   const [isBulkAttendanceDialogOpen, setIsBulkAttendanceDialogOpen] = useState(false);
+  const [isBulkDismissalDialogOpen, setIsBulkDismissalDialogOpen] = useState(false);
   const [isDismissalDialogOpen, setIsDismissalDialogOpen] = useState(false);
   const [pendingAbsence, setPendingAbsence] = useState<PendingAbsenceState>({
     requests: [],
@@ -519,6 +521,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             <Button 
               variant="outline" 
               className="inline-flex items-center h-7 px-2 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-xs"
+              onClick={() => setIsBulkDismissalDialogOpen(true)}
             >
               <LogOut className="h-3 w-3 mr-1.5" />
               Dismissal By Grade/Group
@@ -989,6 +992,14 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       <AttendanceUpdateDialog
         isOpen={isBulkAttendanceDialogOpen}
         onClose={() => setIsBulkAttendanceDialogOpen(false)}
+        grade={selectedGrade}
+        user={user}
+      />
+
+      {/* Bulk Dismissal Update Dialog */}
+      <DismissalUpdateDialog
+        isOpen={isBulkDismissalDialogOpen}
+        onClose={() => setIsBulkDismissalDialogOpen(false)}
         grade={selectedGrade}
         user={user}
       />
