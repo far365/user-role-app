@@ -36,15 +36,6 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
     console.log("  User ID:", user.userID);
     console.log("  User Display Name:", user.displayName);
 
-    if (selectedStatus === "NoShow") {
-      toast({
-        title: "Status Not Allowed",
-        description: "This status can't be applied to entire grade",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     
     try {
@@ -108,7 +99,17 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
               <Label className="text-base font-medium">Arrival Status</Label>
               <RadioGroup
                 value={selectedStatus}
-                onValueChange={(value) => setSelectedStatus(value as ArrivalStatus)}
+                onValueChange={(value) => {
+                  if (value === "NoShow") {
+                    toast({
+                      title: "Status Not Allowed",
+                      description: "This status can't be applied to entire grade",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setSelectedStatus(value as ArrivalStatus);
+                }}
                 className="grid grid-cols-2 gap-4"
               >
                 {arrivalStatuses.map((status) => (
