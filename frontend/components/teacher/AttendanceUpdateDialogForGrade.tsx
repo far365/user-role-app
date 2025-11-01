@@ -13,7 +13,7 @@ interface AttendanceUpdateDialogProps {
   onClose: () => void;
   grade: string;
   user: UserType;
-  onStatusUpdated?: () => void;
+  onStatusUpdated?: (rowsUpdated?: number, status?: string) => void;
 }
 
 export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusUpdated }: AttendanceUpdateDialogProps) {
@@ -55,7 +55,7 @@ export function AttendanceUpdateDialog({ isOpen, onClose, grade, user, onStatusU
           description: `Successfully updated attendance for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`,
         });
         if (onStatusUpdated) {
-          onStatusUpdated();
+          onStatusUpdated(response.rowsUpdated, selectedStatus);
         }
         onClose();
       } else {

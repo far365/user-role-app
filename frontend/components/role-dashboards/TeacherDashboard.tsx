@@ -96,6 +96,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
   const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<{ studentid: string; StudentName: string } | null>(null);
+  const [lastUpdateMessage, setLastUpdateMessage] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -194,6 +195,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
 
   const handleGradeSelect = (grade: string) => {
     setSelectedGrade(grade);
+    setLastUpdateMessage(null);
     loadStudentData(grade);
     loadPendingAbsenceRequests(grade);
     loadStatusCounts(grade);
@@ -527,6 +529,24 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
               Dismissal By Grade/Group
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Last Update Message */}
+      {selectedGrade && lastUpdateMessage && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span className="text-sm font-medium text-green-800">{lastUpdateMessage}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLastUpdateMessage(null)}
+            className="h-7 px-2"
+          >
+            <XCircle className="w-4 h-4" />
+          </Button>
         </div>
       )}
 
@@ -994,8 +1014,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         onClose={() => setIsBulkAttendanceDialogOpen(false)}
         grade={selectedGrade}
         user={user}
-        onStatusUpdated={() => {
+        onStatusUpdated={(rowsUpdated?: number, status?: string) => {
           if (selectedGrade) {
+            if (rowsUpdated !== undefined && status) {
+              setLastUpdateMessage(`Updated attendance for ${rowsUpdated} student${rowsUpdated !== 1 ? 's' : ''} in ${selectedGrade} to ${status}`);
+            }
             loadStudentData(selectedGrade);
             loadStatusCounts(selectedGrade);
           }
@@ -1008,8 +1031,11 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         onClose={() => setIsBulkDismissalDialogOpen(false)}
         grade={selectedGrade}
         user={user}
-        onStatusUpdated={() => {
+        onStatusUpdated={(rowsUpdated?: number, status?: string) => {
           if (selectedGrade) {
+            if (rowsUpdated !== undefined && status) {
+              setLastUpdateMessage(`Updated dismissal status for ${rowsUpdated} student${rowsUpdated !== 1 ? 's' : ''} in ${selectedGrade} to ${status}`);
+            }
             loadStudentData(selectedGrade);
             loadStatusCounts(selectedGrade);
           }

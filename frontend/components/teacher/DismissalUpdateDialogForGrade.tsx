@@ -13,7 +13,7 @@ interface DismissalUpdateDialogProps {
   onClose: () => void;
   grade: string;
   user: UserType;
-  onStatusUpdated?: () => void;
+  onStatusUpdated?: (rowsUpdated?: number, status?: string) => void;
 }
 
 export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUpdated }: DismissalUpdateDialogProps) {
@@ -63,7 +63,7 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUp
           description: `Successfully updated dismissal status for ${response.rowsUpdated} students in grade ${grade} to ${selectedStatus}`,
         });
         if (onStatusUpdated) {
-          onStatusUpdated();
+          onStatusUpdated(response.rowsUpdated, selectedStatus);
         }
         onClose();
       } else {
