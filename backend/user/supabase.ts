@@ -5,14 +5,19 @@ const supabaseUrl = secret("SupabaseUrl");
 const supabaseKey = secret("SupabaseKey");
 
 let cachedClient: SupabaseClient | null = null;
-let lastCreated = 0;
-const CACHE_TTL = 60 * 60 * 1000;
 
 function getSupabase(): SupabaseClient {
-  const now = Date.now();
-  if (!cachedClient || now - lastCreated > CACHE_TTL) {
-    cachedClient = createClient(supabaseUrl(), supabaseKey());
-    lastCreated = now;
+  if (!cachedClient) {
+    cachedClient = createClient(supabaseUrl(), supabaseKey(), {
+      auth: {
+        persistSession: false
+      },
+      global: {
+        headers: {
+          'Connection': 'keep-alive'
+        }
+      }
+    });
   }
   return cachedClient;
 }
