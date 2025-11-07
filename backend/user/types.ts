@@ -28,3 +28,24 @@ export interface LoginResponse {
 export interface UserProfileResponse {
   user: User;
 }
+
+export interface VerifyLoginRequest {
+  loginID: string;
+  password: string;
+  timezone: string;
+}
+
+export interface VerifyLoginUserData {
+  loginid: string;
+  timezone: string;
+  userrole: UserRole;
+  displayname: string;
+  temppassword: string | null;
+  lastlogindttm: string | null;
+}
+
+export interface VerifyLoginResponse {
+  out_loginid: string;
+  user_data: VerifyLoginUserData;
+  msg: string | null;
+}
