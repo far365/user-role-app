@@ -681,6 +681,7 @@ import { list_usersrcd as api_user_list_usersrcd_list_usersrcd } from "~backend/
 import { login as api_user_login_login } from "~backend/user/login";
 import { getProfile as api_user_profile_getProfile } from "~backend/user/profile";
 import { updateAttendanceStatusByGrade as api_user_update_attendance_status_by_grade_updateAttendanceStatusByGrade } from "~backend/user/update_attendance_status_by_grade";
+import { verifylogin as api_user_verifylogin_verifylogin } from "~backend/user/verifylogin";
 
 export namespace user {
 
@@ -695,6 +696,7 @@ export namespace user {
             this.list_usersrcd = this.list_usersrcd.bind(this)
             this.login = this.login.bind(this)
             this.updateAttendanceStatusByGrade = this.updateAttendanceStatusByGrade.bind(this)
+            this.verifylogin = this.verifylogin.bind(this)
         }
 
         /**
@@ -746,6 +748,12 @@ export namespace user {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/user/update_attendance_status_by_grade`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_user_update_attendance_status_by_grade_updateAttendanceStatusByGrade>
+        }
+
+        public async verifylogin(params: RequestType<typeof api_user_verifylogin_verifylogin>): Promise<ResponseType<typeof api_user_verifylogin_verifylogin>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/user/verifylogin`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_user_verifylogin_verifylogin>
         }
     }
 }
