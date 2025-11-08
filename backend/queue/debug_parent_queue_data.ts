@@ -8,64 +8,25 @@ export const debugParentQueueData = api(
     console.log(`Parent ID: ${parentId}`);
     
     try {
-      const { data: students, error: studentError } = await supabase
-        .from('studentrcd')
-        .select('*')
-        .eq('parentid', parentId);
+      // Test RPC call first (this works)
+      const rpcTest = await supabase.rpc('get_attendance_dismissal_status_by_parent', { 
+        sch_tz: 'America/Chicago', 
+        p_parentid: parentId 
+      });
       
-      console.log(`Students for parent ${parentId}:`, students);
-      console.log(`Student error:`, studentError);
-      
-      const studentIds = students?.map(s => s.studentid) || [];
-      console.log(`Student IDs:`, studentIds);
-      
-      const { data: queues, error: queueError } = await supabase
-        .from('queuercd')
-        .select('*')
-        .order('queuecloseddttm', { ascending: false })
-        .limit(5);
-      
-      console.log(`Recent queues:`, queues);
-      console.log(`Queue error:`, queueError);
-      
-      if (queues && queues.length > 0 && studentIds.length > 0) {
-        const latestQueue = queues[0];
-        console.log(`Latest queue:`, latestQueue);
-        
-        const { data: queueItems, error: queueItemError } = await supabase
-          .from('queueitemsrcd')
-          .select('*')
-          .eq('queueid', latestQueue.queueid)
-          .in('studentid', studentIds);
-        
-        console.log(`Queue items for students:`, queueItems);
-        console.log(`Queue item error:`, queueItemError);
-        
-        return {
-          parentId,
-          students,
-          studentIds,
-          latestQueue,
-          queueItems,
-          studentError,
-          queueError,
-          queueItemError
-        };
-      }
+      console.log(`RPC Test Result:`, rpcTest);
       
       return {
         parentId,
-        students,
-        studentIds,
-        queues,
-        studentError,
-        queueError,
-        message: 'No queues or students found'
+        rpcResult: rpcTest.data,
+        rpcError: rpcTest.error,
+        message: 'Using RPC instead of direct queries'
       };
     } catch (err) {
       console.error(`Exception:`, err);
       return {
-        error: err instanceof Error ? err.message : 'Unknown error'
+        error: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
       };
     }
   }
