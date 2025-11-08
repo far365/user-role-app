@@ -170,12 +170,14 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       });
       
       console.log(`Attendance/dismissal response for parent ${effectiveParentID}:`, response);
+      console.log(`Response data:`, response.data);
       console.log(`Looking for student ID: "${student.studentId}" (type: ${typeof student.studentId})`);
-      console.log(`Available student IDs in response:`, response.data.map(r => `"${r.studentid}" (type: ${typeof r.studentid})`));
+      console.log(`Available student IDs in response:`, response.data?.map(r => `"${r.studentid}" (type: ${typeof r.studentid})`) || []);
      
-      const studentRecord = response.data.find(record => {
-        console.log(`Comparing record.studentid="${record.studentid}" with student.studentId="${student.studentId}": ${record.studentid === student.studentId}`);
-        return record.studentid === student.studentId;
+      const studentRecord = response.data?.find(record => {
+        const match = record.studentid === student.studentId;
+        console.log(`Comparing record.studentid="${record.studentid}" with student.studentId="${student.studentId}": ${match}`);
+        return match;
       });
      
       if (studentRecord) {
