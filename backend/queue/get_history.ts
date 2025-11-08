@@ -45,7 +45,7 @@ export const getHistory = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
     }
 
     try {
-      const { data, error } = await supabase.rpc("get_queue_history", {
+      const { data, error } = await supabase.rpc("get_queue_history_by_grade_parentid_studentid", {
         p_start_date: req.p_start_date,
         p_end_date: req.p_end_date,
         p_grade: req.p_grade || null,
