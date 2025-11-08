@@ -55,7 +55,7 @@ export const getHistory = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
 
       if (error) {
         console.error("[Queue History API] Error fetching queue history:", error);
-        throw APIError.internal("Failed to fetch queue history");
+        throw APIError.internal(`Failed to fetch queue history: ${error.message || error}`);
       }
 
       const records: QueueHistoryRecord[] = (data || []).map((row: any) => ({
@@ -84,9 +84,9 @@ export const getHistory = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
 
       return { records };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("[Queue History API] Unexpected error:", error);
-      throw APIError.internal("Unexpected error fetching queue history");
+      throw APIError.internal(`Unexpected error fetching queue history: ${error.message || error}`);
     }
   }
 );
