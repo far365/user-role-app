@@ -37,7 +37,7 @@ export interface GetQueueHistoryResponse {
   records: QueueHistoryRecord[];
 }
 
-export const getHistory = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
+export const getHistorybyGradeParentStudent = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
   { expose: true, method: "GET", path: "/queue/history" },
   async (req) => {
     const hasGrade = req.p_grade !== undefined && req.p_grade !== null && req.p_grade !== "";
