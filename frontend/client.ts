@@ -267,7 +267,7 @@ import { getAttendanceDismissalStatusByGrade as api_queue_get_attendance_dismiss
 import { getAttendanceDismissalStatusByParent as api_queue_get_attendance_dismissal_status_by_parent_getAttendanceDismissalStatusByParent } from "~backend/queue/get_attendance_dismissal_status_by_parent";
 import { getAttendanceDismissalStatusFullQueue as api_queue_get_attendance_dismissal_status_full_queue_getAttendanceDismissalStatusFullQueue } from "~backend/queue/get_attendance_dismissal_status_full_queue";
 import { getCurrentQueue as api_queue_get_current_getCurrentQueue } from "~backend/queue/get_current";
-import { getHistory as api_queue_get_history_getHistory } from "~backend/queue/get_history";
+import { getHistorybyGradeParentStudent as api_queue_get_history_getHistorybyGradeParentStudent } from "~backend/queue/get_history";
 import { getQueueCountByGrade as api_queue_get_queue_count_by_grade_getQueueCountByGrade } from "~backend/queue/get_queue_count_by_grade";
 import { getQueueListByGrade as api_queue_get_queue_list_by_grade_getQueueListByGrade } from "~backend/queue/get_queue_list_by_grade";
 import { list as api_queue_list_list } from "~backend/queue/list";
@@ -298,7 +298,7 @@ export namespace queue {
             this.getAttendanceDismissalStatusByParent = this.getAttendanceDismissalStatusByParent.bind(this)
             this.getAttendanceDismissalStatusFullQueue = this.getAttendanceDismissalStatusFullQueue.bind(this)
             this.getCurrentQueue = this.getCurrentQueue.bind(this)
-            this.getHistory = this.getHistory.bind(this)
+            this.getHistorybyGradeParentStudent = this.getHistorybyGradeParentStudent.bind(this)
             this.getQueueCountByGrade = this.getQueueCountByGrade.bind(this)
             this.getQueueListByGrade = this.getQueueListByGrade.bind(this)
             this.list = this.list.bind(this)
@@ -409,7 +409,7 @@ export namespace queue {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_current_getCurrentQueue>
         }
 
-        public async getHistory(params: RequestType<typeof api_queue_get_history_getHistory>): Promise<ResponseType<typeof api_queue_get_history_getHistory>> {
+        public async getHistorybyGradeParentStudent(params: RequestType<typeof api_queue_get_history_getHistorybyGradeParentStudent>): Promise<ResponseType<typeof api_queue_get_history_getHistorybyGradeParentStudent>> {
             // Convert our params into the objects we need for the request
             const query = makeRecord<string, string | string[]>({
                 "p_end_date":   params["p_end_date"],
@@ -421,7 +421,7 @@ export namespace queue {
 
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/history`, {query, method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_history_getHistory>
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_get_history_getHistorybyGradeParentStudent>
         }
 
         /**
