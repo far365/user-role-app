@@ -102,12 +102,14 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       console.log("Parent ID:", parentID);
       console.log("This will query Supabase studentrcd table where parentid =", parentID);
      
-      const response = await backend.student.getByParentID_sql({ parentID });
+      const response = await backend.student.getStudentsByParentID({ parentId: parentID });
       console.log("=== FRONTEND: Student data response from Supabase ===", response);
      
       // Convert students to include dismissal status fields
       const studentsWithDismissalStatus: StudentWithDismissalStatus[] = response.students.map(student => ({
-        ...student,
+        studentId: student.studentid,
+        studentName: student.studentname,
+        grade: student.grade,
         dismissalStatus: undefined,
         isLoadingDismissalStatus: false,
         dismissalStatusError: undefined
