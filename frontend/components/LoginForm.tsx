@@ -14,6 +14,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onLogin }: LoginFormProps) {
   const [loginID, setLoginID] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
   const { toast } = useToast();
@@ -30,32 +31,56 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       return;
     }
 
+    if (!password.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your password",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setDebugInfo("");
 
     try {
       console.log(`[LoginForm] Attempting login for: ${loginID.trim()}`);
       
-      // Generate a simple device ID
-      const deviceID = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      console.log(`[LoginForm] User timezone: ${timezone}`);
       
-      const response = await backend.user.login({
+      const response = await backend.user.verifylogin({
         loginID: loginID.trim(),
-        password: "demo", // Using a dummy password since it's not validated
-        deviceID,
+        password: password,
+        timezone: timezone,
       });
 
       console.log(`[LoginForm] Login response:`, response);
 
-      if (response.success) {
-        console.log(`[LoginForm] Login successful for: ${response.user.displayName}`);
-        
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${response.user.displayName}!`,
-        });
-        onLogin(response.user);
+      if (response.msg) {
+        throw new Error(response.msg);
       }
+
+      const user: User = {
+        loginID: response.user_data.loginid,
+        userRole: response.user_data.userrole,
+        userID: response.out_loginid,
+        displayName: response.user_data.displayname,
+        userStatus: "Active",
+        lastLoginDTTM: response.user_data.lastlogindttm ? new Date(response.user_data.lastlogindttm) : null,
+        lastPhoneHash: null,
+        lastDeviceID: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      console.log(`[LoginForm] Login successful for: ${user.displayName}`);
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.displayName}!`,
+      });
+      onLogin(user);
     } catch (error) {
       console.error("[LoginForm] Login error:", error);
       
@@ -173,6 +198,17 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                   onChange={(e) => setLoginID(e.target.value)}
                   disabled={isLoading}
                   maxLength={12}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
