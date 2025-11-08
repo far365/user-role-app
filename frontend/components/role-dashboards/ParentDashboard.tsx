@@ -102,7 +102,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       console.log("Parent ID:", parentID);
       console.log("This will query Supabase studentrcd table where parentid =", parentID);
      
-      const response = await backend.student.getByParentID({ parentID });
+      const response = await backend.student.getByParent({ parentID });
       console.log("=== FRONTEND: Student data response from Supabase ===", response);
      
       // Convert students to include dismissal status fields
