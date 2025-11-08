@@ -500,6 +500,7 @@ import { debug as api_student_debug_debug } from "~backend/student/debug";
 import { generateQRToken as api_student_generate_qr_token_generateQRToken } from "~backend/student/generate_qr_token";
 import { getAbsenceHistoryByStudentID as api_student_get_absence_history_by_studentid_getAbsenceHistoryByStudentID } from "~backend/student/get_absence_history_by_studentid";
 import { getByParentID as api_student_get_by_parent_getByParentID } from "~backend/student/get_by_parent";
+import { getStudentsByParentID as api_student_get_students_by_parentid_getStudentsByParentID } from "~backend/student/get_students_by_parentid";
 import { insertAbsence as api_student_insert_absence_insertAbsence } from "~backend/student/insert_absence";
 import { pendingAbsenceApprovalsByGrade as api_student_pending_absence_approvals_by_grade_pendingAbsenceApprovalsByGrade } from "~backend/student/pending_absence_approvals_by_grade";
 import { pendingAndApprovedAbsencesByStudent as api_student_pending_and_approved_absences_by_student_pendingAndApprovedAbsencesByStudent } from "~backend/student/pending_and_approved_absences_by_student";
@@ -526,6 +527,7 @@ export namespace student {
             this.generateQRToken = this.generateQRToken.bind(this)
             this.getAbsenceHistoryByStudentID = this.getAbsenceHistoryByStudentID.bind(this)
             this.getByParentID = this.getByParentID.bind(this)
+            this.getStudentsByParentID = this.getStudentsByParentID.bind(this)
             this.insertAbsence = this.insertAbsence.bind(this)
             this.pendingAbsenceApprovalsByGrade = this.pendingAbsenceApprovalsByGrade.bind(this)
             this.pendingAndApprovedAbsencesByStudent = this.pendingAndApprovedAbsencesByStudent.bind(this)
@@ -573,6 +575,12 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/by-parent/${encodeURIComponent(params.parentID)}`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_get_by_parent_getByParentID>
+        }
+
+        public async getStudentsByParentID(params: { parentId: string }): Promise<ResponseType<typeof api_student_get_students_by_parentid_getStudentsByParentID>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/student/get-by-parentid/${encodeURIComponent(params.parentId)}`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_get_students_by_parentid_getStudentsByParentID>
         }
 
         public async insertAbsence(params: RequestType<typeof api_student_insert_absence_insertAbsence>): Promise<ResponseType<typeof api_student_insert_absence_insertAbsence>> {
