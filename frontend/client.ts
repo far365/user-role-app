@@ -151,6 +151,7 @@ export namespace grades {
  */
 import { debug as api_parent_debug_debug } from "~backend/parent/debug";
 import { getByUsername as api_parent_get_getByUsername } from "~backend/parent/get";
+import { getParentInfo as api_parent_get_parent_info_getParentInfo } from "~backend/parent/get_parent_info";
 import {
     searchByAlternateName as api_parent_search_searchByAlternateName,
     searchByName as api_parent_search_searchByName,
@@ -167,6 +168,7 @@ export namespace parent {
             this.baseClient = baseClient
             this.debug = this.debug.bind(this)
             this.getByUsername = this.getByUsername.bind(this)
+            this.getParentInfo = this.getParentInfo.bind(this)
             this.searchByAlternateName = this.searchByAlternateName.bind(this)
             this.searchByName = this.searchByName.bind(this)
             this.searchByPhone = this.searchByPhone.bind(this)
@@ -189,6 +191,12 @@ export namespace parent {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/parent/by-username/${encodeURIComponent(params.username)}`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_get_getByUsername>
+        }
+
+        public async getParentInfo(params: RequestType<typeof api_parent_get_parent_info_getParentInfo>): Promise<ResponseType<typeof api_parent_get_parent_info_getParentInfo>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/parent/get-parent-info`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_get_parent_info_getParentInfo>
         }
 
         /**
