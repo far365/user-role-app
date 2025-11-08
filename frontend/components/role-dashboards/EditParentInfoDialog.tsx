@@ -8,14 +8,14 @@ import { Phone, Save, X, AlertCircle, Car } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { QRCodeGenerator } from "../QRCodeGenerator";
 import backend from "~backend/client";
-import type { Parent } from "~backend/parent/types";
+import type { ParentInfo } from "~backend/parent/get_parent_info";
 
 interface EditParentInfoDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  parentData: Parent;
+  parentData: ParentInfo;
   username: string;
-  onUpdate: (updatedParent: Parent) => void;
+  onUpdate: (updatedParent: ParentInfo) => void;
 }
 
 interface EditableParentData {
@@ -64,19 +64,19 @@ export function EditParentInfoDialog({ isOpen, onClose, parentData, username, on
     if (parentData) {
       setEditData({
         parentPhoneMain: parentData.parentPhoneMain,
-        parentVehicleInfo: parentData.parentVehicleInfo,
-        alternate1Name: parentData.alternate1Name,
-        alternate1Phone: parentData.alternate1Phone,
-        alternate1Relationship: parentData.alternate1Relationship,
-        alternate1VehicleInfo: parentData.alternate1VehicleInfo,
-        alternate2Name: parentData.alternate2Name,
-        alternate2Phone: parentData.alternate2Phone,
-        alternate2Relationship: parentData.alternate2Relationship,
-        alternate2VehicleInfo: parentData.alternate2VehicleInfo,
-        alternate3Name: parentData.alternate3Name,
-        alternate3Phone: parentData.alternate3Phone,
-        alternate3Relationship: parentData.alternate3Relationship,
-        alternate3VehicleInfo: parentData.alternate3VehicleInfo,
+        parentVehicleInfo: parentData.parentVehicleInfo || '',
+        alternate1Name: parentData.alternate1Name || '',
+        alternate1Phone: parentData.alternate1Phone || '',
+        alternate1Relationship: parentData.alternate1Relationship || '',
+        alternate1VehicleInfo: parentData.alternate1VehicleInfo || '',
+        alternate2Name: parentData.alternate2Name || '',
+        alternate2Phone: parentData.alternate2Phone || '',
+        alternate2Relationship: parentData.alternate2Relationship || '',
+        alternate2VehicleInfo: parentData.alternate2VehicleInfo || '',
+        alternate3Name: parentData.alternate3Name || '',
+        alternate3Phone: parentData.alternate3Phone || '',
+        alternate3Relationship: parentData.alternate3Relationship || '',
+        alternate3VehicleInfo: parentData.alternate3VehicleInfo || '',
       });
     }
   }, [parentData]);
@@ -142,7 +142,32 @@ export function EditParentInfoDialog({ isOpen, onClose, parentData, username, on
         ...editData,
       });
      
-      onUpdate(response.parent);
+      // Convert Parent to ParentInfo
+      const updatedParentInfo: ParentInfo = {
+        parentID: response.parent.parentID,
+        parentName: response.parent.parentName,
+        parentPhoneMain: response.parent.parentPhoneMain,
+        parentRecordStatus: response.parent.parentRecordStatus,
+        parentVehicleInfo: response.parent.parentVehicleInfo,
+        gender: response.parent.gender,
+        sendSMS: response.parent.sendSMS,
+        alternate1Name: response.parent.alternate1Name || null,
+        alternate1Phone: response.parent.alternate1Phone || null,
+        alternate1Relationship: response.parent.alternate1Relationship || null,
+        alternate1VehicleInfo: response.parent.alternate1VehicleInfo || null,
+        alternate2Name: response.parent.alternate2Name || null,
+        alternate2Phone: response.parent.alternate2Phone || null,
+        alternate2Relationship: response.parent.alternate2Relationship || null,
+        alternate2VehicleInfo: response.parent.alternate2VehicleInfo || null,
+        alternate3Name: response.parent.alternate3Name || null,
+        alternate3Phone: response.parent.alternate3Phone || null,
+        alternate3Relationship: response.parent.alternate3Relationship || null,
+        alternate3VehicleInfo: response.parent.alternate3VehicleInfo || null,
+        createdAt: response.parent.createdAt.toISOString(),
+        updatedAt: response.parent.updatedAt.toISOString(),
+      };
+     
+      onUpdate(updatedParentInfo);
       setValidationErrors({});
      
       toast({
@@ -194,19 +219,19 @@ export function EditParentInfoDialog({ isOpen, onClose, parentData, username, on
   const handleCancel = () => {
     setEditData({
       parentPhoneMain: parentData.parentPhoneMain,
-      parentVehicleInfo: parentData.parentVehicleInfo,
-      alternate1Name: parentData.alternate1Name,
-      alternate1Phone: parentData.alternate1Phone,
-      alternate1Relationship: parentData.alternate1Relationship,
-      alternate1VehicleInfo: parentData.alternate1VehicleInfo,
-      alternate2Name: parentData.alternate2Name,
-      alternate2Phone: parentData.alternate2Phone,
-      alternate2Relationship: parentData.alternate2Relationship,
-      alternate2VehicleInfo: parentData.alternate2VehicleInfo,
-      alternate3Name: parentData.alternate3Name,
-      alternate3Phone: parentData.alternate3Phone,
-      alternate3Relationship: parentData.alternate3Relationship,
-      alternate3VehicleInfo: parentData.alternate3VehicleInfo,
+      parentVehicleInfo: parentData.parentVehicleInfo || '',
+      alternate1Name: parentData.alternate1Name || '',
+      alternate1Phone: parentData.alternate1Phone || '',
+      alternate1Relationship: parentData.alternate1Relationship || '',
+      alternate1VehicleInfo: parentData.alternate1VehicleInfo || '',
+      alternate2Name: parentData.alternate2Name || '',
+      alternate2Phone: parentData.alternate2Phone || '',
+      alternate2Relationship: parentData.alternate2Relationship || '',
+      alternate2VehicleInfo: parentData.alternate2VehicleInfo || '',
+      alternate3Name: parentData.alternate3Name || '',
+      alternate3Phone: parentData.alternate3Phone || '',
+      alternate3Relationship: parentData.alternate3Relationship || '',
+      alternate3VehicleInfo: parentData.alternate3VehicleInfo || '',
     });
     setValidationErrors({});
     onClose();

@@ -12,7 +12,7 @@ import { EditParentInfoDialog } from "./EditParentInfoDialog";
 import { ManageAbsencesPage } from "../parent/ManageAbsencesPage";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
-import type { Parent } from "~backend/parent/types";
+import type { ParentInfo } from "~backend/parent/get_parent_info";
 import type { Student } from "~backend/student/types";
 interface ParentDashboardProps {
   user: User;
@@ -36,7 +36,10 @@ interface EditableParentData {
 interface ValidationErrors {
   [key: string]: string;
 }
-interface StudentWithDismissalStatus extends Student {
+interface StudentWithDismissalStatus {
+  studentId: string;
+  studentName: string;
+  grade: string;
   dismissalStatus?: string;
   attendanceStatus?: string;
   dismissalMethod?: string;
@@ -47,7 +50,7 @@ interface StudentWithDismissalStatus extends Student {
   dismissalStatusError?: string;
 }
 export function ParentDashboard({ user }: ParentDashboardProps) {
-  const [parentData, setParentData] = useState<Parent | null>(null);
+  const [parentData, setParentData] = useState<ParentInfo | null>(null);
   const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
@@ -74,9 +77,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         const response = await backend.parent.getParentInfo({ username: user.loginID });
         console.log("Parent data response:", response);
        
-        setParentData(response.parent);
+        setParentData(response);
         // Fetch student data using the correct parentID from the parent record
-        await fetchStudentData(response.parent.parentID);
+        await fetchStudentData(response.parentID);
       } catch (error) {
         console.error("Failed to fetch parent data:", error);
         setError(error instanceof Error ? error.message : "Failed to load parent information");
