@@ -62,8 +62,10 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [studentError, setStudentError] = useState<string | null>(null);
   const [debugData, setDebugData] = useState<any>(null);
   const [studentDebugData, setStudentDebugData] = useState<any>(null);
+  const [queueDebugData, setQueueDebugData] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [showStudentDebug, setShowStudentDebug] = useState(false);
+  const [showQueueDebug, setShowQueueDebug] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { toast } = useToast();
@@ -325,6 +327,39 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       toast({
         title: "Debug Error",
         description: "Failed to fetch debug information",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleQueueDebug = async () => {
+    if (!parentData) {
+      toast({
+        title: "Debug Error",
+        description: "Parent data not loaded yet",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      console.log("=== FRONTEND: Fetching queue debug data ===");
+      console.log("Parent ID for debug:", parentData.parentID);
+      
+      const response = await backend.queue.debugParentQueueData({ parentId: parentData.parentID });
+      console.log("=== FRONTEND: Queue debug response ===", response);
+      
+      setQueueDebugData(response);
+      setShowQueueDebug(true);
+      
+      toast({
+        title: "Queue Debug Complete",
+        description: `Found ${response.students?.length || 0} students, ${response.queueItems?.length || 0} queue items`,
+      });
+    } catch (error) {
+      console.error("Failed to fetch queue debug data:", error);
+      toast({
+        title: "Queue Debug Error",
+        description: "Failed to fetch queue debug information",
         variant: "destructive",
       });
     }
@@ -700,7 +735,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     ))}
                   </div>
                 )}
-                <div className="mt-2">
+                <div className="mt-2 flex gap-2">
                   <Button
                     onClick={handleStudentDebug}
                     variant="outline"
@@ -710,10 +745,61 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     <TestTube className="w-3.5 h-3.5 mr-1.5" />
                     Debug Students
                   </Button>
+                  <Button
+                    onClick={handleQueueDebug}
+                    variant="outline"
+                    size="sm"
+                    className="border-orange-300 text-orange-700 hover:bg-orange-50 h-8 px-3 text-sm"
+                  >
+                    <Database className="w-3.5 h-3.5 mr-1.5" />
+                    Debug Queue Data
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Queue Debug Information */}
+          {showQueueDebug && queueDebugData && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardHeader>
+                <CardTitle className="text-orange-800">Queue Debug Information</CardTitle>
+                <CardDescription className="text-orange-700">
+                  Raw queue and student data from Supabase
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-orange-800">
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <p className="font-medium">Parent ID: {queueDebugData.parentId}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Students ({queueDebugData.students?.length || 0}):</p>
+                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                      {JSON.stringify(queueDebugData.students, null, 2)}
+                    </pre>
+                  </div>
+                  <div>
+                    <p className="font-medium">Latest Queue:</p>
+                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                      {JSON.stringify(queueDebugData.latestQueue, null, 2)}
+                    </pre>
+                  </div>
+                  <div>
+                    <p className="font-medium">Queue Items ({queueDebugData.queueItems?.length || 0}):</p>
+                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
+                      {JSON.stringify(queueDebugData.queueItems, null, 2)}
+                    </pre>
+                  </div>
+                  {queueDebugData.message && (
+                    <div>
+                      <p className="font-medium text-red-600">Message: {queueDebugData.message}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Student Debug Information */}
           {showStudentDebug && studentDebugData && (
