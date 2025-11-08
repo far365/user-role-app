@@ -18,8 +18,10 @@ export const debugParentQueueData = api(
       
       return {
         parentId,
+        students: rpcTest.data,
         rpcResult: rpcTest.data,
         rpcError: rpcTest.error,
+        queueItems: rpcTest.data,
         message: 'Using RPC instead of direct queries'
       };
     } catch (err) {
