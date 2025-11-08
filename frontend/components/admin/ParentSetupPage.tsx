@@ -94,7 +94,7 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       );
 
       console.log(`Fetching students for parent ID: ${parent.parentID}`);
-      const response = await backend.student.getByParentID({ parentID: parent.parentID });
+      const response = await backend.student.getByParentID_sql({ parentID: parent.parentID });
       
       // Update the parent with student data
       setSearchResults(prev => 

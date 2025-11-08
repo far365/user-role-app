@@ -3,7 +3,7 @@ import { supabase } from "../user/supabase";
 import type { Student, GetStudentsByParentResponse } from "./types";
 
 // Retrieves all students associated with a parent ID.
-export const getByParentID = api<{ parentID: string }, GetStudentsByParentResponse>(
+export const getByParentID_sql = api<{ parentID: string }, GetStudentsByParentResponse>(
   { expose: true, method: "GET", path: "/student/by-parent/:parentID" },
   async ({ parentID }) => {
     try {
