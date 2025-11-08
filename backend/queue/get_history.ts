@@ -40,7 +40,11 @@ export interface GetQueueHistoryResponse {
 export const getHistory = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
   { expose: true, method: "GET", path: "/queue/history" },
   async (req) => {
-    if (!req.p_grade && !req.p_parentid && !req.p_studentid) {
+    const hasGrade = req.p_grade !== undefined && req.p_grade !== null && req.p_grade !== "";
+    const hasParentId = req.p_parentid !== undefined && req.p_parentid !== null && req.p_parentid !== "";
+    const hasStudentId = req.p_studentid !== undefined && req.p_studentid !== null && req.p_studentid !== "";
+    
+    if (!hasGrade && !hasParentId && !hasStudentId) {
       throw APIError.invalidArgument("At least one of p_grade, p_parentid, or p_studentid must be provided");
     }
 
