@@ -17,7 +17,7 @@ export const getStudentsByParentID = api<{ parentId: string }, { students: Stude
   async ({ parentId }) => {
     try {
       const { data, error } = await supabase
-        .rpc('get_students_by_parentid', { parent_id: parentId });
+        .rpc('get_students_by_parentid', { p_parentid: parentId });
 
       if (error) {
         console.error("[Student API] Supabase function error:", error);
