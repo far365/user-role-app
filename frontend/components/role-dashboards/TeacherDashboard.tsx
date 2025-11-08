@@ -501,13 +501,10 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       {selectedGrade && (
         <div className="flex flex-col gap-2.5">
           <div className="flex gap-2.5">
-						<Button 
-              variant="outline" 
-              className="inline-flex items-center h-7 px-2 border-2 border-blue-400 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-500 text-xs"
-            >
+            <div className={`inline-flex items-center h-7 px-2 text-xs font-medium ${pendingAbsence.requests.length > 0 ? 'text-red-600' : 'text-gray-500'}`}>
               <Clock className="h-3 w-3 mr-1.5" />
               Pending Approvals - {pendingAbsence.requests.length}
-            </Button>
+            </div>
           </div>
           <div className="flex gap-2.5">
             <Button 
