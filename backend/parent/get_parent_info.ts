@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import { supabase } from "./supabase";
+import { supabase } from "../user/supabase";
 
 export interface GetParentInfoRequest {
   username: string;
@@ -30,7 +30,7 @@ export interface ParentInfo {
 }
 
 export const getParentInfo = api(
-  { method: "POST", path: "/user/get-parent-info", expose: true },
+  { method: "POST", path: "/parent/get-parent-info", expose: true },
   async (req: GetParentInfoRequest): Promise<ParentInfo> => {
     const { data, error } = await supabase.rpc("get_parent_info", {
       username: req.username,
