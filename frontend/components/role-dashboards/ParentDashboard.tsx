@@ -71,7 +71,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         setError(null);
         console.log("Fetching parent data for username:", user.loginID);
        
-        const response = await backend.parent.getByUsername({ username: user.loginID });
+        const response = await backend.parent.getParentInfo({ username: user.loginID });
         console.log("Parent data response:", response);
        
         setParentData(response.parent);
