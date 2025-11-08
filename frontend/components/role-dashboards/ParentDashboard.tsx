@@ -175,7 +175,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       console.log(`Available student IDs in response:`, response.data?.map(r => `"${r.studentid}" (type: ${typeof r.studentid})`) || []);
      
       const studentRecord = response.data?.find(record => {
-        const match = record.studentid === student.studentId;
+        const match = String(record.studentid) === String(student.studentId);
         console.log(`Comparing record.studentid="${record.studentid}" with student.studentId="${student.studentId}": ${match}`);
         return match;
       });
