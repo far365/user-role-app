@@ -9,13 +9,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List, History } from "lucide-react";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List, History, FileText } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { DismissalUpdateDialog } from "../teacher/DismissalUpdateDialogForGrade";
 import { StudentDismissalStatusEditDialog } from "../teacher/StudentDismissalStatusEditDialog";
 import { SubmitAbsenceRequestDialog } from "../teacher/SubmitAbsenceRequestDialog";
 import { ViewAbsenceHistoryDialog } from "../teacher/ViewAbsenceHistoryDialog";
+import { AttendanceHistoryPage } from "../teacher/AttendanceHistoryPage";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
@@ -97,6 +98,7 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
   const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
   const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<{ studentid: string; StudentName: string } | null>(null);
   const [lastUpdateMessage, setLastUpdateMessage] = useState<string | null>(null);
+  const [showAttendanceHistoryPage, setShowAttendanceHistoryPage] = useState(false);
   
   const { toast } = useToast();
 
@@ -371,6 +373,15 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
     return match ? match[1] : pickupBy;
   };
 
+  if (showAttendanceHistoryPage) {
+    return (
+      <AttendanceHistoryPage 
+        user={user} 
+        onBack={() => setShowAttendanceHistoryPage(false)} 
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -524,6 +535,16 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
             >
               <LogOut className="h-3 w-3 mr-1.5" />
               Dismissal By Grade/Group
+            </Button>
+          </div>
+          <div className="flex gap-2.5">
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center h-7 px-2 border-2 border-purple-400 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-500 text-xs"
+              onClick={() => setShowAttendanceHistoryPage(true)}
+            >
+              <FileText className="h-3 w-3 mr-1.5" />
+              Attendance History
             </Button>
           </div>
         </div>
