@@ -660,7 +660,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                           </div>
                         ) : student.dismissalStatusError ? (
                           <p className="text-sm text-gray-500">{student.dismissalStatusError}</p>
-                        ) : (
+                        ) : student.attendanceStatusAndTime || student.dismissalStatusAndTime ? (
                           <div className="space-y-2">
                             <div className="grid grid-cols-2 gap-4 mb-3">
                               <div className="text-sm text-gray-500 italic">
@@ -693,6 +693,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                               </div>
                             </div>
                           </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No attendance/dismissal data available</p>
                         )}
                       </div>
                     ))}

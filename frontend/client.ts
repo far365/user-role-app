@@ -260,6 +260,7 @@ import { attendanceAndDismissalQueueCountsByGrade as api_queue_attendance_and_di
 import { buildNewQueue as api_queue_build_new_queue_buildNewQueue } from "~backend/queue/build_new_queue";
 import { close as api_queue_close_close } from "~backend/queue/close";
 import { create as api_queue_create_create } from "~backend/queue/create";
+import { debugParentQueueData as api_queue_debug_parent_queue_data_debugParentQueueData } from "~backend/queue/debug_parent_queue_data";
 import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
 import { deleteQueue as api_queue_delete_deleteQueue } from "~backend/queue/delete";
 import { getAttendanceDismissalStatusByGrade as api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade } from "~backend/queue/get_attendance_dismissal_status_by_grade";
@@ -289,6 +290,7 @@ export namespace queue {
             this.buildNewQueue = this.buildNewQueue.bind(this)
             this.close = this.close.bind(this)
             this.create = this.create.bind(this)
+            this.debugParentQueueData = this.debugParentQueueData.bind(this)
             this.debugTable = this.debugTable.bind(this)
             this.deleteQueue = this.deleteQueue.bind(this)
             this.getAttendanceDismissalStatusByGrade = this.getAttendanceDismissalStatusByGrade.bind(this)
@@ -347,6 +349,12 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/create`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_create_create>
+        }
+
+        public async debugParentQueueData(params: RequestType<typeof api_queue_debug_parent_queue_data_debugParentQueueData>): Promise<ResponseType<typeof api_queue_debug_parent_queue_data_debugParentQueueData>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/queue/debug-parent-queue-data`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_debug_parent_queue_data_debugParentQueueData>
         }
 
         /**
