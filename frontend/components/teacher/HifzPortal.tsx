@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
-import type { HifzGrade, HifzEntry, HifzGridData, HifzHistoryEntry } from "~backend/hifz/types";
+import type { HifzGrade, HifzEntry, HifzGridData, HifzHistoryEntry, SurahSetup } from "~backend/hifz/types";
+import { SURAHS } from "~backend/hifz/surah_data";
 
 interface HifzPortalProps {
   user: UserType;
@@ -25,10 +26,7 @@ const STUDENTS = [
   { id: "st3", name: "Student 3" },
 ];
 
-const SURAHS = [
-  "Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa", "Al-Ma'idah",
-  "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus",
-];
+
 
 const GRADES: HifzGrade[] = ["A+", "A", "B+", "B", "C"];
 
@@ -148,12 +146,31 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     setTempGridData([]);
   };
 
-  const handleGradeChange = (index: number, grade: HifzGrade) => {
+  const handleAddRow = () => {
+    setTempGridData([
+      ...tempGridData,
+      { surahName: "", from: 1, to: 1, grade: "", lines: 1, iterations: 1 },
+    ]);
+  };
+
+  const handleDeleteRow = (index: number) => {
+    setTempGridData(tempGridData.filter((_, i) => i !== index));
+  };
+
+  const handleRowChange = (index: number, field: keyof HifzEntry, value: any) => {
     const newData = [...tempGridData];
-    if (!newData[index]) {
-      newData[index] = { surahName: SURAHS[index] || "", grade };
+    if (field === "surahName") {
+      const selectedSurah = SURAHS.find((s) => s.num === parseInt(value));
+      if (selectedSurah) {
+        newData[index] = {
+          ...newData[index],
+          surahName: selectedSurah.name_english,
+          surahNum: selectedSurah.num,
+          to: Math.min(newData[index].to || 1, selectedSurah.ayats),
+        };
+      }
     } else {
-      newData[index].grade = grade;
+      newData[index] = { ...newData[index], [field]: value };
     }
     setTempGridData(newData);
   };
@@ -190,50 +207,191 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
           )}
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {SURAHS.map((surah, index) => {
-              const entry = data.find((e) => e.surahName === surah);
-              const grade = entry?.grade || "";
+          {isEditing ? (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2 text-sm font-medium">Surah</th>
+                      <th className="text-left p-2 text-sm font-medium">From</th>
+                      <th className="text-left p-2 text-sm font-medium">To</th>
+                      <th className="text-left p-2 text-sm font-medium">Hifz Grade</th>
+                      <th className="text-left p-2 text-sm font-medium">Lines</th>
+                      <th className="text-left p-2 text-sm font-medium">Iterations</th>
+                      <th className="text-left p-2 text-sm font-medium"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map((entry, index) => {
+                      const selectedSurah = SURAHS.find(
+                        (s) => s.num === entry.surahNum
+                      );
+                      const maxAyats = selectedSurah?.ayats || 1;
 
-              return (
-                <div key={surah} className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium">{surah}</span>
-                  {isEditing ? (
-                    <Select
-                      value={grade || "none"}
-                      onValueChange={(value) =>
-                        handleGradeChange(index, value === "none" ? "" : (value as HifzGrade))
-                      }
-                    >
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Grade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        {GRADES.map((g) => (
-                          <SelectItem key={g} value={g}>
-                            {g}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="w-24 text-right">
-                      <span
-                        className={`inline-block px-3 py-1 rounded text-sm font-medium ${
-                          grade
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-400"
-                        }`}
-                      >
-                        {grade || "-"}
-                      </span>
-                    </div>
-                  )}
+                      return (
+                        <tr key={index} className="border-b">
+                          <td className="p-2">
+                            <Select
+                              value={entry.surahNum?.toString() || ""}
+                              onValueChange={(value) =>
+                                handleRowChange(index, "surahName", value)
+                              }
+                            >
+                              <SelectTrigger className="w-64">
+                                <SelectValue placeholder="Select surah" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SURAHS.map((surah) => (
+                                  <SelectItem key={surah.num} value={surah.num.toString()}>
+                                    {surah.name_english} / {surah.name_arabic}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxAyats}
+                              value={entry.from || 1}
+                              onChange={(e) =>
+                                handleRowChange(index, "from", parseInt(e.target.value) || 1)
+                              }
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min={entry.from || 1}
+                              max={maxAyats}
+                              value={entry.to || 1}
+                              onChange={(e) =>
+                                handleRowChange(index, "to", parseInt(e.target.value) || 1)
+                              }
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Select
+                              value={entry.grade || "none"}
+                              onValueChange={(value) =>
+                                handleRowChange(
+                                  index,
+                                  "grade",
+                                  value === "none" ? "" : value
+                                )
+                              }
+                            >
+                              <SelectTrigger className="w-24">
+                                <SelectValue placeholder="Grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                {GRADES.map((g) => (
+                                  <SelectItem key={g} value={g}>
+                                    {g}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="40"
+                              value={entry.lines || 1}
+                              onChange={(e) =>
+                                handleRowChange(index, "lines", parseInt(e.target.value) || 1)
+                              }
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={entry.iterations || 1}
+                              onChange={(e) =>
+                                handleRowChange(index, "iterations", parseInt(e.target.value) || 1)
+                              }
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteRow(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <Button size="sm" onClick={handleAddRow} variant="outline">
+                Add Row
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {data.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No data available</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2 text-sm font-medium">Surah</th>
+                        <th className="text-left p-2 text-sm font-medium">From</th>
+                        <th className="text-left p-2 text-sm font-medium">To</th>
+                        <th className="text-left p-2 text-sm font-medium">Hifz Grade</th>
+                        <th className="text-left p-2 text-sm font-medium">Lines</th>
+                        <th className="text-left p-2 text-sm font-medium">Iterations</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.map((entry, index) => {
+                        const surah = SURAHS.find((s) => s.num === entry.surahNum);
+                        return (
+                          <tr key={index} className="border-b">
+                            <td className="p-2 text-sm">
+                              {surah
+                                ? `${surah.name_english} / ${surah.name_arabic}`
+                                : entry.surahName}
+                            </td>
+                            <td className="p-2 text-sm">{entry.from}</td>
+                            <td className="p-2 text-sm">{entry.to}</td>
+                            <td className="p-2">
+                              <span
+                                className={`inline-block px-3 py-1 rounded text-sm font-medium ${
+                                  entry.grade
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-gray-100 text-gray-400"
+                                }`}
+                              >
+                                {entry.grade || "-"}
+                              </span>
+                            </td>
+                            <td className="p-2 text-sm">{entry.lines}</td>
+                            <td className="p-2 text-sm">{entry.iterations}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     );

@@ -2,7 +2,12 @@ export type HifzGrade = "A+" | "A" | "B+" | "B" | "C" | "";
 
 export interface HifzEntry {
   surahName: string;
+  surahNum?: number;
+  from?: number;
+  to?: number;
   grade: HifzGrade;
+  lines?: number;
+  iterations?: number;
 }
 
 export interface HifzGridData {
