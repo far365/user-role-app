@@ -197,12 +197,15 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
 
     setIsSubmitting(true);
     try {
+      if (!startDate) {
+        throw new Error("Start date is required");
+      }
       const formattedDate = format(startDate, "yyyy-MM-dd");
-      const approvalStatus = userRole === "Teacher" ? "Approved" : "Pending";
+      const approvalStatus: "Approved" | "Pending" = userRole === "Teacher" ? "Approved" : "Pending";
       
       const requestData = {
         studentid: student.studentid,
-        absencetype: "ApprovedAbsence",
+        absencetype: "ApprovedAbsence" as const,
         absencedate: formattedDate,
         fullday: absenceType === "full",
         absencestarttime: absenceType === "half" ? startTime : undefined,
@@ -243,14 +246,14 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
       }
     } catch (error) {
       console.error("Failed to submit absence request:", error);
-      const formattedDate = startDate ? format(startDate, "yyyy-MM-dd") : "";
-      const approvalStatus = userRole === "Teacher" ? "Approved" : "Pending";
+      const formattedDate = startDate ? format(startDate, "yyyy-MM-dd") : "N/A";
+      const approvalStatus: "Approved" | "Pending" = userRole === "Teacher" ? "Approved" : "Pending";
       setResultStatus({
         success: false,
         message: error instanceof Error ? error.message : "An unexpected error occurred",
         data: {
           studentid: student.studentid,
-          absencetype: "ApprovedAbsence",
+          absencetype: "ApprovedAbsence" as const,
           absencedate: formattedDate,
           fullday: absenceType === "full",
           absencestarttime: absenceType === "half" ? startTime : undefined,
@@ -413,7 +416,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                     mode="single"
                     selected={startDate}
                     onSelect={setStartDate}
-                    disabled={(date) => {
+                    disabled={(date: Date) => {
                       const today = new Date();
                       today.setHours(0, 0, 0, 0);
                       const oneYearFromNow = new Date(today);
@@ -429,7 +432,7 @@ export function SubmitAbsenceRequestDialog({ student, grade, isOpen, onClose, on
                       return date < today || date > oneYearFromNow || dayOfWeek === 0 || dayOfWeek === 6 || isAbsenceDate;
                     }}
                     modifiers={{
-                      friday: (date) => date.getDay() === 5
+                      friday: (date: Date) => date.getDay() === 5
                     }}
                     modifiersClassNames={{
                       friday: "bg-yellow-200 hover:bg-yellow-300"
