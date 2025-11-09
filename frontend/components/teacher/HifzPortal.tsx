@@ -30,7 +30,7 @@ const SURAHS = [
   "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus",
 ];
 
-const GRADES: HifzGrade[] = ["A+", "A", "B+", "B", "C", ""];
+const GRADES: HifzGrade[] = ["A+", "A", "B+", "B", "C"];
 
 type SectionType = "meaning" | "memorization" | "revision";
 
@@ -200,18 +200,19 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   <span className="text-sm font-medium">{surah}</span>
                   {isEditing ? (
                     <Select
-                      value={grade}
+                      value={grade || "none"}
                       onValueChange={(value) =>
-                        handleGradeChange(index, value as HifzGrade)
+                        handleGradeChange(index, value === "none" ? "" : (value as HifzGrade))
                       }
                     >
                       <SelectTrigger className="w-24">
                         <SelectValue placeholder="Grade" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
                         {GRADES.map((g) => (
-                          <SelectItem key={g || "none"} value={g}>
-                            {g || "None"}
+                          <SelectItem key={g} value={g}>
+                            {g}
                           </SelectItem>
                         ))}
                       </SelectContent>
