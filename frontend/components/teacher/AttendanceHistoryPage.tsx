@@ -1,7 +1,16 @@
+import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { AttendanceGridByGrade } from "./AttendanceGridByGrade";
+import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
+import type { Grade } from "~backend/grades/types";
 
 interface AttendanceHistoryPageProps {
   user: UserType;
@@ -9,6 +18,72 @@ interface AttendanceHistoryPageProps {
 }
 
 export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPageProps) {
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [showGrid, setShowGrid] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadGrades();
+    setDefaultDateRange();
+  }, []);
+
+  const loadGrades = async () => {
+    try {
+      const response = await backend.grades.list();
+      setGrades(response.grades);
+    } catch (error) {
+      console.error("Failed to load grades:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load grade list",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const setDefaultDateRange = () => {
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
+    setEndDate(today.toISOString().split('T')[0]);
+  };
+
+  const handleGenerateGrid = () => {
+    if (!selectedGrade) {
+      toast({
+        title: "Error",
+        description: "Please select a grade",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      toast({
+        title: "Error",
+        description: "Please select start and end dates",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      toast({
+        title: "Error",
+        description: "Start date must be before end date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowGrid(true);
+  };
+
   const formatLastLogin = (lastLogin: Date | null) => {
     if (!lastLogin) return 'Never';
     
@@ -62,6 +137,66 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
         <ArrowLeft className="w-4 h-4 mr-2" />
         Return to Teacher Dashboard
       </Button>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Grade and Date Range</CardTitle>
+          <CardDescription>
+            Choose a grade and date range to view attendance grid
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="grade-select">Grade</Label>
+              <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+                <SelectTrigger id="grade-select">
+                  <SelectValue placeholder="Select Grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  {grades.map((grade) => (
+                    <SelectItem key={grade.name} value={grade.name}>
+                      {grade.name} - Building {grade.building}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="start-date">Start Date</Label>
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end-date">End Date</Label>
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <Button onClick={handleGenerateGrid} className="w-full md:w-auto">
+            Generate Attendance Grid
+          </Button>
+        </CardContent>
+      </Card>
+
+      {showGrid && selectedGrade && startDate && endDate && (
+        <AttendanceGridByGrade
+          grade={selectedGrade}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      )}
     </div>
   );
 }
