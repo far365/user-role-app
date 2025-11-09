@@ -48,3 +48,10 @@ export interface GetHifzHistoryRequest {
 export interface GetHifzHistoryResponse {
   history: HifzHistoryEntry[];
 }
+
+export interface SurahSetup {
+  num: number;
+  name_english: string;
+  name_arabic: string;
+  ayats: number;
+}
