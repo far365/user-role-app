@@ -29,7 +29,7 @@ export const getStudentsByParentID = api<{ parentId: string }, { students: Stude
       }
 
       const students: StudentResponse[] = data.map((row: any) => ({
-        studentid: row.studentid,
+        studentid: String(row.studentid),
         studentname: row.studentname,
         grade: row.grade,
         classbuilding: row.classbuilding,

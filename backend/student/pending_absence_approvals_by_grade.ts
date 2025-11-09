@@ -52,7 +52,7 @@ export const pendingAbsenceApprovalsByGrade = api<PendingAbsenceApprovalsByGrade
         console.log('[Student API] Mapping row:', row);
         return {
           absencercdid: row.absencercdid,
-          studentid: row.studentid,
+          studentid: String(row.studentid),
           studentname: row.studentname || '',
           grade: row.grade || '',
           absencedate: row.absencedate || '',
