@@ -96,7 +96,6 @@ export function QRScanPage({ user, onBack }: QRScanPageProps) {
       // Phone: 1234567890
       // Parent ID: p0001 (optional)
       // Date: 12/1/2024
-console.log("[QR Scanner] *** Entering QR Scan Page ***");     
       const lines = rawData.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       console.log("[QR Scanner] Split lines:", lines);
       
@@ -369,7 +368,6 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
   };
 
   const handleAddToQueue = async () => {
-    alert("BUTTON WAS CLICKED!");
     console.log("[QR Scanner] *** BUTTON CLICKED - handleAddToQueue triggered ***");
     console.log("[QR Scanner] Current scanResult:", scanResult);
     
@@ -403,27 +401,6 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
     const alternateName = qrData.alternatePickupBy || null;
     const contactDisplayName = qrData.alternatePickupBy || qrData.name || 'Contact';
     
-    // COMMENTED OUT CONFIRMATION DIALOG - DIRECT SUBMISSION
-    // const submissionData = {
-    //   isQrScan: true,
-    //   parentId: parentId,
-    //   dismissalQueueStatus: "InQueue",
-    //   addToQueueMethod: "QR",
-    //   dismissedAt: now,
-    //   dismissalQrScannedAt: now,
-    //   alternateName: alternateName,
-    //   qrScannerId: user.userID,
-    //   userId: user.userID,
-    //   contactDisplayName: contactDisplayName
-    // };
-    // 
-    // console.log("[QR Scanner] Setting pending submission:", submissionData);
-    // setPendingSubmission(submissionData);
-    // console.log("[QR Scanner] Setting showConfirmDialog to true");
-    // setShowConfirmDialog(true);
-    // console.log("[QR Scanner] Dialog state should now be:", true);
-    
-    // DIRECT SUBMISSION WITHOUT CONFIRMATION DIALOG
     try {
       setIsAddingToQueue(true);
       
@@ -1140,71 +1117,7 @@ console.log("[QR Scanner] *** Entering QR Scan Page ***");
         </Card>
       )}
 
-      {/* CONFIRMATION DIALOG - COMMENTED OUT FOR DIRECT SUBMISSION */}
-      {/* <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="max-w-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Submission to Dismissal Queue</AlertDialogTitle>
-            <AlertDialogDescription>
-              Please review the data that will be submitted to the API:
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          {pendingSubmission && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 my-4">
-              <h4 className="font-semibold text-gray-900 mb-3">Submission Data:</h4>
-              <div className="space-y-2 text-sm">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="font-medium text-gray-700">Parent ID:</div>
-                  <div className="text-gray-900">{pendingSubmission.parentId}</div>
-                  
-                  <div className="font-medium text-gray-700">Dismissal Queue Status:</div>
-                  <div className="text-gray-900">{pendingSubmission.dismissalQueueStatus}</div>
-                  
-                  <div className="font-medium text-gray-700">Add to Queue Method:</div>
-                  <div className="text-gray-900">{pendingSubmission.addToQueueMethod}</div>
-                  
-                  <div className="font-medium text-gray-700">Is QR Scan:</div>
-                  <div className="text-gray-900">{pendingSubmission.isQrScan ? 'Yes' : 'No'}</div>
-                  
-                  <div className="font-medium text-gray-700">QR Scanner ID:</div>
-                  <div className="text-gray-900">{pendingSubmission.qrScannerId}</div>
-                  
-                  <div className="font-medium text-gray-700">User ID:</div>
-                  <div className="text-gray-900">{pendingSubmission.userId}</div>
-                  
-                  {pendingSubmission.alternateName && (
-                    <>
-                      <div className="font-medium text-gray-700">Alternate Name:</div>
-                      <div className="text-gray-900">{pendingSubmission.alternateName}</div>
-                    </>
-                  )}
-                  
-                  <div className="font-medium text-gray-700">Dismissed At:</div>
-                  <div className="text-gray-900">{new Date(pendingSubmission.dismissedAt).toLocaleString()}</div>
-                  
-                  <div className="font-medium text-gray-700">QR Scanned At:</div>
-                  <div className="text-gray-900">{new Date(pendingSubmission.dismissalQrScannedAt).toLocaleString()}</div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              console.log("[QR Scanner] Cancel button clicked");
-              cancelAddToQueue();
-            }}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => {
-              console.log("[QR Scanner] *** CONFIRM BUTTON CLICKED ***");
-              e.preventDefault();
-              confirmAddToQueue();
-            }} className="bg-green-600 hover:bg-green-700">
-              Confirm & Submit
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog> */}
+
 
       {/* Instructions */}
       <Card className="border-green-200 bg-green-50">

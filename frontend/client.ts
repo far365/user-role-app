@@ -149,7 +149,6 @@ export namespace grades {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
-import { debug as api_parent_debug_debug } from "~backend/parent/debug";
 import { getByUsername as api_parent_get_getByUsername } from "~backend/parent/get";
 import { getParentInfo as api_parent_get_parent_info_getParentInfo } from "~backend/parent/get_parent_info";
 import {
@@ -166,22 +165,12 @@ export namespace parent {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
-            this.debug = this.debug.bind(this)
             this.getByUsername = this.getByUsername.bind(this)
             this.getParentInfo = this.getParentInfo.bind(this)
             this.searchByAlternateName = this.searchByAlternateName.bind(this)
             this.searchByName = this.searchByName.bind(this)
             this.searchByPhone = this.searchByPhone.bind(this)
             this.update = this.update.bind(this)
-        }
-
-        /**
-         * Debug endpoint to check database contents and table structure.
-         */
-        public async debug(params: { username: string }): Promise<ResponseType<typeof api_parent_debug_debug>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/parent/debug/${encodeURIComponent(params.username)}`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_debug_debug>
         }
 
         /**
@@ -260,8 +249,6 @@ import { attendanceAndDismissalQueueCountsByGrade as api_queue_attendance_and_di
 import { buildNewQueue as api_queue_build_new_queue_buildNewQueue } from "~backend/queue/build_new_queue";
 import { close as api_queue_close_close } from "~backend/queue/close";
 import { create as api_queue_create_create } from "~backend/queue/create";
-import { debugParentQueueData as api_queue_debug_parent_queue_data_debugParentQueueData } from "~backend/queue/debug_parent_queue_data";
-import { debugTable as api_queue_debug_table_debugTable } from "~backend/queue/debug_table";
 import { deleteQueue as api_queue_delete_deleteQueue } from "~backend/queue/delete";
 import { getAttendanceDismissalStatusByGrade as api_queue_get_attendance_dismissal_status_by_grade_getAttendanceDismissalStatusByGrade } from "~backend/queue/get_attendance_dismissal_status_by_grade";
 import { getAttendanceDismissalStatusByParent as api_queue_get_attendance_dismissal_status_by_parent_getAttendanceDismissalStatusByParent } from "~backend/queue/get_attendance_dismissal_status_by_parent";
@@ -271,8 +258,6 @@ import { getHistorybyGradeParentStudent as api_queue_get_history_getHistorybyGra
 import { getQueueCountByGrade as api_queue_get_queue_count_by_grade_getQueueCountByGrade } from "~backend/queue/get_queue_count_by_grade";
 import { getQueueListByGrade as api_queue_get_queue_list_by_grade_getQueueListByGrade } from "~backend/queue/get_queue_list_by_grade";
 import { list as api_queue_list_list } from "~backend/queue/list";
-import { showSQL as api_queue_show_sql_showSQL } from "~backend/queue/show_sql";
-import { testRawSQL as api_queue_test_raw_sql_testRawSQL } from "~backend/queue/test_raw_sql";
 import { updateAttendanceStatusByQRCode as api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode } from "~backend/queue/update_attendance_status_by_qr_code";
 import { updateDismissalQueueByQRScan as api_queue_update_dismissal_queue_by_qr_scan_updateDismissalQueueByQRScan } from "~backend/queue/update_dismissal_queue_by_qr_scan";
 import { updateDismissalStatusByStudent as api_queue_update_dismissal_status_updateDismissalStatusByStudent } from "~backend/queue/update_dismissal_status";
@@ -291,8 +276,6 @@ export namespace queue {
             this.buildNewQueue = this.buildNewQueue.bind(this)
             this.close = this.close.bind(this)
             this.create = this.create.bind(this)
-            this.debugParentQueueData = this.debugParentQueueData.bind(this)
-            this.debugTable = this.debugTable.bind(this)
             this.deleteQueue = this.deleteQueue.bind(this)
             this.getAttendanceDismissalStatusByGrade = this.getAttendanceDismissalStatusByGrade.bind(this)
             this.getAttendanceDismissalStatusByParent = this.getAttendanceDismissalStatusByParent.bind(this)
@@ -302,8 +285,6 @@ export namespace queue {
             this.getQueueCountByGrade = this.getQueueCountByGrade.bind(this)
             this.getQueueListByGrade = this.getQueueListByGrade.bind(this)
             this.list = this.list.bind(this)
-            this.showSQL = this.showSQL.bind(this)
-            this.testRawSQL = this.testRawSQL.bind(this)
             this.updateAttendanceStatusByQRCode = this.updateAttendanceStatusByQRCode.bind(this)
             this.updateDismissalQueueByQRScan = this.updateDismissalQueueByQRScan.bind(this)
             this.updateDismissalStatusByGrade = this.updateDismissalStatusByGrade.bind(this)
@@ -351,21 +332,6 @@ export namespace queue {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/create`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_create_create>
-        }
-
-        public async debugParentQueueData(params: RequestType<typeof api_queue_debug_parent_queue_data_debugParentQueueData>): Promise<ResponseType<typeof api_queue_debug_parent_queue_data_debugParentQueueData>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/queue/debug-parent-queue-data`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_debug_parent_queue_data_debugParentQueueData>
-        }
-
-        /**
-         * Debug endpoint to thoroughly inspect the queuemasterrcd table
-         */
-        public async debugTable(): Promise<ResponseType<typeof api_queue_debug_table_debugTable>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/queue/debug-table`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_debug_table_debugTable>
         }
 
         /**
@@ -461,24 +427,6 @@ export namespace queue {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_list_list>
         }
 
-        /**
-         * Shows the actual SQL queries used by the queue operations
-         */
-        public async showSQL(): Promise<ResponseType<typeof api_queue_show_sql_showSQL>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/queue/show-sql`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_show_sql_showSQL>
-        }
-
-        /**
-         * Tests raw SQL queries to understand what's happening with the queuemasterrcd table
-         */
-        public async testRawSQL(): Promise<ResponseType<typeof api_queue_test_raw_sql_testRawSQL>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/queue/test-raw-sql`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_test_raw_sql_testRawSQL>
-        }
-
         public async updateAttendanceStatusByQRCode(params: RequestType<typeof api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode>): Promise<ResponseType<typeof api_queue_update_attendance_status_by_qr_code_updateAttendanceStatusByQRCode>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/update-attendance-status-by-qr-code`, {method: "PUT", body: JSON.stringify(params)})
@@ -521,7 +469,6 @@ export namespace queue {
  * Import the endpoint handlers to derive the types for the client.
  */
 import { approveAbsenceRequest as api_student_approve_absence_request_approveAbsenceRequest } from "~backend/student/approve_absence_request";
-import { debug as api_student_debug_debug } from "~backend/student/debug";
 import { generateQRToken as api_student_generate_qr_token_generateQRToken } from "~backend/student/generate_qr_token";
 import { getAbsenceHistoryByStudentID as api_student_get_absence_history_by_studentid_getAbsenceHistoryByStudentID } from "~backend/student/get_absence_history_by_studentid";
 import { getByParentID_sql as api_student_get_by_parent_getByParentID_sql } from "~backend/student/get_by_parent";
@@ -548,7 +495,6 @@ export namespace student {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.approveAbsenceRequest = this.approveAbsenceRequest.bind(this)
-            this.debug = this.debug.bind(this)
             this.generateQRToken = this.generateQRToken.bind(this)
             this.getAbsenceHistoryByStudentID = this.getAbsenceHistoryByStudentID.bind(this)
             this.getByParentID_sql = this.getByParentID_sql.bind(this)
@@ -570,15 +516,6 @@ export namespace student {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/student/approve-absence-request`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_approve_absence_request_approveAbsenceRequest>
-        }
-
-        /**
-         * Debug endpoint to check student table contents and structure.
-         */
-        public async debug(params: { parentID: string }): Promise<ResponseType<typeof api_student_debug_debug>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/student/debug/${encodeURIComponent(params.parentID)}`, {method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_student_debug_debug>
         }
 
         public async generateQRToken(params: RequestType<typeof api_student_generate_qr_token_generateQRToken>): Promise<ResponseType<typeof api_student_generate_qr_token_generateQRToken>> {

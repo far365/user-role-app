@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Save, X, AlertCircle, TestTube } from "lucide-react";
+import { Save, X, AlertCircle } from "lucide-react";
 import backend from "~backend/client";
 import type { Parent } from "~backend/parent/types";
 
@@ -41,7 +41,6 @@ interface ValidationErrors {
 
 export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: ParentEditDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editData, setEditData] = useState<EditableParentData>({
     parentName: parent.parentName,
@@ -90,17 +89,14 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
     
-    // Validate parent name is required
     if (!editData.parentName.trim()) {
       errors.parentName = "Parent Name is required";
     }
     
-    // Validate alternate contacts
     const alternate1Errors = validateAlternateContact(1, editData);
     const alternate2Errors = validateAlternateContact(2, editData);
     const alternate3Errors = validateAlternateContact(3, editData);
     
-    // Add errors to the errors object
     alternate1Errors.forEach((error, index) => {
       errors[`alternate1_${index}`] = error;
     });
@@ -114,59 +110,6 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
     setValidationErrors(errors);
     
     return Object.keys(errors).length === 0;
-  };
-
-  const handleTestUserUpdate = async () => {
-    try {
-      setIsTesting(true);
-      
-      const testName = `${editData.parentName}_TEST_${Date.now()}`;
-      const response = await backend.parent.testUserUpdate({
-        username: parent.parentID,
-        newDisplayName: testName,
-      });
-      
-      console.log("Test user update response:", response);
-      
-      if (response.success) {
-        const beforeName = response.beforeUpdate?.displayname || response.beforeUpdate?.display_name || response.beforeUpdate?.displayName || 'N/A';
-        const afterName = response.afterUpdate?.displayname || response.afterUpdate?.display_name || response.afterUpdate?.displayName || 'N/A';
-        
-        toast({
-          title: "Test Successful",
-          description: `User update test passed. Display name was updated from "${beforeName}" to "${afterName}".`,
-        });
-      } else {
-        let errorDetails = `User update test failed: ${response.error}`;
-        
-        if (response.availableColumns && response.availableColumns.length > 0) {
-          errorDetails += `\n\nAvailable columns: ${response.availableColumns.join(', ')}`;
-        }
-        
-        if (response.updateQuery) {
-          errorDetails += `\n\nSQL attempted: ${response.updateQuery}`;
-        }
-
-        if (response.supabaseError) {
-          errorDetails += `\n\nSupabase error details: ${JSON.stringify(response.supabaseError, null, 2)}`;
-        }
-        
-        toast({
-          title: "Test Failed",
-          description: errorDetails,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Test user update error:", error);
-      toast({
-        title: "Test Error",
-        description: "Failed to run user update test",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTesting(false);
-    }
   };
 
   const handleSave = async () => {
@@ -190,11 +133,10 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
       
       onParentUpdated(response.parent);
       
-      // Show success message with note about display name update
       if (editData.parentName !== parent.parentName) {
         toast({
           title: "Success",
-          description: "Parent information updated successfully. Display name has been synchronized across both tables.",
+          description: "Parent information updated successfully. Display name has been synchronized.",
         });
       } else {
         toast({
@@ -512,28 +454,15 @@ export function ParentEditDialog({ parent, isOpen, onClose, onParentUpdated }: P
           </div>
         </div>
 
-        <div className="flex justify-between pt-4 border-t">
-          <Button 
-            onClick={handleTestUserUpdate} 
-            variant="outline" 
-            size="sm"
-            disabled={isTesting || isSaving}
-            className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-          >
-            <TestTube className="w-4 h-4 mr-2" />
-            {isTesting ? 'Testing...' : 'Test User Update'}
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          <Button onClick={onClose} variant="outline" disabled={isSaving}>
+            <X className="w-4 h-4 mr-2" />
+            Cancel
           </Button>
-          
-          <div className="flex space-x-2">
-            <Button onClick={onClose} variant="outline" disabled={isSaving}>
-              <X className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
+          <Button onClick={handleSave} disabled={isSaving}>
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

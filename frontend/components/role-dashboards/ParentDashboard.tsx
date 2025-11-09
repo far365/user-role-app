@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Bug, Car, Users, Edit, Save, X, GraduationCap, TestTube, Database, Cloud, QrCode, RefreshCw, FileText, ExternalLink, Bell } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Car, Users, Edit, Save, X, GraduationCap, QrCode, RefreshCw, FileText, ExternalLink, Bell } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -60,12 +60,6 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
   const [showManageAbsencesPage, setShowManageAbsencesPage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studentError, setStudentError] = useState<string | null>(null);
-  const [debugData, setDebugData] = useState<any>(null);
-  const [studentDebugData, setStudentDebugData] = useState<any>(null);
-  const [queueDebugData, setQueueDebugData] = useState<any>(null);
-  const [showDebug, setShowDebug] = useState(false);
-  const [showStudentDebug, setShowStudentDebug] = useState(false);
-  const [showQueueDebug, setShowQueueDebug] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { toast } = useToast();
@@ -275,102 +269,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
       setIsRefreshingDismissalStatus(false);
     }
   };
-  const handleStudentDebug = async () => {
-    if (!parentData) {
-      toast({
-        title: "Debug Error",
-        description: "Parent data not loaded yet",
-        variant: "destructive",
-      });
-      return;
-    }
-    try {
-      console.log("=== FRONTEND: Fetching comprehensive Supabase student debug data ===");
-      console.log("Parent ID for debug:", parentData.parentID);
-     
-      const response = await backend.student.debug({ parentID: parentData.parentID });
-      console.log("=== FRONTEND: Supabase student debug response ===", response);
-     
-      setStudentDebugData(response);
-      setShowStudentDebug(true);
-     
-      // Enhanced toast message with more details
-      const totalStudents = response.studentrcdRecords.length;
-      const studentsForParent = response.specificStudentsForParent.length;
-      const tableExists = response.tableExists;
-      const connectionOk = response.connectionTest?.success;
-      const supabaseConfigured = response.supabaseConfig?.supabaseUrl === 'CONFIGURED';
-     
-      let debugSummary = `Supabase connection: ${connectionOk ? 'OK' : 'FAILED'}`;
-      debugSummary += `\nSupabase configured: ${supabaseConfigured ? 'YES' : 'NO'}`;
-      debugSummary += `\nTable exists: ${tableExists ? 'YES' : 'NO'}`;
-      debugSummary += `\nTotal students in Supabase: ${totalStudents}`;
-      debugSummary += `\nStudents for this parent: ${studentsForParent}`;
-     
-      toast({
-        title: "Supabase Student Debug Complete",
-        description: debugSummary,
-      });
-    } catch (error) {
-      console.error("Failed to fetch Supabase student debug data:", error);
-      toast({
-        title: "Supabase Student Debug Error",
-        description: "Failed to fetch student debug information from Supabase",
-        variant: "destructive",
-      });
-    }
-  };
 
-
-  const handleDebug = async () => {
-    try {
-      console.log("Fetching debug data for username:", user.loginID);
-      const response = await backend.parent.debug({ username: user.loginID });
-      console.log("Debug data response:", response);
-      setDebugData(response);
-      setShowDebug(true);
-    } catch (error) {
-      console.error("Failed to fetch debug data:", error);
-      toast({
-        title: "Debug Error",
-        description: "Failed to fetch debug information",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleQueueDebug = async () => {
-    if (!parentData) {
-      toast({
-        title: "Debug Error",
-        description: "Parent data not loaded yet",
-        variant: "destructive",
-      });
-      return;
-    }
-    try {
-      console.log("=== FRONTEND: Fetching queue debug data ===");
-      console.log("Parent ID for debug:", parentData.parentID);
-      
-      const response = await backend.queue.debugParentQueueData({ parentId: parentData.parentID });
-      console.log("=== FRONTEND: Queue debug response ===", response);
-      
-      setQueueDebugData(response);
-      setShowQueueDebug(true);
-      
-      toast({
-        title: "Queue Debug Complete",
-        description: `Found ${response.students?.length || 0} students, ${response.queueItems?.length || 0} queue items`,
-      });
-    } catch (error) {
-      console.error("Failed to fetch queue debug data:", error);
-      toast({
-        title: "Queue Debug Error",
-        description: "Failed to fetch queue debug information",
-        variant: "destructive",
-      });
-    }
-  };
 
 
 
@@ -489,64 +388,8 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <p className="text-sm mt-3">
               Error details: {error}
             </p>
-            <div className="mt-4">
-              <Button onClick={handleDebug} variant="outline" size="sm">
-                <Bug className="w-4 h-4 mr-2" />
-                Debug Database
-              </Button>
-            </div>
           </CardContent>
         </Card>
-        {showDebug && debugData && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="text-yellow-800">Debug Information</CardTitle>
-              <CardDescription className="text-yellow-700">
-                Database contents for troubleshooting
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-yellow-800">
-              <div className="space-y-4 text-sm">
-                <div>
-                  <p className="font-medium">Specific User Record (usersrcd):</p>
-                  <pre className="bg-white p-2 rounded text-xs overflow-auto">
-                    {JSON.stringify(debugData.specificUser, null, 2)}
-                  </pre>
-                </div>
-                <div>
-                  <p className="font-medium">Specific Parent Record (parentrcd where parentid = "{user.loginID}"):</p>
-                  <pre className="bg-white p-2 rounded text-xs overflow-auto">
-                    {JSON.stringify(debugData.specificParent, null, 2)}
-                  </pre>
-                </div>
-               
-                <div>
-                  <p className="font-medium">All usersrcd Records ({debugData.usersrcdRecords.length}):</p>
-                  <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
-                    {debugData.usersrcdRecords.map((record: any, index: number) => (
-                      <div key={index} className="mb-2 p-1 border-b">
-                        <strong>Username:</strong> {record.username || 'N/A'} |
-                        <strong> LoginID:</strong> {record.loginid || 'N/A'} |
-                        <strong> UserID:</strong> {record.userid || 'N/A'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="font-medium">All parentrcd Records ({debugData.parentrcdRecords.length}):</p>
-                  <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
-                    {debugData.parentrcdRecords.map((record: any, index: number) => (
-                      <div key={index} className="mb-2 p-1 border-b">
-                        <strong>ParentID:</strong> {record.parentid || 'N/A'} |
-                        <strong> Name:</strong> {record.parentname || 'N/A'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     );
   }
@@ -742,139 +585,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
                     ))}
                   </div>
                 )}
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    onClick={handleStudentDebug}
-                    variant="outline"
-                    size="sm"
-                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50 h-8 px-3 text-sm"
-                  >
-                    <TestTube className="w-3.5 h-3.5 mr-1.5" />
-                    Debug Students
-                  </Button>
-                  <Button
-                    onClick={handleQueueDebug}
-                    variant="outline"
-                    size="sm"
-                    className="border-orange-300 text-orange-700 hover:bg-orange-50 h-8 px-3 text-sm"
-                  >
-                    <Database className="w-3.5 h-3.5 mr-1.5" />
-                    Debug Queue Data
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Queue Debug Information */}
-          {showQueueDebug && queueDebugData && (
-            <Card className="border-orange-200 bg-orange-50">
-              <CardHeader>
-                <CardTitle className="text-orange-800">Queue Debug Information</CardTitle>
-                <CardDescription className="text-orange-700">
-                  Raw queue and student data from Supabase
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-orange-800">
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <p className="font-medium">Parent ID: {queueDebugData.parentId}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Students ({queueDebugData.students?.length || 0}):</p>
-                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
-                      {JSON.stringify(queueDebugData.students, null, 2)}
-                    </pre>
-                  </div>
-                  <div>
-                    <p className="font-medium">Latest Queue:</p>
-                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
-                      {JSON.stringify(queueDebugData.latestQueue, null, 2)}
-                    </pre>
-                  </div>
-                  <div>
-                    <p className="font-medium">Queue Items ({queueDebugData.queueItems?.length || 0}):</p>
-                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-40">
-                      {JSON.stringify(queueDebugData.queueItems, null, 2)}
-                    </pre>
-                  </div>
-                  {queueDebugData.message && (
-                    <div>
-                      <p className="font-medium text-red-600">Message: {queueDebugData.message}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Student Debug Information */}
-          {showStudentDebug && studentDebugData && (
-            <Card className="border-yellow-200 bg-yellow-50">
-              <CardHeader>
-                <CardTitle className="text-yellow-800">Supabase Student Debug Information</CardTitle>
-                <CardDescription className="text-yellow-700">
-                  Comprehensive Supabase database analysis for troubleshooting student data
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-yellow-800">
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <p className="font-medium">Supabase Connection & Configuration:</p>
-                    <div className="bg-white p-2 rounded text-xs">
-                      <p><strong>Database Connection:</strong> {studentDebugData.connectionTest?.success ? '✅ OK' : '❌ FAILED'}</p>
-                      <p><strong>Supabase URL:</strong> {studentDebugData.supabaseConfig?.supabaseUrl || 'NOT_CONFIGURED'}</p>
-                      <p><strong>Supabase Key:</strong> {studentDebugData.supabaseConfig?.supabaseKey || 'NOT_CONFIGURED'}</p>
-                      <p><strong>REST URL:</strong> {studentDebugData.supabaseConfig?.restUrl || 'NOT_AVAILABLE'}</p>
-                      {studentDebugData.connectionTest?.error && (
-                        <p><strong>Connection Error:</strong> {studentDebugData.connectionTest.error}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="font-medium">Students for this Parent ({studentDebugData.specificStudentsForParent.length}):</p>
-                    <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
-                      {studentDebugData.specificStudentsForParent.length === 0 ? (
-                        <p className="text-red-600">❌ No students found in Supabase with parentid = "{studentDebugData.parentID}"</p>
-                      ) : (
-                        studentDebugData.specificStudentsForParent.map((record: any, index: number) => (
-                          <div key={index} className="mb-2 p-1 border-b">
-                            <strong>Student:</strong> {record.studentname || 'N/A'} |
-                            <strong> ID:</strong> {record.studentid || 'N/A'} |
-                            <strong> Parent ID:</strong> {record.parentid || 'N/A'}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                 
-                  <div>
-                    <p className="font-medium">All Students in Supabase Database ({studentDebugData.studentrcdRecords.length}):</p>
-                    <div className="bg-white p-2 rounded text-xs max-h-40 overflow-auto">
-                      {studentDebugData.studentrcdRecords.length === 0 ? (
-                        <p className="text-red-600">❌ CRITICAL: studentrcd table in Supabase is completely empty!</p>
-                      ) : (
-                        <>
-                          <p className="text-green-600 mb-2">✅ Found {studentDebugData.studentrcdRecords.length} total students in Supabase</p>
-                          {studentDebugData.studentrcdRecords.slice(0, 10).map((record: any, index: number) => (
-                            <div key={index} className="mb-2 p-1 border-b">
-                              <strong>Student:</strong> {record.studentname || 'N/A'} |
-                              <strong> ID:</strong> {record.studentid || 'N/A'} |
-                              <strong> Parent ID:</strong> {record.parentid || 'N/A'} |
-                              <strong> Grade:</strong> {record.grade || 'N/A'}
-                            </div>
-                          ))}
-                          {studentDebugData.studentrcdRecords.length > 10 && (
-                            <p className="text-gray-500">... and {studentDebugData.studentrcdRecords.length - 10} more</p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
       
