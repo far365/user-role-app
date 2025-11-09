@@ -66,7 +66,7 @@ export const getHistorybyGradeParentStudent = api<GetQueueHistoryRequest, GetQue
         queueid: row.queueid,
         classbuilding: row.classbuilding,
         grade: row.grade,
-        dismissal_queue_status: row.dismissal_queue_status,
+        dismissal_queue_status: row.dismissalqueuestatus,
         parentid: row.parentid,
         studentid: row.studentid,
         studentname: row.studentname,
@@ -83,7 +83,7 @@ export const getHistorybyGradeParentStudent = api<GetQueueHistoryRequest, GetQue
         pickupconfirmeddttm: row.pickupconfirmeddttm ? new Date(row.pickupconfirmeddttm) : undefined,
         pickupconfirmedbyname: row.pickupconfirmedbyname,
         pickupissue: row.pickupissue,
-        arrival_status: row.arrival_status,
+        arrival_status: row.arrivalstatus,
       }));
 
       return { records };
