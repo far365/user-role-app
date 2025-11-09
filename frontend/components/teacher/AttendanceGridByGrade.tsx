@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "lucide-react";
+import { Calendar, Bug } from "lucide-react";
 import backend from "~backend/client";
 
 interface AttendanceGridProps {
@@ -34,6 +34,9 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWeekends, setShowWeekends] = useState(false);
+  const [debugPayload, setDebugPayload] = useState<any>(null);
+  const [debugResponse, setDebugResponse] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,12 +46,16 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
   const loadAttendanceData = async () => {
     setIsLoading(true);
     try {
-      const response = await backend.queue.getHistorybyGradeParentStudent({
+      const payload = {
         p_start_date: startDate,
         p_end_date: endDate,
         p_grade: grade,
-      });
+      };
+      setDebugPayload(payload);
 
+      const response = await backend.queue.getHistorybyGradeParentStudent(payload);
+
+      setDebugResponse(response);
       setRecords(response.records as any);
     } catch (error) {
       console.error("Failed to load attendance data:", error);
@@ -138,13 +145,24 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
             <Calendar className="w-5 h-5" />
             <CardTitle>Attendance Grid - {grade}</CardTitle>
           </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="show-weekends"
-              checked={showWeekends}
-              onCheckedChange={setShowWeekends}
-            />
-            <Label htmlFor="show-weekends" className="text-sm">Show Weekends</Label>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDebug(!showDebug)}
+              className="flex items-center gap-2"
+            >
+              <Bug className="w-4 h-4" />
+              Debug
+            </Button>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show-weekends"
+                checked={showWeekends}
+                onCheckedChange={setShowWeekends}
+              />
+              <Label htmlFor="show-weekends" className="text-sm">Show Weekends</Label>
+            </div>
           </div>
         </div>
         <CardDescription>
@@ -152,6 +170,22 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {showDebug && (
+          <div className="mb-4 p-4 bg-gray-100 rounded-lg space-y-4">
+            <div>
+              <h4 className="font-semibold mb-2">Request Payload:</h4>
+              <pre className="bg-white p-3 rounded border overflow-x-auto text-xs">
+                {JSON.stringify(debugPayload, null, 2)}
+              </pre>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Response:</h4>
+              <pre className="bg-white p-3 rounded border overflow-x-auto text-xs max-h-96">
+                {JSON.stringify(debugResponse, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
