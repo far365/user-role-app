@@ -61,7 +61,7 @@ export function TeacherHub({ user }: TeacherHubProps) {
                 Manage attendance, dismissal, and student records
               </p>
               <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowTeacherDashboard(true); }}>
-                Open Teacher Portal <ArrowRight className="ml-2 h-4 w-4" />
+                Attendance & Dismissal Portal <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
