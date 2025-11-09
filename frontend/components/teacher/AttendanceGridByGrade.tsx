@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Calendar, Bug } from "lucide-react";
+import { SpeechToTextInput } from "@/components/ui/speech-to-text-input";
 import backend from "~backend/client";
 
 interface AttendanceGridProps {
@@ -31,6 +32,10 @@ interface StudentAttendance {
   dates: Map<string, string | undefined>;
 }
 
+interface StudentNotes {
+  [studentId: string]: { [dateKey: string]: string };
+}
+
 export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceGridProps) {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +43,7 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
   const [debugPayload, setDebugPayload] = useState<any>(null);
   const [debugResponse, setDebugResponse] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [notes, setNotes] = useState<StudentNotes>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -201,6 +207,9 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
                 <th className="sticky left-[150px] z-20 bg-white border border-gray-300 p-2 text-left font-semibold min-w-[150px]">
                   Parent
                 </th>
+                <th className="sticky left-[300px] z-20 bg-white border border-gray-300 p-2 text-left font-semibold min-w-[250px]">
+                  Notes
+                </th>
                 {dates.map((date, idx) => {
                   const weekNum = getWeekNumber(date);
                   const bgColor = weekNum % 2 === 0 ? 'bg-gray-200' : 'bg-gray-50';
@@ -231,6 +240,21 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
                     </td>
                     <td className="sticky left-[150px] z-10 bg-white border border-gray-300 p-2 text-gray-600">
                       {student.parentname}
+                    </td>
+                    <td className="sticky left-[300px] z-10 bg-white border border-gray-300 p-2">
+                      <SpeechToTextInput
+                        value={notes[student.studentid]?.['general'] || ''}
+                        onChange={(value) => {
+                          setNotes(prev => ({
+                            ...prev,
+                            [student.studentid]: {
+                              ...prev[student.studentid],
+                              general: value
+                            }
+                          }));
+                        }}
+                        placeholder="Add notes..."
+                      />
                     </td>
                     {dates.map((date, dateIdx) => {
                       const dateKey = date.toISOString().split('T')[0];
