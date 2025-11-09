@@ -69,10 +69,17 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
   const generateYears = (): string[] => {
     const currentYear = new Date().getFullYear();
     const years: string[] = [];
-    for (let i = currentYear; i >= currentYear - 5; i--) {
+    for (let i = currentYear; i >= 2025; i--) {
       years.push(i.toString());
     }
     return years;
+  };
+
+  const getAvailableMonths = (): typeof MONTHS => {
+    if (selectedYear === "2025") {
+      return MONTHS.filter(month => parseInt(month.value) >= 6);
+    }
+    return MONTHS;
   };
 
   const handleGenerateGrid = () => {
@@ -191,7 +198,7 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
                   <SelectValue placeholder="Select Month" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MONTHS.map((month) => (
+                  {getAvailableMonths().map((month) => (
                     <SelectItem key={month.value} value={month.value}>
                       {month.label}
                     </SelectItem>
@@ -202,7 +209,15 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
 
             <div className="space-y-2">
               <Label htmlFor="year-select">Year</Label>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <Select 
+                value={selectedYear} 
+                onValueChange={(value) => {
+                  setSelectedYear(value);
+                  if (value === "2025" && parseInt(selectedMonth) < 6) {
+                    setSelectedMonth("6");
+                  }
+                }}
+              >
                 <SelectTrigger id="year-select">
                   <SelectValue placeholder="Select Year" />
                 </SelectTrigger>
