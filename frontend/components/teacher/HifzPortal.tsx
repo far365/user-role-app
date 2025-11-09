@@ -21,6 +21,13 @@ const STUDY_GROUPS = [
   { id: "sg3", name: "Study Group 3" },
 ];
 
+const GRADES_OPTIONS = [
+  { id: "K", name: "Kindergarten" },
+  { id: "1", name: "Grade 1" },
+  { id: "2", name: "Grade 2" },
+  { id: "3", name: "Grade 3" },
+];
+
 const STUDENTS = [
   { id: "st1", name: "Student 1" },
   { id: "st2", name: "Student 2" },
@@ -35,7 +42,9 @@ type SectionType = "meaning" | "memorization" | "revision";
 
 export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [currentYear, setCurrentYear] = useState<string>("");
+  const [selectionMode, setSelectionMode] = useState<"studyGroup" | "grade">("studyGroup");
   const [studyGroup, setStudyGroup] = useState<string>("");
+  const [grade, setGrade] = useState<string>("");
   const [student, setStudent] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -67,11 +76,15 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   }, []);
 
   useEffect(() => {
-    if (studyGroup && student && selectedDate) {
+    if (student && selectedDate) {
       fetchHifzData();
       fetchHistory();
     }
-  }, [studyGroup, student, selectedDate]);
+  }, [student, selectedDate]);
+
+  useEffect(() => {
+    setStudent("");
+  }, [selectionMode, studyGroup, grade]);
 
   const fetchHifzData = async () => {
     try {
@@ -493,31 +506,84 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Select Parameters</CardTitle>
+            <CardTitle>Select Student</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Study Group
-                </label>
-                <Select value={studyGroup} onValueChange={setStudyGroup}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select study group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STUDY_GROUPS.map((sg) => (
-                      <SelectItem key={sg.id} value={sg.id}>
-                        {sg.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Selection Mode
+                  </label>
+                  <Select value={selectionMode} onValueChange={(value: "studyGroup" | "grade") => setSelectionMode(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="studyGroup">Study Group</SelectItem>
+                      <SelectItem value="grade">Grade</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectionMode === "studyGroup" && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Study Group
+                    </label>
+                    <Select value={studyGroup} onValueChange={setStudyGroup}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select study group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STUDY_GROUPS.map((sg) => (
+                          <SelectItem key={sg.id} value={sg.id}>
+                            {sg.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {selectionMode === "grade" && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Grade
+                    </label>
+                    <Select value={grade} onValueChange={setGrade}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRADES_OPTIONS.map((g) => (
+                          <SelectItem key={g.id} value={g.id}>
+                            {g.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Date</label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="text-sm font-medium mb-2 block">Student</label>
-                <Select value={student} onValueChange={setStudent}>
+                <Select 
+                  value={student} 
+                  onValueChange={setStudent}
+                  disabled={selectionMode === "studyGroup" ? !studyGroup : !grade}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select student" />
                   </SelectTrigger>
@@ -530,21 +596,11 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Date</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
             </div>
           </CardContent>
         </Card>
 
-        {studyGroup && student && (
+        {student && (
           <>
             <div className="space-y-6">
               {renderGrid("meaning", "Meaning")}
