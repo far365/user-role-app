@@ -27,7 +27,7 @@ export function TeacherHub({ user }: TeacherHubProps) {
   }, []);
 
   if (showTeacherDashboard) {
-    return <TeacherDashboard user={user} />;
+    return <TeacherDashboard user={user} onBack={() => setShowTeacherDashboard(false)} />;
   }
 
   return (

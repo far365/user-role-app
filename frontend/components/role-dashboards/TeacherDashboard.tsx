@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List, History, FileText } from "lucide-react";
+import { GraduationCap, Users, Clock, RefreshCw, AlertCircle, UserX, UserCheck, LogOut, CheckCircle, XCircle, ChevronDown, CalendarPlus, LayoutGrid, List, History, FileText, ArrowLeft } from "lucide-react";
 import { AttendanceStatusDialog } from "../teacher/AttendanceStatusByStudentDialog";
 import { AttendanceUpdateDialog } from "../teacher/AttendanceUpdateDialogForGrade";
 import { DismissalUpdateDialog } from "../teacher/DismissalUpdateDialogForGrade";
@@ -24,6 +24,7 @@ import type { AbsenceRequest } from "~backend/student/pending_absence_approvals_
 
 interface TeacherDashboardProps {
   user: UserType;
+  onBack?: () => void;
 }
 
 interface AttendanceDismissalRecord {
@@ -61,7 +62,7 @@ interface StatusCount {
   count: number;
 }
 
-export function TeacherDashboard({ user }: TeacherDashboardProps) {
+export function TeacherDashboard({ user, onBack }: TeacherDashboardProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
   const [selectedDismissalGroup, setSelectedDismissalGroup] = useState<string>("");
@@ -404,8 +405,18 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
         </div>
       </div>
 
-      {/* Attendance History Button */}
+      {/* Back Button and Attendance History Button */}
       <div className="flex gap-2.5">
+        {onBack && (
+          <Button 
+            variant="outline" 
+            className="inline-flex items-center h-7 px-2 border-2 border-gray-400 text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-500 text-xs"
+            onClick={onBack}
+          >
+            <ArrowLeft className="h-3 w-3 mr-1.5" />
+            Back to Hub
+          </Button>
+        )}
         <Button 
           variant="outline" 
           className="inline-flex items-center h-7 px-2 border-2 border-purple-400 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-500 text-xs"
