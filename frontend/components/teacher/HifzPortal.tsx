@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Trash2, MessageSquare } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -49,6 +50,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [editingSection, setEditingSection] = useState<SectionType | null>(null);
   const [tempGridData, setTempGridData] = useState<HifzEntry[]>([]);
   const [history, setHistory] = useState<HifzHistoryEntry[]>([]);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -420,7 +423,23 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             </td>
                             <td className="p-2 text-sm">{entry.lines}</td>
                             <td className="p-2 text-sm">{entry.iterations}</td>
-                            <td className="p-2 text-sm text-gray-600 italic">{entry.note || "-"}</td>
+                            <td className="p-2">
+                              {entry.note ? (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setSelectedNote(entry.note || "");
+                                    setNoteDialogOpen(true);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MessageSquare className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              ) : (
+                                <span className="text-gray-400 text-sm">-</span>
+                              )}
+                            </td>
                           </tr>
                         );
                       })}
@@ -436,7 +455,19 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+    <>
+      <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Note</DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            <p className="text-gray-700 whitespace-pre-wrap">{selectedNote}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
           <div className="flex items-center justify-between">
@@ -559,5 +590,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         )}
       </div>
     </div>
+    </>
   );
 }
