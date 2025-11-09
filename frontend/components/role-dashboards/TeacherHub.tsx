@@ -20,7 +20,7 @@ export function TeacherHub({ user }: TeacherHubProps) {
     const fetchData = async () => {
       try {
         const yearResp = await backend.academic.getCurrentYear();
-        setCurrentYear(yearResp.academicYear);
+        setCurrentYear(yearResp.ayid);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -46,7 +46,7 @@ export function TeacherHub({ user }: TeacherHubProps) {
                 Teacher Hub
               </h1>
               <p className="text-gray-600 mt-1">
-                Welcome, {user.firstName} {user.lastName}
+                Welcome, {user.displayName}
               </p>
             </div>
             <div className="text-right">

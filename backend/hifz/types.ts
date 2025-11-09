@@ -1,0 +1,50 @@
+export type HifzGrade = "A+" | "A" | "B+" | "B" | "C" | "";
+
+export interface HifzEntry {
+  surahName: string;
+  grade: HifzGrade;
+}
+
+export interface HifzGridData {
+  meaning: HifzEntry[];
+  memorization: HifzEntry[];
+  revision: HifzEntry[];
+}
+
+export interface GetHifzDataRequest {
+  studyGroupId: string;
+  studentId: string;
+  date: string;
+}
+
+export interface GetHifzDataResponse {
+  data: HifzGridData;
+}
+
+export interface SaveHifzDataRequest {
+  studyGroupId: string;
+  studentId: string;
+  date: string;
+  section: "meaning" | "memorization" | "revision";
+  entries: HifzEntry[];
+}
+
+export interface SaveHifzDataResponse {
+  success: boolean;
+}
+
+export interface HifzHistoryEntry {
+  date: string;
+  section: "meaning" | "memorization" | "revision";
+  surahName: string;
+  grade: HifzGrade;
+}
+
+export interface GetHifzHistoryRequest {
+  studyGroupId: string;
+  studentId: string;
+}
+
+export interface GetHifzHistoryResponse {
+  history: HifzHistoryEntry[];
+}
