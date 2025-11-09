@@ -102,7 +102,11 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
       }
 
       const student = studentMap.get(key)!;
-      const dateKey = new Date(record.queueid).toISOString().split('T')[0];
+      const queueIdStr = record.queueid.toString();
+      const year = queueIdStr.substring(0, 4);
+      const month = queueIdStr.substring(4, 6);
+      const day = queueIdStr.substring(6, 8);
+      const dateKey = `${year}-${month}-${day}`;
       student.dates.set(dateKey, record.arrival_status);
     });
 
