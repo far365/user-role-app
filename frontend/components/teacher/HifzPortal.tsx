@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -195,6 +195,10 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
           )}
           {isEditing && (
             <div className="flex gap-2">
+              <Button size="sm" onClick={handleAddRow} variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Row
+              </Button>
               <Button size="sm" onClick={handleSaveSection} variant="default">
                 <Save className="mr-2 h-4 w-4" />
                 Save
@@ -327,8 +331,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDeleteRow(index)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
                             >
-                              <X className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </td>
                         </tr>
@@ -337,9 +342,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   </tbody>
                 </table>
               </div>
-              <Button size="sm" onClick={handleAddRow} variant="outline">
-                Add Row
-              </Button>
             </div>
           ) : (
             <div className="space-y-2">
