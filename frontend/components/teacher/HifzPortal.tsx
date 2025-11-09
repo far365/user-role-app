@@ -109,6 +109,28 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const handleSaveSection = async () => {
     if (!editingSection) return;
 
+    for (let i = 0; i < tempGridData.length; i++) {
+      const entry = tempGridData[i];
+      
+      if (!entry.grade) {
+        toast({
+          title: "Validation Error",
+          description: `Row ${i + 1}: Please select a grade`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (entry.from > entry.to) {
+        toast({
+          title: "Validation Error",
+          description: `Row ${i + 1}: "From" value cannot be greater than "To" value`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       await backend.hifz.saveData({
         studyGroupId: studyGroup,
