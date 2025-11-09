@@ -268,7 +268,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                                 handleRowChange(index, "surahName", value)
                               }
                             >
-                              <SelectTrigger className="w-64">
+                              <SelectTrigger className="w-64 text-blue-800 font-bold">
                                 <SelectValue placeholder="Select surah" />
                               </SelectTrigger>
                               <SelectContent>
