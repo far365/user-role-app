@@ -8,6 +8,7 @@ export interface HifzEntry {
   grade: HifzGrade;
   lines?: number;
   iterations?: number;
+  note?: string;
 }
 
 export interface HifzGridData {

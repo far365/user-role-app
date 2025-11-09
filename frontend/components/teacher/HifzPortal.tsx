@@ -171,7 +171,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const handleAddRow = () => {
     setTempGridData([
       ...tempGridData,
-      { surahName: "", from: 1, to: 1, grade: "", lines: 1, iterations: 1 },
+      { surahName: "", from: 1, to: 1, grade: "", lines: 1, iterations: 1, note: "" },
     ]);
   };
 
@@ -245,6 +245,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                       <th className="text-left p-2 text-sm font-medium">Hifz Grade</th>
                       <th className="text-left p-2 text-sm font-medium">Lines</th>
                       <th className="text-left p-2 text-sm font-medium">Iterations</th>
+                      <th className="text-left p-2 text-sm font-medium">Note</th>
                       <th className="text-left p-2 text-sm font-medium"></th>
                     </tr>
                   </thead>
@@ -349,6 +350,17 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             />
                           </td>
                           <td className="p-2">
+                            <input
+                              type="text"
+                              value={entry.note || ""}
+                              onChange={(e) =>
+                                handleRowChange(index, "note", e.target.value)
+                              }
+                              placeholder="Optional note"
+                              className="w-48 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
                             <Button
                               size="sm"
                               variant="ghost"
@@ -380,6 +392,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         <th className="text-left p-2 text-sm font-medium">Hifz Grade</th>
                         <th className="text-left p-2 text-sm font-medium">Lines</th>
                         <th className="text-left p-2 text-sm font-medium">Iterations</th>
+                        <th className="text-left p-2 text-sm font-medium">Note</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -407,6 +420,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             </td>
                             <td className="p-2 text-sm">{entry.lines}</td>
                             <td className="p-2 text-sm">{entry.iterations}</td>
+                            <td className="p-2 text-sm text-gray-600 italic">{entry.note || "-"}</td>
                           </tr>
                         );
                       })}
