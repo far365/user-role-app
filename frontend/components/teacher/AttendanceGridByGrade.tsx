@@ -20,6 +20,7 @@ interface AttendanceRecord {
   queueid: number;
   studentid: string;
   studentname: string;
+  arrival_status?: string;
 }
 
 interface StudentAttendance {
@@ -27,7 +28,7 @@ interface StudentAttendance {
   studentname: string;
   parentid: string;
   parentname: string;
-  dates: Map<string, boolean>;
+  dates: Map<string, string | undefined>;
 }
 
 export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceGridProps) {
@@ -102,7 +103,7 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
 
       const student = studentMap.get(key)!;
       const dateKey = new Date(record.queueid).toISOString().split('T')[0];
-      student.dates.set(dateKey, true);
+      student.dates.set(dateKey, record.arrival_status);
     });
 
     return Array.from(studentMap.values()).sort((a, b) => 
@@ -229,18 +230,20 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
                     </td>
                     {dates.map((date, dateIdx) => {
                       const dateKey = date.toISOString().split('T')[0];
-                      const isPresent = student.dates.has(dateKey);
+                      const arrivalStatus = student.dates.get(dateKey);
+                      const isAttendanceDay = arrivalStatus && ['OnTime', 'Tardy', 'NoShow', 'ExcusedDelay'].includes(arrivalStatus);
                       const weekNum = getWeekNumber(date);
-                      const bgColor = weekNum % 2 === 0 ? 'bg-gray-100' : 'bg-gray-50';
+                      const baseBgColor = weekNum % 2 === 0 ? 'bg-gray-100' : 'bg-gray-50';
+                      const cellBgColor = isAttendanceDay ? 'bg-green-100' : baseBgColor;
                       
                       return (
                         <td
                           key={dateIdx}
-                          className={`border border-gray-300 p-2 text-center ${bgColor}`}
+                          className={`border border-gray-300 p-2 text-center ${cellBgColor}`}
                         >
                           <input
                             type="checkbox"
-                            checked={isPresent}
+                            checked={!!isAttendanceDay}
                             readOnly
                             className="w-4 h-4 cursor-default"
                           />
