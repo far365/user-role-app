@@ -37,6 +37,23 @@ export interface GetQueueHistoryResponse {
   records: QueueHistoryRecord[];
 }
 
+const formatToYYYYMMDD = (dateStr: string): string => {
+  const cleanStr = dateStr.replace(/[-/]/g, '');
+  if (/^\d{8}$/.test(cleanStr)) {
+    return cleanStr;
+  }
+  
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date format: ${dateStr}`);
+  }
+  
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
 export const getHistorybyGradeParentStudent = api<GetQueueHistoryRequest, GetQueueHistoryResponse>(
   { expose: true, method: "GET", path: "/queue/history" },
   async (req) => {
@@ -48,13 +65,23 @@ export const getHistorybyGradeParentStudent = api<GetQueueHistoryRequest, GetQue
       throw APIError.invalidArgument("At least one of p_grade, p_parentid, or p_studentid must be provided");
     }
 
+    let formattedStartDate: string;
+    let formattedEndDate: string;
+    
+    try {
+      formattedStartDate = formatToYYYYMMDD(req.p_start_date);
+      formattedEndDate = formatToYYYYMMDD(req.p_end_date);
+    } catch (error: any) {
+      throw APIError.invalidArgument(`Date formatting error: ${error.message}`);
+    }
+
     try {
       const { data, error } = await supabase.rpc("get_queue_history_by_grade_parentid_studentid", {
         p_grade: req.p_grade || null,
         p_parentid: req.p_parentid || null,
         p_studentid: req.p_studentid || null,
-        p_queue_start_dt: req.p_start_date,
-        p_queue_end_dt: req.p_end_date,
+        p_queue_start_dt: formattedStartDate,
+        p_queue_end_dt: formattedEndDate,
       });
 
       if (error) {
