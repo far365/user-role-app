@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { AttendanceGridByGrade } from "./AttendanceGridByGrade";
@@ -17,9 +16,26 @@ interface AttendanceHistoryPageProps {
   onBack: () => void;
 }
 
+const MONTHS = [
+  { value: "0", label: "January" },
+  { value: "1", label: "February" },
+  { value: "2", label: "March" },
+  { value: "3", label: "April" },
+  { value: "4", label: "May" },
+  { value: "5", label: "June" },
+  { value: "6", label: "July" },
+  { value: "7", label: "August" },
+  { value: "8", label: "September" },
+  { value: "9", label: "October" },
+  { value: "10", label: "November" },
+  { value: "11", label: "December" },
+];
+
 export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPageProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [showGrid, setShowGrid] = useState(false);
@@ -27,7 +43,7 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
 
   useEffect(() => {
     loadGrades();
-    setDefaultDateRange();
+    setDefaultSelections();
   }, []);
 
   const loadGrades = async () => {
@@ -44,13 +60,19 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
     }
   };
 
-  const setDefaultDateRange = () => {
+  const setDefaultSelections = () => {
     const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    setSelectedMonth(today.getMonth().toString());
+    setSelectedYear(today.getFullYear().toString());
+  };
 
-    setStartDate(thirtyDaysAgo.toISOString().split('T')[0]);
-    setEndDate(today.toISOString().split('T')[0]);
+  const generateYears = (): string[] => {
+    const currentYear = new Date().getFullYear();
+    const years: string[] = [];
+    for (let i = currentYear; i >= currentYear - 5; i--) {
+      years.push(i.toString());
+    }
+    return years;
   };
 
   const handleGenerateGrid = () => {
@@ -63,24 +85,23 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
       return;
     }
 
-    if (!startDate || !endDate) {
+    if (selectedMonth === "" || selectedYear === "") {
       toast({
         title: "Error",
-        description: "Please select start and end dates",
+        description: "Please select a month and year",
         variant: "destructive",
       });
       return;
     }
 
-    if (new Date(startDate) > new Date(endDate)) {
-      toast({
-        title: "Error",
-        description: "Start date must be before end date",
-        variant: "destructive",
-      });
-      return;
-    }
+    const year = parseInt(selectedYear);
+    const month = parseInt(selectedMonth);
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
 
+    setStartDate(firstDay.toISOString().split('T')[0]);
+    setEndDate(lastDay.toISOString().split('T')[0]);
     setShowGrid(true);
   };
 
@@ -140,9 +161,9 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
 
       <Card>
         <CardHeader>
-          <CardTitle>Select Grade and Date Range</CardTitle>
+          <CardTitle>Select Grade, Month, and Year</CardTitle>
           <CardDescription>
-            Choose a grade and date range to view attendance grid
+            Choose a grade and month to view attendance grid
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -164,23 +185,35 @@ export function AttendanceHistoryPage({ user, onBack }: AttendanceHistoryPagePro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="start-date">Start Date</Label>
-              <Input
-                id="start-date"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+              <Label htmlFor="month-select">Month</Label>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger id="month-select">
+                  <SelectValue placeholder="Select Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="end-date">End Date</Label>
-              <Input
-                id="end-date"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+              <Label htmlFor="year-select">Year</Label>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger id="year-select">
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {generateYears().map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
