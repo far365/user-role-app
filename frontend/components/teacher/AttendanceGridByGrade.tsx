@@ -73,8 +73,8 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
 
   const generateDateRange = (): Date[] => {
     const dates: Date[] = [];
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
 
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dayOfWeek = d.getDay();
