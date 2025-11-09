@@ -203,7 +203,7 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
                 </th>
                 {dates.map((date, idx) => {
                   const weekNum = getWeekNumber(date);
-                  const bgColor = weekNum % 2 === 0 ? 'bg-gray-100' : 'bg-gray-50';
+                  const bgColor = weekNum % 2 === 0 ? 'bg-gray-200' : 'bg-gray-50';
                   return (
                     <th
                       key={idx}
@@ -237,7 +237,7 @@ export function AttendanceGridByGrade({ grade, startDate, endDate }: AttendanceG
                       const arrivalStatus = student.dates.get(dateKey);
                       const isAttendanceDay = arrivalStatus && ['OnTime', 'Tardy', 'NoShow', 'ExcusedDelay'].includes(arrivalStatus);
                       const weekNum = getWeekNumber(date);
-                      const baseBgColor = weekNum % 2 === 0 ? 'bg-gray-100' : 'bg-gray-50';
+                      const baseBgColor = weekNum % 2 === 0 ? 'bg-gray-200' : 'bg-gray-50';
                       const cellBgColor = isAttendanceDay ? 'bg-green-100' : baseBgColor;
                       
                       return (
