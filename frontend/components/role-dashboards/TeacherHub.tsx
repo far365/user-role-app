@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight, Users, BookOpen } from "lucide-react";
 import { TeacherDashboard } from "./TeacherDashboard";
+import { HifzPortal } from "../teacher/HifzPortal";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 
@@ -12,6 +13,7 @@ interface TeacherHubProps {
 
 export function TeacherHub({ user }: TeacherHubProps) {
   const [showTeacherDashboard, setShowTeacherDashboard] = useState(false);
+  const [showHifzPortal, setShowHifzPortal] = useState(false);
   const [currentYear, setCurrentYear] = useState<string>("");
 
   useEffect(() => {
@@ -28,6 +30,10 @@ export function TeacherHub({ user }: TeacherHubProps) {
 
   if (showTeacherDashboard) {
     return <TeacherDashboard user={user} onBack={() => setShowTeacherDashboard(false)} />;
+  }
+
+  if (showHifzPortal) {
+    return <HifzPortal user={user} onBack={() => setShowHifzPortal(false)} />;
   }
 
   return (
@@ -62,6 +68,21 @@ export function TeacherHub({ user }: TeacherHubProps) {
               </p>
               <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowTeacherDashboard(true); }}>
                 Attendance & Dismissal Portal <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowHifzPortal(true)}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-semibold">Hifz Portal</CardTitle>
+              <BookOpen className="h-8 w-8 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Manage Hifz progress and student memorization
+              </p>
+              <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowHifzPortal(true); }}>
+                Hifz Portal <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
