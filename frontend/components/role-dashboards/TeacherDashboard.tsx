@@ -405,18 +405,16 @@ export function TeacherDashboard({ user }: TeacherDashboardProps) {
       </div>
 
       {/* Attendance History Button */}
-      {selectedGrade && (
-        <div className="flex gap-2.5">
-          <Button 
-            variant="outline" 
-            className="inline-flex items-center h-7 px-2 border-2 border-purple-400 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-500 text-xs"
-            onClick={() => setShowAttendanceHistoryPage(true)}
-          >
-            <FileText className="h-3 w-3 mr-1.5" />
-            Attendance History
-          </Button>
-        </div>
-      )}
+      <div className="flex gap-2.5">
+        <Button 
+          variant="outline" 
+          className="inline-flex items-center h-7 px-2 border-2 border-purple-400 text-purple-600 bg-white hover:bg-purple-50 hover:border-purple-500 text-xs"
+          onClick={() => setShowAttendanceHistoryPage(true)}
+        >
+          <FileText className="h-3 w-3 mr-1.5" />
+          Attendance History
+        </Button>
+      </div>
 
       {/* Grade Selection and Refresh */}
       <Card>
