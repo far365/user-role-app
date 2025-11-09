@@ -35,6 +35,7 @@ const BROWSER = typeof globalThis === "object" && ("window" in globalThis);
 export class Client {
     public readonly academic: academic.ServiceClient
     public readonly grades: grades.ServiceClient
+    public readonly hifz: hifz.ServiceClient
     public readonly parent: parent.ServiceClient
     public readonly queue: queue.ServiceClient
     public readonly student: student.ServiceClient
@@ -55,6 +56,7 @@ export class Client {
         const base = new BaseClient(this.target, this.options)
         this.academic = new academic.ServiceClient(base)
         this.grades = new grades.ServiceClient(base)
+        this.hifz = new hifz.ServiceClient(base)
         this.parent = new parent.ServiceClient(base)
         this.queue = new queue.ServiceClient(base)
         this.student = new student.ServiceClient(base)
@@ -142,6 +144,45 @@ export namespace grades {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/grades`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_grades_list_list>
+        }
+    }
+}
+
+/**
+ * Import the endpoint handlers to derive the types for the client.
+ */
+import { getData as api_hifz_get_data_getData } from "~backend/hifz/get_data";
+import { getHistory as api_hifz_get_history_getHistory } from "~backend/hifz/get_history";
+import { saveData as api_hifz_save_data_saveData } from "~backend/hifz/save_data";
+
+export namespace hifz {
+
+    export class ServiceClient {
+        private baseClient: BaseClient
+
+        constructor(baseClient: BaseClient) {
+            this.baseClient = baseClient
+            this.getData = this.getData.bind(this)
+            this.getHistory = this.getHistory.bind(this)
+            this.saveData = this.saveData.bind(this)
+        }
+
+        public async getData(params: RequestType<typeof api_hifz_get_data_getData>): Promise<ResponseType<typeof api_hifz_get_data_getData>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/hifz/get-data`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_data_getData>
+        }
+
+        public async getHistory(params: RequestType<typeof api_hifz_get_history_getHistory>): Promise<ResponseType<typeof api_hifz_get_history_getHistory>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/hifz/get-history`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_history_getHistory>
+        }
+
+        public async saveData(params: RequestType<typeof api_hifz_save_data_saveData>): Promise<ResponseType<typeof api_hifz_save_data_saveData>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/hifz/save-data`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_save_data_saveData>
         }
     }
 }
