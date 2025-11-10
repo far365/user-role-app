@@ -59,6 +59,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const [editingSection, setEditingSection] = useState<SectionType | null>(null);
   const [tempGridData, setTempGridData] = useState<HifzEntry[]>([]);
+  const [savedRows, setSavedRows] = useState<Set<number>>(new Set());
+  const [savingRows, setSavingRows] = useState<Set<number>>(new Set());
   const [history, setHistory] = useState<HifzHistoryEntry[]>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState("");
@@ -171,6 +173,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     if (editingSection) return;
     setEditingSection(section);
     setTempGridData([...gridData[section]]);
+    setSavedRows(new Set());
+    setSavingRows(new Set());
   };
 
   const handleSaveSection = async () => {
@@ -188,7 +192,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         return;
       }
 
-      if (entry.from > entry.to) {
+      if ((entry.from ?? 1) > (entry.to ?? 1)) {
         toast({
           title: "Validation Error",
           description: `Row ${i + 1}: "From" value cannot be greater than "To" value`,
@@ -198,35 +202,58 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       }
     }
 
-    try {
-      await backend.hifz.saveData({
-        studyGroupId: studyGroup,
-        studentId: student,
-        date: selectedDate,
-        section: editingSection,
-        entries: tempGridData,
-      });
+    const newSavingRows = new Set<number>();
+    let savedCount = 0;
 
-      setGridData({
-        ...gridData,
-        [editingSection]: tempGridData,
-      });
+    for (let i = 0; i < tempGridData.length; i++) {
+      if (savedRows.has(i)) continue;
 
-      setEditingSection(null);
-      setTempGridData([]);
-      await fetchHistory();
+      const entry = tempGridData[i];
+      newSavingRows.add(i);
+      setSavingRows(new Set(newSavingRows));
 
+      const recordType = 
+        editingSection === "meaning" ? "Meaning" :
+        editingSection === "memorization" ? "Memorization" : "Revision";
+
+      try {
+        await backend.hifz.insertStudentHifz({
+          recordType,
+          studentId: student,
+          surah: entry.surahName || "",
+          from: (entry.from ?? 1).toString(),
+          to: (entry.to ?? 1).toString(),
+          lines: (entry.lines ?? 1).toString(),
+          notes: entry.note || "",
+          addedBy: user.userid.toString(),
+          lessonDateText: selectedDate,
+          teacherId: user.userid.toString(),
+          hifzGrade: entry.grade,
+        });
+
+        savedCount++;
+        setSavedRows(prev => new Set(prev).add(i));
+        newSavingRows.delete(i);
+        setSavingRows(new Set(newSavingRows));
+      } catch (error) {
+        console.error(`Failed to save row ${i + 1}:`, error);
+        newSavingRows.delete(i);
+        setSavingRows(new Set(newSavingRows));
+        toast({
+          title: "Error",
+          description: `Failed to save row ${i + 1}`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (savedCount > 0) {
       toast({
         title: "Success",
-        description: "Data saved successfully",
+        description: `${savedCount} row(s) saved successfully`,
       });
-    } catch (error) {
-      console.error("Failed to save data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save data",
-        variant: "destructive",
-      });
+      await fetchHistory();
     }
   };
 
@@ -244,6 +271,33 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const handleDeleteRow = (index: number) => {
     setTempGridData(tempGridData.filter((_, i) => i !== index));
+    const newSavedRows = new Set(savedRows);
+    const newSavingRows = new Set(savingRows);
+    
+    newSavedRows.delete(index);
+    newSavingRows.delete(index);
+    
+    const updatedSavedRows = new Set<number>();
+    const updatedSavingRows = new Set<number>();
+    
+    newSavedRows.forEach(rowIndex => {
+      if (rowIndex > index) {
+        updatedSavedRows.add(rowIndex - 1);
+      } else {
+        updatedSavedRows.add(rowIndex);
+      }
+    });
+    
+    newSavingRows.forEach(rowIndex => {
+      if (rowIndex > index) {
+        updatedSavingRows.add(rowIndex - 1);
+      } else {
+        updatedSavingRows.add(rowIndex);
+      }
+    });
+    
+    setSavedRows(updatedSavedRows);
+    setSavingRows(updatedSavingRows);
   };
 
   const handleRowChange = (index: number, field: keyof HifzEntry, value: any) => {
@@ -307,6 +361,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-2 text-sm font-medium">#</th>
+                      <th className="text-left p-2 text-sm font-medium">Status</th>
                       <th className="text-left p-2 text-sm font-medium">Surah</th>
                       <th className="text-left p-2 text-sm font-medium">From</th>
                       <th className="text-left p-2 text-sm font-medium">To</th>
@@ -321,13 +376,23 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                     {data.map((entry, index) => {
                       const selectedSurah = SURAHS.find((s) => s.num === entry.surahNum);
                       const maxAyats = selectedSurah?.ayats || 1;
+                      const isSaved = savedRows.has(index);
+                      const isSaving = savingRows.has(index);
                       return (
                         <tr key={index} className="border-b hover:bg-gray-50">
                           <td className="p-2 text-sm">{index + 1}</td>
                           <td className="p-2">
+                            {isSaving ? (
+                              <span className="text-xs text-gray-500">Saving...</span>
+                            ) : isSaved ? (
+                              <span className="text-green-600">✓</span>
+                            ) : null}
+                          </td>
+                          <td className="p-2">
                             <Select
                               value={entry.surahNum?.toString() || ""}
                               onValueChange={(value) => handleRowChange(index, "surahName", value)}
+                              disabled={isSaved}
                             >
                               <SelectTrigger className="w-full min-w-[200px] text-blue-800 font-bold">
                                 <SelectValue placeholder="Select surah" />
@@ -349,6 +414,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               value={entry.from || 1}
                               onChange={(e) => handleRowChange(index, "from", parseInt(e.target.value) || 1)}
                               className="w-20 px-2 py-1 border rounded"
+                              disabled={isSaved}
                             />
                           </td>
                           <td className="p-2">
@@ -359,12 +425,14 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               value={entry.to || 1}
                               onChange={(e) => handleRowChange(index, "to", parseInt(e.target.value) || 1)}
                               className="w-20 px-2 py-1 border rounded"
+                              disabled={isSaved}
                             />
                           </td>
                           <td className="p-2">
                             <Select
                               value={entry.grade || "none"}
                               onValueChange={(value) => handleRowChange(index, "grade", value === "none" ? "" : value)}
+                              disabled={isSaved}
                             >
                               <SelectTrigger className="w-24">
                                 <SelectValue placeholder="Grade" />
@@ -387,6 +455,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               value={entry.lines || 1}
                               onChange={(e) => handleRowChange(index, "lines", parseInt(e.target.value) || 1)}
                               className="w-20 px-2 py-1 border rounded"
+                              disabled={isSaved}
                             />
                           </td>
                           <td className="p-2">
@@ -397,6 +466,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               value={entry.iterations || 1}
                               onChange={(e) => handleRowChange(index, "iterations", parseInt(e.target.value) || 1)}
                               className="w-20 px-2 py-1 border rounded"
+                              disabled={isSaved}
                             />
                           </td>
                           <td className="p-2">
@@ -406,6 +476,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               onChange={(e) => handleRowChange(index, "note", e.target.value)}
                               placeholder="Optional"
                               className="w-32 px-2 py-1 border rounded"
+                              disabled={isSaved}
                             />
                           </td>
                           <td className="p-2">
@@ -431,11 +502,17 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   (s) => s.num === entry.surahNum
                 );
                 const maxAyats = selectedSurah?.ayats || 1;
+                const isSaved = savedRows.has(index);
+                const isSaving = savingRows.has(index);
 
                 return (
                   <div key={index} className="p-4 border rounded-lg space-y-3 bg-gray-50">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Entry {index + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Entry {index + 1}</span>
+                        {isSaving && <span className="text-xs text-gray-500">Saving...</span>}
+                        {isSaved && <span className="text-green-600">✓ Saved</span>}
+                      </div>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -453,6 +530,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         onValueChange={(value) =>
                           handleRowChange(index, "surahName", value)
                         }
+                        disabled={isSaved}
                       >
                         <SelectTrigger className="w-full text-blue-800 font-bold">
                           <SelectValue placeholder="Select surah" />
@@ -479,6 +557,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             handleRowChange(index, "from", parseInt(e.target.value) || 1)
                           }
                           className="w-full px-3 py-2 border rounded"
+                          disabled={isSaved}
                         />
                       </div>
                       <div className="space-y-2">
@@ -492,6 +571,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             handleRowChange(index, "to", parseInt(e.target.value) || 1)
                           }
                           className="w-full px-3 py-2 border rounded"
+                          disabled={isSaved}
                         />
                       </div>
                     </div>
@@ -507,6 +587,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             value === "none" ? "" : value
                           )
                         }
+                        disabled={isSaved}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Grade" />
@@ -534,6 +615,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             handleRowChange(index, "lines", parseInt(e.target.value) || 1)
                           }
                           className="w-full px-3 py-2 border rounded"
+                          disabled={isSaved}
                         />
                       </div>
                       <div className="space-y-2">
@@ -547,6 +629,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                             handleRowChange(index, "iterations", parseInt(e.target.value) || 1)
                           }
                           className="w-full px-3 py-2 border rounded"
+                          disabled={isSaved}
                         />
                       </div>
                     </div>
@@ -561,6 +644,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         }
                         placeholder="Optional note"
                         className="w-full px-3 py-2 border rounded"
+                        disabled={isSaved}
                       />
                     </div>
                   </div>
