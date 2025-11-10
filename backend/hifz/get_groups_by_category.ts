@@ -12,7 +12,7 @@ export const getGroupsByCategory = api<{ category: string }, { groups: GroupResp
   async ({ category }) => {
     try {
       const { data, error } = await supabase
-        .rpc('get_groups_by_category_dnu', { p_groupcategory: category });
+        .rpc('get_groups_by_category', { p_groupcategory: category });
 
       if (error) {
         console.error("[Hifz API] Supabase function error:", error);
