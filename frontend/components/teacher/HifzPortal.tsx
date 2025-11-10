@@ -42,6 +42,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [selectionMode, setSelectionMode] = useState<"studyGroup" | "grade">("studyGroup");
   const [studyGroups, setStudyGroups] = useState<StudyGroupItem[]>([]);
   const [studyGroup, setStudyGroup] = useState<string>("");
+  const [studyGroupId, setStudyGroupId] = useState<number | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [grade, setGrade] = useState<string>("");
   const [students, setStudents] = useState<Student[]>([]);
@@ -561,7 +562,11 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                     <label className="text-sm font-medium mb-2 block">
                       Study Group
                     </label>
-                    <Select value={studyGroup} onValueChange={setStudyGroup}>
+                    <Select value={studyGroup} onValueChange={(value) => {
+                      setStudyGroup(value);
+                      const selectedGroup = studyGroups.find(sg => sg.id.toString() === value);
+                      setStudyGroupId(selectedGroup ? selectedGroup.id : null);
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select study group" />
                       </SelectTrigger>
