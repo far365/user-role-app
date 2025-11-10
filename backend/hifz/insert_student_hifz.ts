@@ -26,11 +26,11 @@ export const insertStudentHifz = api(
     try {
       const { data, error } = await supabase.rpc("add_student_hifz_rcd", {
         p_record_type: req.recordType,
-        p_studentid: req.studentId,
+        p_studentid: req.studentId.toString(),
         p_surah: req.surah,
-        p_from: req.from,
-        p_to: req.to,
-        p_lines: req.lines,
+        p_from: req.from.toString(),
+        p_to: req.to.toString(),
+        p_lines: req.lines.toString(),
         p_notes: req.notes,
         p_addedby: req.addedBy,
         p_lesson_date_text: req.lessonDateText,
