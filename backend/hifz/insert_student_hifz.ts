@@ -2,7 +2,7 @@ import { api, APIError } from "encore.dev/api";
 import { supabase } from "../user/supabase";
 
 export interface InsertStudentHifzRequest {
-  recordType: "meaning" | "memorization" | "revision";
+  recordType: "Meaning" | "Memorization" | "Revision";
   studentId: string;
   surah: string;
   from: string;
