@@ -115,10 +115,26 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
           });
           setStudents([]);
         }
+      } else if (selectionMode === "studyGroup" && studyGroup) {
+        try {
+          const response = await backend.student.getStudentsByGroupId({ groupid: studyGroup });
+          setStudents(response.students.map(s => ({
+            studentid: s.studentid,
+            studentname: s.studentname
+          })));
+        } catch (error) {
+          console.error("Failed to fetch students by groupid:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load students",
+            variant: "destructive",
+          });
+          setStudents([]);
+        }
       }
     };
     fetchStudents();
-  }, [grade, selectionMode, toast]);
+  }, [grade, studyGroup, selectionMode, toast]);
 
   const fetchHifzData = async () => {
     try {
@@ -623,19 +639,11 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                     <SelectValue placeholder={students.length === 0 && grade ? "No students found" : "Select student"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {selectionMode === "studyGroup" ? (
-                      studyGroups.length > 0 ? (
-                        <SelectItem value="placeholder" disabled>
-                          Study group students coming soon
-                        </SelectItem>
-                      ) : null
-                    ) : (
-                      students.map((st) => (
-                        <SelectItem key={st.studentid} value={st.studentid.toString()}>
-                          {st.studentname}
-                        </SelectItem>
-                      ))
-                    )}
+                    {students.map((st) => (
+                      <SelectItem key={st.studentid} value={st.studentid.toString()}>
+                        {st.studentname}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
