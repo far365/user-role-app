@@ -16,11 +16,11 @@ interface HifzPortalProps {
   onBack: () => void;
 }
 
-const STUDY_GROUPS = [
-  { id: "sg1", name: "Study Group 1" },
-  { id: "sg2", name: "Study Group 2" },
-  { id: "sg3", name: "Study Group 3" },
-];
+interface StudyGroupItem {
+  id: number;
+  groupname: string;
+  category: string;
+}
 
 
 
@@ -40,6 +40,7 @@ interface Student {
 export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [currentYear, setCurrentYear] = useState<string>("");
   const [selectionMode, setSelectionMode] = useState<"studyGroup" | "grade">("studyGroup");
+  const [studyGroups, setStudyGroups] = useState<StudyGroupItem[]>([]);
   const [studyGroup, setStudyGroup] = useState<string>("");
   const [grades, setGrades] = useState<Grade[]>([]);
   const [grade, setGrade] = useState<string>("");
@@ -69,6 +70,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         setCurrentYear(yearResp.ayid);
         const gradesResp = await backend.grades.list();
         setGrades(gradesResp.grades);
+        const studyGroupsResp = await backend.hifz.getGroupsByCategory({ category: "Study Group" });
+        setStudyGroups(studyGroupsResp.groups);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast({
@@ -563,9 +566,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         <SelectValue placeholder="Select study group" />
                       </SelectTrigger>
                       <SelectContent>
-                        {STUDY_GROUPS.map((sg) => (
-                          <SelectItem key={sg.id} value={sg.id}>
-                            {sg.name}
+                        {studyGroups.map((sg) => (
+                          <SelectItem key={sg.id} value={sg.id.toString()}>
+                            {sg.groupname}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -616,7 +619,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {selectionMode === "studyGroup" ? (
-                      STUDY_GROUPS.length > 0 ? (
+                      studyGroups.length > 0 ? (
                         <SelectItem value="placeholder" disabled>
                           Study group students coming soon
                         </SelectItem>
