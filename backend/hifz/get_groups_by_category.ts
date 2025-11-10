@@ -23,7 +23,9 @@ export const getGroupsByCategory = api<{ category: string }, { groups: GroupResp
         return { groups: [] };
       }
 
-      const groups: GroupResponse[] = data.map((row: any) => ({
+      const rawData = Array.isArray(data) ? data : [data];
+
+      const groups: GroupResponse[] = rawData.map((row: any) => ({
         id: Number(row.id),
         groupname: row.groupname,
         category: row.category,
