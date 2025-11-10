@@ -159,9 +159,12 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const fetchHistory = async () => {
     try {
-      const response = await backend.hifz.getHistory({
-        studyGroupId: studyGroup,
+      const response = await backend.hifz.getHistoryByStudentId({
         studentId: student,
+        prevRowsCount: "5",
+        startDate: null,
+        endDate: null,
+        surah: null,
       });
       setHistory(response.history);
     } catch (error) {
@@ -893,34 +896,45 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
             <Card>
               <CardHeader>
-                <CardTitle>History (Last 5 Days)</CardTitle>
+                <CardTitle>History (Last 5 Entries)</CardTitle>
               </CardHeader>
               <CardContent>
                 {history.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No history available</p>
                 ) : (
-                  <div className="space-y-2">
-                    {history.slice(0, 5).map((entry, index) => (
-                      <div
-                        key={index}
-                        className="flex flex-col md:flex-row md:items-center md:justify-between p-3 bg-gray-50 rounded-lg gap-2"
-                      >
-                        <div className="flex flex-col md:flex-row gap-2 md:gap-4">
-                          <span className="text-sm font-medium text-gray-700">
-                            {new Date(entry.date).toLocaleDateString()}
-                          </span>
-                          <span className="text-sm text-gray-600 capitalize">
-                            {entry.section}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {entry.surahName}
-                          </span>
-                        </div>
-                        <span className="text-sm font-medium px-3 py-1 bg-blue-100 text-blue-800 rounded self-start md:self-auto">
-                          {entry.grade}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2 text-sm font-medium">Date</th>
+                          <th className="text-left p-2 text-sm font-medium">Type</th>
+                          <th className="text-left p-2 text-sm font-medium">Surah</th>
+                          <th className="text-left p-2 text-sm font-medium">From</th>
+                          <th className="text-left p-2 text-sm font-medium">To</th>
+                          <th className="text-left p-2 text-sm font-medium">Grade</th>
+                          <th className="text-left p-2 text-sm font-medium">Lines</th>
+                          <th className="text-left p-2 text-sm font-medium">Teacher</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map((entry: any, index: number) => (
+                          <tr key={index} className="border-b hover:bg-gray-50">
+                            <td className="p-2 text-sm">{new Date(entry.lessondate).toLocaleDateString()}</td>
+                            <td className="p-2 text-sm capitalize">{entry.recordtype}</td>
+                            <td className="p-2 text-sm">{entry.surah}</td>
+                            <td className="p-2 text-sm">{entry.fromayat}</td>
+                            <td className="p-2 text-sm">{entry.toayat}</td>
+                            <td className="p-2">
+                              <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                {entry.hifzgrade}
+                              </span>
+                            </td>
+                            <td className="p-2 text-sm">{entry.lines}</td>
+                            <td className="p-2 text-sm">{entry.teachername}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </CardContent>
