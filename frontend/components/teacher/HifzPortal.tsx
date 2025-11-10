@@ -159,13 +159,13 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const fetchHistory = async () => {
     try {
-      const response = await backend.hifz.getHistoryByStudentId({
+      const payload = {
         studentId: student,
         prevRowsCount: "5",
-        startDate: null,
-        endDate: null,
-        surah: null,
-      });
+      };
+      console.log("DEBUG: Payload being sent to getHistoryByStudentId:", JSON.stringify(payload));
+      const response = await backend.hifz.getHistoryByStudentId(payload);
+      console.log("DEBUG: Response received:", response);
       setHistory(response.history);
     } catch (error) {
       console.error("Failed to fetch history:", error);
