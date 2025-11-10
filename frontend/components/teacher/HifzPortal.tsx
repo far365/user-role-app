@@ -388,7 +388,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
             <Button
               size="sm"
               onClick={() => handleEditSection(section)}
-              disabled={!studyGroup || !student}
+              disabled={!student}
             >
               Edit
             </Button>
