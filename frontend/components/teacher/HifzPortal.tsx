@@ -296,6 +296,18 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   };
 
   const handleAddRow = () => {
+    const usedSurahs = new Set(tempGridData.map(entry => entry.surahNum).filter(Boolean));
+    const availableSurahs = SURAHS.filter(s => !usedSurahs.has(s.num));
+    
+    if (availableSurahs.length === 0) {
+      toast({
+        title: "Cannot Add Row",
+        description: "All surahs have already been added to this section",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setTempGridData([
       ...tempGridData,
       { surahName: "", from: 1, to: 1, grade: "", lines: 1, iterations: 1, note: "" },
@@ -336,7 +348,19 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const handleRowChange = (index: number, field: keyof HifzEntry, value: any) => {
     const newData = [...tempGridData];
     if (field === "surahName") {
-      const selectedSurah = SURAHS.find((s) => s.num === parseInt(value));
+      const selectedSurahNum = parseInt(value);
+      const isAlreadyUsed = tempGridData.some((entry, idx) => idx !== index && entry.surahNum === selectedSurahNum);
+      
+      if (isAlreadyUsed) {
+        toast({
+          title: "Duplicate Surah",
+          description: "This surah has already been added to this section",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const selectedSurah = SURAHS.find((s) => s.num === selectedSurahNum);
       if (selectedSurah) {
         newData[index] = {
           ...newData[index],
