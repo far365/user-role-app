@@ -947,22 +947,34 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {history.map((entry: any, index: number) => (
-                          <tr key={index} className="border-b hover:bg-gray-50">
-                            <td className="p-2 text-sm">{formatHistoryDate(entry.lessonDateText)}</td>
-                            <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
-                            <td className="p-2 text-sm">{entry.surah || ''}</td>
-                            <td className="p-2 text-sm">{entry.from || ''}</td>
-                            <td className="p-2 text-sm">{entry.to || ''}</td>
-                            <td className="p-2">
-                              <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                                {entry.hifzGrade || ''}
-                              </span>
-                            </td>
-                            <td className="p-2 text-sm">{entry.lines || ''}</td>
-                            <td className="p-2 text-sm">{entry.teacherId || ''}</td>
-                          </tr>
-                        ))}
+                        {history.map((entry: any, index: number) => {
+                          const prevEntry = index > 0 ? history[index - 1] : null;
+                          const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
+                          const bgColor = isDifferentDate 
+                            ? (index === 0 || (prevEntry && history.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
+                              ? "bg-gray-100" 
+                              : "bg-white")
+                            : (history.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
+                              ? "bg-gray-100"
+                              : "bg-white");
+                          
+                          return (
+                            <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
+                              <td className="p-2 text-sm">{formatHistoryDate(entry.lessonDateText)}</td>
+                              <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
+                              <td className="p-2 text-sm">{entry.surah || ''}</td>
+                              <td className="p-2 text-sm">{entry.from || ''}</td>
+                              <td className="p-2 text-sm">{entry.to || ''}</td>
+                              <td className="p-2">
+                                <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                  {entry.hifzGrade || ''}
+                                </span>
+                              </td>
+                              <td className="p-2 text-sm">{entry.lines || ''}</td>
+                              <td className="p-2 text-sm">{entry.teacherId || ''}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
