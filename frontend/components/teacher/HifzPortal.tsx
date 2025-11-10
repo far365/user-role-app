@@ -225,9 +225,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
           to: (entry.to ?? 1).toString(),
           lines: (entry.lines ?? 1).toString(),
           notes: entry.note || "",
-          addedBy: user.userid.toString(),
+          addedBy: user.userID,
           lessonDateText: selectedDate,
-          teacherId: user.userid.toString(),
+          teacherId: user.userID,
           hifzGrade: entry.grade,
         });
 
