@@ -24,11 +24,7 @@ const STUDY_GROUPS = [
 
 
 
-const STUDENTS = [
-  { id: "st1", name: "Student 1" },
-  { id: "st2", name: "Student 2" },
-  { id: "st3", name: "Student 3" },
-];
+
 
 
 
@@ -36,12 +32,18 @@ const GRADES: HifzGrade[] = ["A+", "A", "B+", "B", "C"];
 
 type SectionType = "meaning" | "memorization" | "revision";
 
+interface Student {
+  studentid: number;
+  studentname: string;
+}
+
 export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [currentYear, setCurrentYear] = useState<string>("");
   const [selectionMode, setSelectionMode] = useState<"studyGroup" | "grade">("studyGroup");
   const [studyGroup, setStudyGroup] = useState<string>("");
   const [grades, setGrades] = useState<Grade[]>([]);
   const [grade, setGrade] = useState<string>("");
+  const [students, setStudents] = useState<Student[]>([]);
   const [student, setStudent] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -88,7 +90,31 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   useEffect(() => {
     setStudent("");
-  }, [selectionMode, studyGroup, grade]);
+    setStudents([]);
+  }, [selectionMode, studyGroup]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (selectionMode === "grade" && grade) {
+        try {
+          const response = await backend.student.getStudentsByGrade({ grade });
+          setStudents(response.students.map(s => ({
+            studentid: s.studentid,
+            studentname: s.studentname
+          })));
+        } catch (error) {
+          console.error("Failed to fetch students:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load students",
+            variant: "destructive",
+          });
+          setStudents([]);
+        }
+      }
+    };
+    fetchStudents();
+  }, [grade, selectionMode, toast]);
 
   const fetchHifzData = async () => {
     try {
@@ -583,17 +609,25 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                 <Select 
                   value={student} 
                   onValueChange={setStudent}
-                  disabled={selectionMode === "studyGroup" ? !studyGroup : !grade}
+                  disabled={selectionMode === "studyGroup" ? !studyGroup : !grade || students.length === 0}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select student" />
+                    <SelectValue placeholder={students.length === 0 && grade ? "No students found" : "Select student"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {STUDENTS.map((st) => (
-                      <SelectItem key={st.id} value={st.id}>
-                        {st.name}
-                      </SelectItem>
-                    ))}
+                    {selectionMode === "studyGroup" ? (
+                      STUDY_GROUPS.length > 0 ? (
+                        <SelectItem value="placeholder" disabled>
+                          Study group students coming soon
+                        </SelectItem>
+                      ) : null
+                    ) : (
+                      students.map((st) => (
+                        <SelectItem key={st.studentid} value={st.studentid.toString()}>
+                          {st.studentname}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
