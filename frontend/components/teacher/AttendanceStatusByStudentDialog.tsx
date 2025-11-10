@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/components/ui/use-toast";
+import { ChevronDown } from "lucide-react";
 import backend from "~backend/client";
 import type { ArrivalStatus } from "@/types";
 
@@ -28,6 +30,7 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
   const [resultMessage, setResultMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugOpen, setDebugOpen] = useState(false);
   const { toast } = useToast();
 
   const arrivalStatuses: { value: ArrivalStatus; label: string }[] = [
@@ -181,28 +184,45 @@ export function AttendanceStatusDialog({ student, grade, userid, isOpen, onClose
               </RadioGroup>
             </div>
 
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">📋 Request Details:</div>
-              <div className="text-xs text-blue-700 space-y-1">
-                <div><strong>Student:</strong> {student.StudentName}</div>
-                <div><strong>Student ID:</strong> {student.studentid}</div>
-                <div><strong>Current Status:</strong> {getCurrentStatus()}</div>
-                <div><strong>NEW Status:</strong> {selectedStatus}</div>
-								 <div><strong>grade:</strong> {grade}</div>
-								 <div><strong>Nuserid:</strong> {userid}</div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-blue-200">
-                <div className="text-xs font-medium text-blue-800 mb-1">API Payload:</div>
-                <pre className="text-xs bg-white p-2 border border-blue-300 rounded overflow-x-auto">
+            <Collapsible open={debugOpen} onOpenChange={setDebugOpen}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-between text-xs text-blue-800 border-blue-200 bg-blue-50 hover:bg-blue-100"
+                >
+                  <span>📋 Request Details</span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-200 ${
+                      debugOpen ? "transform rotate-180" : ""
+                    }`}
+                  />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-xs text-blue-700 space-y-1">
+                    <div><strong>Student:</strong> {student.StudentName}</div>
+                    <div><strong>Student ID:</strong> {student.studentid}</div>
+                    <div><strong>Current Status:</strong> {getCurrentStatus()}</div>
+                    <div><strong>NEW Status:</strong> {selectedStatus}</div>
+                    <div><strong>grade:</strong> {grade}</div>
+                    <div><strong>Nuserid:</strong> {userid}</div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-blue-200">
+                    <div className="text-xs font-medium text-blue-800 mb-1">API Payload:</div>
+                    <pre className="text-xs bg-white p-2 border border-blue-300 rounded overflow-x-auto">
 {JSON.stringify({
   grade: grade,
   arrivalStatus: selectedStatus,
   userid: userid,
   studentId: student.studentid
 }, null, 2)}
-                </pre>
-              </div>
-            </div>
+                    </pre>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
 
           <DialogFooter className="gap-2">
