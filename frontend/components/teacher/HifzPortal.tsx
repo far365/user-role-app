@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 import type { HifzGrade, HifzEntry, HifzGridData, HifzHistoryEntry, SurahSetup } from "~backend/hifz/types";
+import type { Grade } from "~backend/grades/types";
 import { SURAHS } from "~backend/hifz/surah_data";
 
 interface HifzPortalProps {
@@ -21,12 +22,7 @@ const STUDY_GROUPS = [
   { id: "sg3", name: "Study Group 3" },
 ];
 
-const GRADES_OPTIONS = [
-  { id: "K", name: "Kindergarten" },
-  { id: "1", name: "Grade 1" },
-  { id: "2", name: "Grade 2" },
-  { id: "3", name: "Grade 3" },
-];
+
 
 const STUDENTS = [
   { id: "st1", name: "Student 1" },
@@ -44,6 +40,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [currentYear, setCurrentYear] = useState<string>("");
   const [selectionMode, setSelectionMode] = useState<"studyGroup" | "grade">("studyGroup");
   const [studyGroup, setStudyGroup] = useState<string>("");
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [grade, setGrade] = useState<string>("");
   const [student, setStudent] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -68,12 +65,19 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       try {
         const yearResp = await backend.academic.getCurrentYear();
         setCurrentYear(yearResp.ayid);
+        const gradesResp = await backend.grades.list();
+        setGrades(gradesResp.grades);
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load initial data",
+          variant: "destructive",
+        });
       }
     };
     fetchData();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (student && selectedDate) {
@@ -553,9 +557,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         <SelectValue placeholder="Select grade" />
                       </SelectTrigger>
                       <SelectContent>
-                        {GRADES_OPTIONS.map((g) => (
-                          <SelectItem key={g.id} value={g.id}>
-                            {g.name}
+                        {grades.map((g) => (
+                          <SelectItem key={g.name} value={g.name}>
+                            {g.name} - Building {g.building}
                           </SelectItem>
                         ))}
                       </SelectContent>
