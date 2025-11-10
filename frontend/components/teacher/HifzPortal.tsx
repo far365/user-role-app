@@ -70,7 +70,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         setCurrentYear(yearResp.ayid);
         const gradesResp = await backend.grades.list();
         setGrades(gradesResp.grades);
-        const studyGroupsResp = await backend.hifz.getGroupsByCategory({ category: "Study Group" });
+        const studyGroupsResp = await backend.hifz.getGroupsByCategory({ category: "Hifz" });
         setStudyGroups(studyGroupsResp.groups);
       } catch (error) {
         console.error("Failed to fetch data:", error);
