@@ -308,9 +308,45 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       return;
     }
     
+    let defaultSurahName = "";
+    let defaultSurahNum: number | undefined = undefined;
+    
+    if (editingSection && history.length > 0) {
+      const recordTypeMap = {
+        "meaning": "Meaning",
+        "memorization": "Memorization",
+        "revision": "Revision"
+      };
+      const targetType = recordTypeMap[editingSection];
+      
+      const lastHistoryEntry = history.find(entry => 
+        entry.recordType && entry.recordType.toLowerCase() === targetType.toLowerCase()
+      );
+      
+      if (lastHistoryEntry && lastHistoryEntry.surah) {
+        const matchingSurah = SURAHS.find(s => 
+          s.name_english === lastHistoryEntry.surah
+        );
+        
+        if (matchingSurah && !usedSurahs.has(matchingSurah.num)) {
+          defaultSurahName = matchingSurah.name_english;
+          defaultSurahNum = matchingSurah.num;
+        }
+      }
+    }
+    
     setTempGridData([
       ...tempGridData,
-      { surahName: "", from: 1, to: 1, grade: "", lines: 1, iterations: 1, note: "" },
+      { 
+        surahName: defaultSurahName, 
+        surahNum: defaultSurahNum,
+        from: 1, 
+        to: 1, 
+        grade: "", 
+        lines: 1, 
+        iterations: 1, 
+        note: "" 
+      },
     ]);
   };
 
