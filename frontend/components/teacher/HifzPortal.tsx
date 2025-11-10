@@ -11,6 +11,36 @@ import type { HifzGrade, HifzEntry, HifzGridData, HifzHistoryEntry, SurahSetup }
 import type { Grade } from "~backend/grades/types";
 import { SURAHS } from "~backend/hifz/surah_data";
 
+function formatHistoryDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "Invalid Date";
+  
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const day = date.getDate();
+    
+    const suffix = (day: number) => {
+      if (day > 3 && day < 21) return 'th';
+      switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+      }
+    };
+    
+    return `${dayName} ${monthName} ${day}${suffix(day)}`;
+  } catch {
+    return "Invalid Date";
+  }
+}
+
 interface HifzPortalProps {
   user: UserType;
   onBack: () => void;
@@ -919,18 +949,18 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                       <tbody>
                         {history.map((entry: any, index: number) => (
                           <tr key={index} className="border-b hover:bg-gray-50">
-                            <td className="p-2 text-sm">{new Date(entry.lessondate).toLocaleDateString()}</td>
-                            <td className="p-2 text-sm capitalize">{entry.recordtype}</td>
-                            <td className="p-2 text-sm">{entry.surah}</td>
-                            <td className="p-2 text-sm">{entry.fromayat}</td>
-                            <td className="p-2 text-sm">{entry.toayat}</td>
+                            <td className="p-2 text-sm">{formatHistoryDate(entry.lessondate)}</td>
+                            <td className="p-2 text-sm capitalize">{entry.recordtype || ''}</td>
+                            <td className="p-2 text-sm">{entry.surah || ''}</td>
+                            <td className="p-2 text-sm">{entry.fromayat || ''}</td>
+                            <td className="p-2 text-sm">{entry.toayat || ''}</td>
                             <td className="p-2">
                               <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                                {entry.hifzgrade}
+                                {entry.hifzgrade || ''}
                               </span>
                             </td>
-                            <td className="p-2 text-sm">{entry.lines}</td>
-                            <td className="p-2 text-sm">{entry.teachername}</td>
+                            <td className="p-2 text-sm">{entry.lines || ''}</td>
+                            <td className="p-2 text-sm">{entry.teachername || ''}</td>
                           </tr>
                         ))}
                       </tbody>
