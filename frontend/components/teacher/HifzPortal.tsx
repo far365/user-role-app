@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X, Plus, Trash2, MessageSquare } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Trash2, MessageSquare, LayoutGrid, List } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,6 +62,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [history, setHistory] = useState<HifzHistoryEntry[]>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -300,7 +301,131 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         </CardHeader>
         <CardContent>
           {isEditing ? (
-            <div className="space-y-4">
+            viewMode === "list" ? (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2 text-sm font-medium">#</th>
+                      <th className="text-left p-2 text-sm font-medium">Surah</th>
+                      <th className="text-left p-2 text-sm font-medium">From</th>
+                      <th className="text-left p-2 text-sm font-medium">To</th>
+                      <th className="text-left p-2 text-sm font-medium">Grade</th>
+                      <th className="text-left p-2 text-sm font-medium">Lines</th>
+                      <th className="text-left p-2 text-sm font-medium">Iterations</th>
+                      <th className="text-left p-2 text-sm font-medium">Note</th>
+                      <th className="text-left p-2 text-sm font-medium"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map((entry, index) => {
+                      const selectedSurah = SURAHS.find((s) => s.num === entry.surahNum);
+                      const maxAyats = selectedSurah?.ayats || 1;
+                      return (
+                        <tr key={index} className="border-b hover:bg-gray-50">
+                          <td className="p-2 text-sm">{index + 1}</td>
+                          <td className="p-2">
+                            <Select
+                              value={entry.surahNum?.toString() || ""}
+                              onValueChange={(value) => handleRowChange(index, "surahName", value)}
+                            >
+                              <SelectTrigger className="w-full min-w-[200px] text-blue-800 font-bold">
+                                <SelectValue placeholder="Select surah" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SURAHS.map((surah) => (
+                                  <SelectItem key={surah.num} value={surah.num.toString()}>
+                                    {surah.name_english} / {surah.name_arabic}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxAyats}
+                              value={entry.from || 1}
+                              onChange={(e) => handleRowChange(index, "from", parseInt(e.target.value) || 1)}
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min={entry.from || 1}
+                              max={maxAyats}
+                              value={entry.to || 1}
+                              onChange={(e) => handleRowChange(index, "to", parseInt(e.target.value) || 1)}
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Select
+                              value={entry.grade || "none"}
+                              onValueChange={(value) => handleRowChange(index, "grade", value === "none" ? "" : value)}
+                            >
+                              <SelectTrigger className="w-24">
+                                <SelectValue placeholder="Grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                {GRADES.map((g) => (
+                                  <SelectItem key={g} value={g}>
+                                    {g}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="40"
+                              value={entry.lines || 1}
+                              onChange={(e) => handleRowChange(index, "lines", parseInt(e.target.value) || 1)}
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={entry.iterations || 1}
+                              onChange={(e) => handleRowChange(index, "iterations", parseInt(e.target.value) || 1)}
+                              className="w-20 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              value={entry.note || ""}
+                              onChange={(e) => handleRowChange(index, "note", e.target.value)}
+                              placeholder="Optional"
+                              className="w-32 px-2 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteRow(index)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="space-y-4">
               {data.map((entry, index) => {
                 const selectedSurah = SURAHS.find(
                   (s) => s.num === entry.surahNum
@@ -442,6 +567,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                 );
               })}
             </div>
+            )
           ) : (
             <div className="space-y-2">
               {data.length === 0 ? (
@@ -653,6 +779,28 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
         {student && (
           <>
+            <div className="flex justify-end mb-4">
+              <div className="flex gap-2 bg-white rounded-lg border p-1">
+                <Button
+                  size="sm"
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  onClick={() => setViewMode("grid")}
+                  className="gap-2"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Grid
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  onClick={() => setViewMode("list")}
+                  className="gap-2"
+                >
+                  <List className="h-4 w-4" />
+                  List
+                </Button>
+              </div>
+            </div>
             <div className="space-y-6">
               {renderGrid("meaning", "Meaning")}
               {renderGrid("memorization", "Memorization")}
