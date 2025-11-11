@@ -159,7 +159,39 @@ export function ParentHub({ user }: ParentHubProps) {
               </Button>
             </CardContent>
           </Card>
-        </div>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowHifzPortal(true)}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-semibold">Payments & Receipts</CardTitle>
+              <BookOpen className="h-8 w-8 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Make Payments and view Receipts
+              </p>
+              <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowHifzPortal(true); }}>
+                Payment Portal <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+				          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowHifzPortal(true)}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-semibold">Permission for Activities</CardTitle>
+              <BookOpen className="h-8 w-8 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Permission for Activities
+              </p>
+              <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowHifzPortal(true); }}>
+                Permissions Portal <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+				
+				</div>
       </div>
     </div>
   );
