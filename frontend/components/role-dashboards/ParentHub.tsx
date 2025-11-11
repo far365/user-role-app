@@ -101,7 +101,7 @@ export function ParentHub({ user }: ParentHubProps) {
         {parentData && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-semibold">Parent QR Code</CardTitle>
+              <CardTitle className="text-xl font-semibold">Parent QR Code (Dismissal)</CardTitle>
             </CardHeader>
             <CardContent>
               <QRCodeGenerator

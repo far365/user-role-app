@@ -479,7 +479,7 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Parent QR Code</Label>
+                  <Label className="text-sm font-medium text-gray-700">Parent QR Code (Dismissal)</Label>
 									
 									{/*<p className="text-sm text-gray-900 mt-1">{parentData.parentName || 'Not provided'}</p> */}
 									
