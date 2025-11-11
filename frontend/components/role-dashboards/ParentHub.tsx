@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users, Bell } from "lucide-react";
+import { ArrowRight, Users, Bell, BookOpen } from "lucide-react";
 import { ParentDashboard } from "./ParentDashboard";
 import { ManageAbsencesPage } from "../parent/ManageAbsencesPage";
+import { ParentHifzPortal } from "../parent/ParentHifzPortal";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 
@@ -20,6 +21,7 @@ interface StudentWithDismissalStatus {
 export function ParentHub({ user }: ParentHubProps) {
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [showManageAbsences, setShowManageAbsences] = useState(false);
+  const [showHifzPortal, setShowHifzPortal] = useState(false);
   const [currentYear, setCurrentYear] = useState<string>("");
   const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
 
@@ -50,6 +52,10 @@ export function ParentHub({ user }: ParentHubProps) {
 
   if (showManageAbsences) {
     return <ManageAbsencesPage students={studentData} onBack={() => setShowManageAbsences(false)} />;
+  }
+
+  if (showHifzPortal) {
+    return <ParentHifzPortal user={user} onBack={() => setShowHifzPortal(false)} />;
   }
 
   return (
@@ -113,6 +119,21 @@ export function ParentHub({ user }: ParentHubProps) {
               </p>
               <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowManageAbsences(true); }}>
                 Manage Absences <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowHifzPortal(true)}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xl font-semibold">Hifz Portal</CardTitle>
+              <BookOpen className="h-8 w-8 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                View your students' hifz progress and history
+              </p>
+              <Button className="w-full" onClick={(e) => { e.stopPropagation(); setShowHifzPortal(true); }}>
+                Hifz Portal <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
           </Card>
