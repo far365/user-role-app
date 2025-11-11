@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { LogOut, User, Calendar, Smartphone } from "lucide-react";
 import { AdminDashboard } from "./role-dashboards/AdminDashboard";
-import { ParentDashboard } from "./role-dashboards/ParentDashboard";
+import { ParentHub } from "./role-dashboards/ParentHub";
 import { TeacherHub } from "./role-dashboards/TeacherHub";
 import { DispatchDashboard } from "./role-dashboards/DispatchDashboard";
 import { QRScannerDashboard } from "./role-dashboards/QRScannerDashboard";
@@ -42,7 +42,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       case "Admin":
         return <AdminDashboard user={user} />;
       case "Parent":
-        return <ParentDashboard user={user} />;
+        return <ParentHub user={user} />;
       case "Teacher":
         return <TeacherHub user={user} />;
       case "Dispatch":
