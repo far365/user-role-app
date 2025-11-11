@@ -72,6 +72,20 @@ export function ParentHub({ user }: ParentHubProps) {
           </div>
         </div>
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center space-x-2">
+              <Bell className="w-5 h-5" />
+              <span>Upcoming Event/Activities Reminder(s)</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm text-gray-700">
+              Group Photos
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid gap-6">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setShowParentDashboard(true)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
