@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Star } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -402,7 +403,7 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                   <div className="text-sm text-gray-600">No hifz history found</div>
                 ) : (
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse hidden md:table">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-2 text-sm font-medium">Date</th>
@@ -410,9 +411,8 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                       <th className="text-left p-2 text-sm font-medium">Surah</th>
                       <th className="text-left p-2 text-sm font-medium">From</th>
                       <th className="text-left p-2 text-sm font-medium">To</th>
-                      <th className="text-left p-2 text-sm font-medium">Grade</th>
                       <th className="text-left p-2 text-sm font-medium">Lines</th>
-                      <th className="text-left p-2 text-sm font-medium">Teacher</th>
+                      <th className="text-left p-2 text-sm font-medium">Grade</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -434,18 +434,53 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                           <td className="p-2 text-sm">{entry.surah || ''}</td>
                           <td className="p-2 text-sm">{entry.from || ''}</td>
                           <td className="p-2 text-sm">{entry.to || ''}</td>
+                          <td className="p-2 text-sm">{entry.lines || ''}</td>
                           <td className="p-2">
-                            <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                            <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
                               {entry.hifzGrade || ''}
+                              {entry.hifzGrade?.toUpperCase() === 'A' && (
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              )}
                             </span>
                           </td>
-                          <td className="p-2 text-sm">{entry.lines || ''}</td>
-                          <td className="p-2 text-sm">{entry.teacherId || ''}</td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
+                
+                <div className="md:hidden space-y-2">
+                  {filteredHistory.map((entry, index) => {
+                    const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
+                    const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
+                    const bgColor = isDifferentDate 
+                      ? (index === 0 || (prevEntry && filteredHistory.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
+                        ? "bg-gray-100" 
+                        : "bg-white")
+                      : (filteredHistory.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
+                        ? "bg-gray-100"
+                        : "bg-white");
+                    
+                    return (
+                      <div key={index} className={`p-3 rounded-lg border ${bgColor}`}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="text-sm font-medium">{formatDate(entry.lessonDateText)}</div>
+                          <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                            {entry.hifzGrade || ''}
+                            {entry.hifzGrade?.toUpperCase() === 'A' && (
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-sm capitalize text-gray-700 mb-1">{entry.recordType || ''}</div>
+                        <div className="text-sm font-medium mb-1">{entry.surah || ''}</div>
+                        <div className="text-sm text-gray-600">
+                          {entry.from || ''} / {entry.to || ''} / {entry.lines || ''}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
                 )}
               </div>
