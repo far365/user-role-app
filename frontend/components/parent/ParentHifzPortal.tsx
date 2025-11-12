@@ -159,18 +159,27 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
           ) : students.length === 0 ? (
             <div className="text-sm text-gray-600">No students found</div>
           ) : (
-            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a student" />
-              </SelectTrigger>
-              <SelectContent>
-                {students.map(s => (
-                  <SelectItem key={s.studentId} value={s.studentId}>
-                    {s.studentName} ({s.grade})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map(s => (
+                      <SelectItem key={s.studentId} value={s.studentId}>
+                        {s.studentName} ({s.grade})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedStudent && (
+                <div className="text-sm text-gray-600 whitespace-nowrap">
+                  Target Graduation: Dec 2026
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
