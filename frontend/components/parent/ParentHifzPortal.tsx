@@ -438,16 +438,16 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                   </thead>
                   <tbody>
                     {(() => {
-                      const dateColorMap = new Map<string, string>();
-                      let colorToggle = true;
-                      let lastDate = '';
-                      
+                      const uniqueDates: string[] = [];
                       filteredHistory.forEach((entry) => {
-                        if (entry.lessonDateText !== lastDate) {
-                          colorToggle = !colorToggle;
-                          lastDate = entry.lessonDateText;
+                        if (!uniqueDates.includes(entry.lessonDateText)) {
+                          uniqueDates.push(entry.lessonDateText);
                         }
-                        dateColorMap.set(entry.lessonDateText, colorToggle ? "bg-gray-100" : "bg-white");
+                      });
+                      
+                      const dateColorMap = new Map<string, string>();
+                      uniqueDates.forEach((date, index) => {
+                        dateColorMap.set(date, index % 2 === 0 ? "bg-white" : "bg-gray-100");
                       });
                       
                       return filteredHistory.map((entry, index) => (
@@ -487,16 +487,16 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                     </thead>
                     <tbody>
                       {(() => {
-                        const dateColorMap = new Map<string, string>();
-                        let colorToggle = true;
-                        let lastDate = '';
-                        
+                        const uniqueDates: string[] = [];
                         filteredHistory.forEach((entry) => {
-                          if (entry.lessonDateText !== lastDate) {
-                            colorToggle = !colorToggle;
-                            lastDate = entry.lessonDateText;
+                          if (!uniqueDates.includes(entry.lessonDateText)) {
+                            uniqueDates.push(entry.lessonDateText);
                           }
-                          dateColorMap.set(entry.lessonDateText, colorToggle ? "bg-gray-100" : "bg-white");
+                        });
+                        
+                        const dateColorMap = new Map<string, string>();
+                        uniqueDates.forEach((date, index) => {
+                          dateColorMap.set(date, index % 2 === 0 ? "bg-white" : "bg-gray-100");
                         });
                         
                         return filteredHistory.map((entry, index) => (
@@ -525,16 +525,16 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto">
                     {(() => {
-                      const dateColorMap = new Map<string, string>();
-                      let colorToggle = true;
-                      let lastDate = '';
-                      
+                      const uniqueDates: string[] = [];
                       filteredHistory.forEach((entry) => {
-                        if (entry.lessonDateText !== lastDate) {
-                          colorToggle = !colorToggle;
-                          lastDate = entry.lessonDateText;
+                        if (!uniqueDates.includes(entry.lessonDateText)) {
+                          uniqueDates.push(entry.lessonDateText);
                         }
-                        dateColorMap.set(entry.lessonDateText, colorToggle ? "bg-gray-50" : "bg-white");
+                      });
+                      
+                      const dateColorMap = new Map<string, string>();
+                      uniqueDates.forEach((date, index) => {
+                        dateColorMap.set(date, index % 2 === 0 ? "bg-white" : "bg-gray-50");
                       });
                       
                       return filteredHistory.map((entry, index) => (
