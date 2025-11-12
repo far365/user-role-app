@@ -30,10 +30,27 @@ interface HifzHistoryEntry {
   teacherId: string;
 }
 
+interface ProgressStats {
+  memorization: number;
+  revision: number;
+  meaning: number;
+  memorizationHistory: number[];
+  revisionHistory: number[];
+  meaningHistory: number[];
+}
+
 export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [hifzHistory, setHifzHistory] = useState<HifzHistoryEntry[]>([]);
+  const [progressStats, setProgressStats] = useState<ProgressStats>({
+    memorization: 0,
+    revision: 0,
+    meaning: 0,
+    memorizationHistory: [],
+    revisionHistory: [],
+    meaningHistory: []
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const { toast } = useToast();
@@ -78,6 +95,39 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
           prevRowsCount: "50"
         });
         setHifzHistory(response.history);
+        
+        const totalLines = 6236;
+        let memTotal = 0;
+        let revTotal = 0;
+        let meanTotal = 0;
+        const memHist: number[] = [];
+        const revHist: number[] = [];
+        const meanHist: number[] = [];
+        
+        response.history.forEach((entry) => {
+          const lines = entry.lines || 0;
+          const type = entry.recordType?.toLowerCase() || '';
+          
+          if (type === 'memorization') {
+            memTotal += lines;
+            memHist.push(lines);
+          } else if (type === 'revision') {
+            revTotal += lines;
+            revHist.push(lines);
+          } else if (type === 'meaning') {
+            meanTotal += lines;
+            meanHist.push(lines);
+          }
+        });
+        
+        setProgressStats({
+          memorization: Math.round((memTotal / totalLines) * 100),
+          revision: Math.round((revTotal / totalLines) * 100),
+          meaning: Math.round((meanTotal / totalLines) * 100),
+          memorizationHistory: memHist.slice(0, 15).reverse(),
+          revisionHistory: revHist.slice(0, 15).reverse(),
+          meaningHistory: meanHist.slice(0, 15).reverse()
+        });
       } catch (error) {
         console.error("Failed to fetch hifz history:", error);
         toast({
@@ -185,10 +235,45 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
       </Card>
 
       {selectedStudent && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Hifz History</CardTitle>
-          </CardHeader>
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-6">
+                <ProgressCircle
+                  label="Memorization"
+                  percentage={progressStats.memorization}
+                  color="text-green-600"
+                  bgColor="stroke-green-600"
+                  history={progressStats.memorizationHistory}
+                  historyColor="bg-green-500"
+                />
+                <ProgressCircle
+                  label="Revision"
+                  percentage={progressStats.revision}
+                  color="text-orange-600"
+                  bgColor="stroke-orange-600"
+                  history={progressStats.revisionHistory}
+                  historyColor="bg-orange-500"
+                />
+                <ProgressCircle
+                  label="Meaning"
+                  percentage={progressStats.meaning}
+                  color="text-yellow-600"
+                  bgColor="stroke-yellow-600"
+                  history={progressStats.meaningHistory}
+                  historyColor="bg-yellow-500"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Hifz History</CardTitle>
+            </CardHeader>
           <CardContent>
             {isLoadingHistory ? (
               <div className="text-sm text-gray-600">Loading hifz history...</div>
@@ -244,7 +329,76 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
             )}
           </CardContent>
         </Card>
+        </>
       )}
+    </div>
+  );
+}
+
+interface ProgressCircleProps {
+  label: string;
+  percentage: number;
+  color: string;
+  bgColor: string;
+  history: number[];
+  historyColor: string;
+}
+
+function ProgressCircle({ label, percentage, color, bgColor, history, historyColor }: ProgressCircleProps) {
+  const radius = 45;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percentage / 100) * circumference;
+  const maxHistory = Math.max(...history, 1);
+
+  return (
+    <div className="flex flex-col items-center space-y-3">
+      <div className="relative w-32 h-32">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="8"
+            fill="none"
+            className="text-gray-200"
+          />
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="8"
+            fill="none"
+            className={bgColor}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className={`text-2xl font-bold ${color}`}>{percentage}%</span>
+        </div>
+      </div>
+      <div className="text-sm font-medium text-gray-700">{label}</div>
+      <div className="flex items-end justify-center space-x-1 h-12 w-full px-2">
+        {history.length > 0 ? (
+          history.map((value, index) => {
+            const height = Math.max((value / maxHistory) * 100, 5);
+            return (
+              <div
+                key={index}
+                className={`flex-1 ${historyColor} rounded-sm opacity-70`}
+                style={{ height: `${height}%` }}
+                title={`${value} lines`}
+              />
+            );
+          })
+        ) : (
+          <div className="text-xs text-gray-400">No data</div>
+        )}
+      </div>
     </div>
   );
 }
