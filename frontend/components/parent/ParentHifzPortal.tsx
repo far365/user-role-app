@@ -20,15 +20,14 @@ interface Student {
 }
 
 interface HifzHistoryEntry {
-  hifzdate: string;
-  surahname: string;
-  section: string;
-  grade: string;
-  from_ayah?: number;
-  to_ayah?: number;
-  lines?: number;
-  iterations?: number;
-  note?: string;
+  lessonDateText: string;
+  recordType: string;
+  surah: string;
+  from: number;
+  to: number;
+  hifzGrade: string;
+  lines: number;
+  teacherId: string;
 }
 
 export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
@@ -125,25 +124,7 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
     }
   };
 
-  const getGradeColor = (grade: string) => {
-    switch (grade) {
-      case 'A+': return 'bg-green-600 text-white';
-      case 'A': return 'bg-green-500 text-white';
-      case 'B+': return 'bg-blue-500 text-white';
-      case 'B': return 'bg-blue-400 text-white';
-      case 'C': return 'bg-yellow-500 text-white';
-      default: return 'bg-gray-400 text-white';
-    }
-  };
 
-  const getSectionColor = (section: string) => {
-    switch (section?.toLowerCase()) {
-      case 'meaning': return 'bg-purple-100 text-purple-800';
-      case 'memorization': return 'bg-blue-100 text-blue-800';
-      case 'revision': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   return (
     <div className="space-y-3">
@@ -205,47 +186,51 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
             ) : hifzHistory.length === 0 ? (
               <div className="text-sm text-gray-600">No hifz history found</div>
             ) : (
-              <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                {hifzHistory.map((entry, index) => (
-                  <div key={index} className="p-3 border rounded-lg bg-white">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatDate(entry.hifzdate)}
-                      </div>
-                      <Badge className={getGradeColor(entry.grade || '')}>
-                        {entry.grade || 'N/A'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Badge className={getSectionColor(entry.section || '')}>
-                        {entry.section || 'N/A'}
-                      </Badge>
-                      <span className="text-sm font-medium text-gray-800">
-                        {entry.surahname}
-                      </span>
-                    </div>
-                    {(entry.from_ayah || entry.to_ayah) && (
-                      <div className="text-sm text-gray-600">
-                        Ayahs: {entry.from_ayah || '?'} - {entry.to_ayah || '?'}
-                      </div>
-                    )}
-                    {entry.lines && (
-                      <div className="text-sm text-gray-600">
-                        Lines: {entry.lines}
-                      </div>
-                    )}
-                    {entry.iterations && (
-                      <div className="text-sm text-gray-600">
-                        Iterations: {entry.iterations}
-                      </div>
-                    )}
-                    {entry.note && (
-                      <div className="text-sm text-gray-600 italic mt-1">
-                        Note: {entry.note}
-                      </div>
-                    )}
-                  </div>
-                ))}
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2 text-sm font-medium">Date</th>
+                      <th className="text-left p-2 text-sm font-medium">Type</th>
+                      <th className="text-left p-2 text-sm font-medium">Surah</th>
+                      <th className="text-left p-2 text-sm font-medium">From</th>
+                      <th className="text-left p-2 text-sm font-medium">To</th>
+                      <th className="text-left p-2 text-sm font-medium">Grade</th>
+                      <th className="text-left p-2 text-sm font-medium">Lines</th>
+                      <th className="text-left p-2 text-sm font-medium">Teacher</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hifzHistory.map((entry, index) => {
+                      const prevEntry = index > 0 ? hifzHistory[index - 1] : null;
+                      const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
+                      const bgColor = isDifferentDate 
+                        ? (index === 0 || (prevEntry && hifzHistory.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
+                          ? "bg-gray-100" 
+                          : "bg-white")
+                        : (hifzHistory.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white");
+                      
+                      return (
+                        <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
+                          <td className="p-2 text-sm">{formatDate(entry.lessonDateText)}</td>
+                          <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
+                          <td className="p-2 text-sm">{entry.surah || ''}</td>
+                          <td className="p-2 text-sm">{entry.from || ''}</td>
+                          <td className="p-2 text-sm">{entry.to || ''}</td>
+                          <td className="p-2">
+                            <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                              {entry.hifzGrade || ''}
+                            </span>
+                          </td>
+                          <td className="p-2 text-sm">{entry.lines || ''}</td>
+                          <td className="p-2 text-sm">{entry.teacherId || ''}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
