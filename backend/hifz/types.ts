@@ -67,6 +67,18 @@ export interface GetHifzHistoryByStudentIdResponse {
   history: any[];
 }
 
+export interface GetHifzHistoryByParentIdRequest {
+  parentId: string;
+  prevRowsCount?: string;
+  startDate?: string;
+  endDate?: string;
+  surah?: string;
+}
+
+export interface GetHifzHistoryByParentIdResponse {
+  history: any[];
+}
+
 export interface SurahSetup {
   num: number;
   name_english: string;

@@ -153,6 +153,7 @@ export namespace grades {
  */
 import { getData as api_hifz_get_data_getData } from "~backend/hifz/get_data";
 import { getGroupsByCategory as api_hifz_get_groups_by_category_getGroupsByCategory } from "~backend/hifz/get_groups_by_category";
+import { getHistoryByParentId as api_hifz_get_hifz_history_by_parentid_getHistoryByParentId } from "~backend/hifz/get_hifz_history_by_parentid";
 import { getHistoryByStudentId as api_hifz_get_hifz_history_by_studentid_getHistoryByStudentId } from "~backend/hifz/get_hifz_history_by_studentid";
 import { getHistory as api_hifz_get_history_getHistory } from "~backend/hifz/get_history";
 import { insertStudentHifz as api_hifz_insert_student_hifz_insertStudentHifz } from "~backend/hifz/insert_student_hifz";
@@ -168,6 +169,7 @@ export namespace hifz {
             this.getData = this.getData.bind(this)
             this.getGroupsByCategory = this.getGroupsByCategory.bind(this)
             this.getHistory = this.getHistory.bind(this)
+            this.getHistoryByParentId = this.getHistoryByParentId.bind(this)
             this.getHistoryByStudentId = this.getHistoryByStudentId.bind(this)
             this.insertStudentHifz = this.insertStudentHifz.bind(this)
             this.saveData = this.saveData.bind(this)
@@ -189,6 +191,12 @@ export namespace hifz {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/hifz/get-history`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_history_getHistory>
+        }
+
+        public async getHistoryByParentId(params: RequestType<typeof api_hifz_get_hifz_history_by_parentid_getHistoryByParentId>): Promise<ResponseType<typeof api_hifz_get_hifz_history_by_parentid_getHistoryByParentId>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/hifz/get-history-by-parentid`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_hifz_history_by_parentid_getHistoryByParentId>
         }
 
         public async getHistoryByStudentId(params: RequestType<typeof api_hifz_get_hifz_history_by_studentid_getHistoryByStudentId>): Promise<ResponseType<typeof api_hifz_get_hifz_history_by_studentid_getHistoryByStudentId>> {
