@@ -416,19 +416,21 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredHistory.map((entry, index) => {
-                      const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
-                      const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
-                      const bgColor = isDifferentDate 
-                        ? (index === 0 || (prevEntry && filteredHistory.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
-                          ? "bg-gray-100" 
-                          : "bg-white")
-                        : (filteredHistory.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
-                          ? "bg-gray-100"
-                          : "bg-white");
+                    {(() => {
+                      const dateColorMap = new Map<string, string>();
+                      let colorToggle = true;
+                      let lastDate = '';
                       
-                      return (
-                        <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
+                      filteredHistory.forEach((entry) => {
+                        if (entry.lessonDateText !== lastDate) {
+                          colorToggle = !colorToggle;
+                          lastDate = entry.lessonDateText;
+                        }
+                        dateColorMap.set(entry.lessonDateText, colorToggle ? "bg-gray-100" : "bg-white");
+                      });
+                      
+                      return filteredHistory.map((entry, index) => (
+                        <tr key={index} className={`border-b hover:opacity-80 ${dateColorMap.get(entry.lessonDateText)}`}>
                           <td className="p-2 text-sm">{formatDate(entry.lessonDateText)}</td>
                           <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
                           <td className="p-2 text-sm">{entry.surah || ''}</td>
@@ -444,42 +446,44 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                             </span>
                           </td>
                         </tr>
-                      );
-                    })}
+                      ));
+                    })()}
                   </tbody>
                 </table>
                 
-                <div className="md:hidden space-y-2">
-                  {filteredHistory.map((entry, index) => {
-                    const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
-                    const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
-                    const bgColor = isDifferentDate 
-                      ? (index === 0 || (prevEntry && filteredHistory.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
-                        ? "bg-gray-100" 
-                        : "bg-white")
-                      : (filteredHistory.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
-                        ? "bg-gray-100"
-                        : "bg-white");
+                <div className="md:hidden space-y-1">
+                  {(() => {
+                    const dateColorMap = new Map<string, string>();
+                    let colorToggle = true;
+                    let lastDate = '';
                     
-                    return (
-                      <div key={index} className={`p-3 rounded-lg border ${bgColor}`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="text-sm font-medium">{formatDate(entry.lessonDateText)}</div>
-                          <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                    filteredHistory.forEach((entry) => {
+                      if (entry.lessonDateText !== lastDate) {
+                        colorToggle = !colorToggle;
+                        lastDate = entry.lessonDateText;
+                      }
+                      dateColorMap.set(entry.lessonDateText, colorToggle ? "bg-gray-50" : "bg-white");
+                    });
+                    
+                    return filteredHistory.map((entry, index) => (
+                      <div key={index} className={`p-2 rounded border ${dateColorMap.get(entry.lessonDateText)}`}>
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="text-xs font-medium text-gray-600">{formatDate(entry.lessonDateText)}</div>
+                          <span className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">
                             {entry.hifzGrade || ''}
                             {entry.hifzGrade?.toUpperCase() === 'A' && (
-                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
                             )}
                           </span>
                         </div>
-                        <div className="text-sm capitalize text-gray-700 mb-1">{entry.recordType || ''}</div>
-                        <div className="text-sm font-medium mb-1">{entry.surah || ''}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs capitalize text-gray-700 mb-0.5">{entry.recordType || ''}</div>
+                        <div className="text-xs font-medium mb-0.5">{entry.surah || ''}</div>
+                        <div className="text-xs text-gray-600">
                           {entry.from || ''} / {entry.to || ''} / {entry.lines || ''}
                         </div>
                       </div>
-                    );
-                  })}
+                    ));
+                  })()}
                 </div>
               </div>
                 )}
