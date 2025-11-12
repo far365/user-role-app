@@ -423,142 +423,148 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                 ) : filteredHistory.length === 0 ? (
                   <div className="text-sm text-gray-600">No hifz history found</div>
                 ) : viewMode === "list" ? (
-              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-                <table className="w-full border-collapse hidden md:table">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2 text-sm font-medium">Date</th>
-                      <th className="text-left p-2 text-sm font-medium">Type</th>
-                      <th className="text-left p-2 text-sm font-medium">Surah</th>
-                      <th className="text-left p-2 text-sm font-medium">From</th>
-                      <th className="text-left p-2 text-sm font-medium">To</th>
-                      <th className="text-left p-2 text-sm font-medium">Lines</th>
-                      <th className="text-left p-2 text-sm font-medium">Grade</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const uniqueDates: string[] = [];
-                      filteredHistory.forEach((entry) => {
-                        if (!uniqueDates.includes(entry.lessonDateText)) {
-                          uniqueDates.push(entry.lessonDateText);
-                        }
-                      });
-                      
-                      const dateColorMap = new Map<string, string>();
-                      uniqueDates.forEach((date, index) => {
-                        dateColorMap.set(date, index % 2 === 0 ? "bg-white" : "bg-gray-100");
-                      });
-                      
-                      return filteredHistory.map((entry, index) => (
-                        <tr key={index} className={`border-b hover:opacity-80 ${dateColorMap.get(entry.lessonDateText)}`}>
-                          <td className="p-2 text-sm">{formatDate(entry.lessonDateText)}</td>
-                          <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
-                          <td className="p-2 text-sm">{entry.surah || ''}</td>
-                          <td className="p-2 text-sm">{entry.from || ''}</td>
-                          <td className="p-2 text-sm">{entry.to || ''}</td>
-                          <td className="p-2 text-sm">{entry.lines || ''}</td>
-                          <td className="p-2">
-                            <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                              {entry.hifzGrade || ''}
-                              {entry.hifzGrade?.toUpperCase() === 'A' && (
-                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                              )}
-                            </span>
-                          </td>
-                        </tr>
-                      ));
-                    })()}
-                  </tbody>
-                </table>
-                
-                <div className="md:hidden overflow-x-auto">
-                  <table className="w-full border-collapse min-w-max">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Date</th>
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Type</th>
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Surah</th>
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">From</th>
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">To</th>
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Lines</th>
-                        <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        const uniqueDates: string[] = [];
-                        filteredHistory.forEach((entry) => {
-                          if (!uniqueDates.includes(entry.lessonDateText)) {
-                            uniqueDates.push(entry.lessonDateText);
-                          }
-                        });
+              <div className="max-h-[600px] overflow-y-auto space-y-4">
+                {(() => {
+                  const groupedByDate: { [date: string]: typeof filteredHistory } = {};
+                  filteredHistory.forEach((entry) => {
+                    if (!groupedByDate[entry.lessonDateText]) {
+                      groupedByDate[entry.lessonDateText] = [];
+                    }
+                    groupedByDate[entry.lessonDateText].push(entry);
+                  });
+
+                  const uniqueDates = Object.keys(groupedByDate);
+                  
+                  return uniqueDates.map((date, dateIndex) => {
+                    const entries = groupedByDate[date];
+                    const bgColor = dateIndex % 2 === 0 ? "bg-white" : "bg-gray-100";
+                    
+                    return (
+                      <div key={date} className={`${bgColor} rounded-lg`}>
+                        <div className="sticky top-0 bg-gray-800 text-white px-3 py-1.5 text-sm font-semibold rounded-t-lg">
+                          {formatDate(date)}
+                        </div>
                         
-                        const dateColorMap = new Map<string, string>();
-                        uniqueDates.forEach((date, index) => {
-                          dateColorMap.set(date, index % 2 === 0 ? "bg-white" : "bg-gray-100");
-                        });
+                        <div className="hidden md:block overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left p-2 text-sm font-medium">Type</th>
+                                <th className="text-left p-2 text-sm font-medium">Surah</th>
+                                <th className="text-left p-2 text-sm font-medium">From</th>
+                                <th className="text-left p-2 text-sm font-medium">To</th>
+                                <th className="text-left p-2 text-sm font-medium">Lines</th>
+                                <th className="text-left p-2 text-sm font-medium">Grade</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {entries.map((entry, index) => (
+                                <tr key={index} className="border-b last:border-b-0 hover:opacity-80">
+                                  <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
+                                  <td className="p-2 text-sm">{entry.surah || ''}</td>
+                                  <td className="p-2 text-sm">{entry.from || ''}</td>
+                                  <td className="p-2 text-sm">{entry.to || ''}</td>
+                                  <td className="p-2 text-sm">{entry.lines || ''}</td>
+                                  <td className="p-2">
+                                    <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                      {entry.hifzGrade || ''}
+                                      {entry.hifzGrade?.toUpperCase() === 'A' && (
+                                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                      )}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                         
-                        return filteredHistory.map((entry, index) => (
-                          <tr key={index} className={`border-b hover:opacity-80 ${dateColorMap.get(entry.lessonDateText)}`}>
-                            <td className="p-2 text-xs whitespace-nowrap">{formatDate(entry.lessonDateText)}</td>
-                            <td className="p-2 text-xs capitalize whitespace-nowrap">{entry.recordType || ''}</td>
-                            <td className="p-2 text-xs whitespace-nowrap">{entry.surah || ''}</td>
-                            <td className="p-2 text-xs whitespace-nowrap">{entry.from || ''}</td>
-                            <td className="p-2 text-xs whitespace-nowrap">{entry.to || ''}</td>
-                            <td className="p-2 text-xs whitespace-nowrap">{entry.lines || ''}</td>
-                            <td className="p-2">
-                              <span className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded whitespace-nowrap">
-                                {entry.hifzGrade || ''}
-                                {entry.hifzGrade?.toUpperCase() === 'A' && (
-                                  <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
-                                )}
-                              </span>
-                            </td>
-                          </tr>
-                        ));
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
+                        <div className="md:hidden overflow-x-auto">
+                          <table className="w-full border-collapse min-w-max">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Type</th>
+                                <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Surah</th>
+                                <th className="text-left p-2 text-xs font-medium whitespace-nowrap">From</th>
+                                <th className="text-left p-2 text-xs font-medium whitespace-nowrap">To</th>
+                                <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Lines</th>
+                                <th className="text-left p-2 text-xs font-medium whitespace-nowrap">Grade</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {entries.map((entry, index) => (
+                                <tr key={index} className="border-b last:border-b-0 hover:opacity-80">
+                                  <td className="p-2 text-xs capitalize whitespace-nowrap">{entry.recordType || ''}</td>
+                                  <td className="p-2 text-xs whitespace-nowrap">{entry.surah || ''}</td>
+                                  <td className="p-2 text-xs whitespace-nowrap">{entry.from || ''}</td>
+                                  <td className="p-2 text-xs whitespace-nowrap">{entry.to || ''}</td>
+                                  <td className="p-2 text-xs whitespace-nowrap">{entry.lines || ''}</td>
+                                  <td className="p-2">
+                                    <span className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded whitespace-nowrap">
+                                      {entry.hifzGrade || ''}
+                                      {entry.hifzGrade?.toUpperCase() === 'A' && (
+                                        <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                                      )}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto">
+                  <div className="max-h-[600px] overflow-y-auto space-y-4">
                     {(() => {
-                      const uniqueDates: string[] = [];
+                      const groupedByDate: { [date: string]: typeof filteredHistory } = {};
                       filteredHistory.forEach((entry) => {
-                        if (!uniqueDates.includes(entry.lessonDateText)) {
-                          uniqueDates.push(entry.lessonDateText);
+                        if (!groupedByDate[entry.lessonDateText]) {
+                          groupedByDate[entry.lessonDateText] = [];
                         }
+                        groupedByDate[entry.lessonDateText].push(entry);
                       });
+
+                      const uniqueDates = Object.keys(groupedByDate);
                       
-                      const dateColorMap = new Map<string, string>();
-                      uniqueDates.forEach((date, index) => {
-                        dateColorMap.set(date, index % 2 === 0 ? "bg-white" : "bg-gray-50");
+                      return uniqueDates.map((date, dateIndex) => {
+                        const entries = groupedByDate[date];
+                        const bgColor = dateIndex % 2 === 0 ? "bg-white" : "bg-gray-50";
+                        
+                        return (
+                          <div key={date} className={`${bgColor} rounded-lg p-3`}>
+                            <div className="bg-gray-800 text-white px-3 py-1.5 text-sm font-semibold rounded-lg mb-3">
+                              {formatDate(date)}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {entries.map((entry, index) => (
+                                <div key={index} className="p-3 rounded-lg border bg-white">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="text-sm capitalize text-gray-700 font-medium">{entry.recordType || ''}</div>
+                                    <span className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">
+                                      {entry.hifzGrade || ''}
+                                      {entry.hifzGrade?.toUpperCase() === 'A' && (
+                                        <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm font-semibold mb-2">{entry.surah || ''}</div>
+                                  <div className="flex items-center justify-between text-xs text-gray-600">
+                                    <span>From: {entry.from || ''}</span>
+                                    <span>To: {entry.to || ''}</span>
+                                  </div>
+                                  <div className="mt-1 text-xs text-gray-600">
+                                    Lines: {entry.lines || ''}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
                       });
-                      
-                      return filteredHistory.map((entry, index) => (
-                        <div key={index} className={`p-3 rounded-lg border ${dateColorMap.get(entry.lessonDateText)}`}>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="text-xs font-medium text-gray-600">{formatDate(entry.lessonDateText)}</div>
-                            <span className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">
-                              {entry.hifzGrade || ''}
-                              {entry.hifzGrade?.toUpperCase() === 'A' && (
-                                <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
-                              )}
-                            </span>
-                          </div>
-                          <div className="text-sm capitalize text-gray-700 mb-1 font-medium">{entry.recordType || ''}</div>
-                          <div className="text-sm font-semibold mb-2">{entry.surah || ''}</div>
-                          <div className="flex items-center justify-between text-xs text-gray-600">
-                            <span>From: {entry.from || ''}</span>
-                            <span>To: {entry.to || ''}</span>
-                          </div>
-                          <div className="mt-1 text-xs text-gray-600">
-                            Lines: {entry.lines || ''}
-                          </div>
-                        </div>
-                      ));
                     })()}
                   </div>
                 )}
