@@ -5,6 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import backend from "~backend/client";
 import type { User as UserType } from "~backend/user/types";
 
@@ -39,10 +44,28 @@ interface ProgressStats {
   meaningHistory: number[];
 }
 
+const SURAHS = [
+  "Al-Fatihah", "Al-Baqarah", "Aali Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal",
+  "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf",
+  "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara",
+  "An-Naml", "Al-Qasas", "Al-Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir",
+  "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan",
+  "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur",
+  "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadila", "Al-Hashr",
+  "Al-Mumtahanah", "As-Saf", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim",
+  "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir",
+  "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "Abasa", "At-Takwir", "Al-Infitar",
+  "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad",
+  "Ash-Shams", "Al-Layl", "Ad-Duhaa", "Ash-Sharh", "At-Tin", "Al-Alaq", "Al-Qadr", "Al-Bayyinah",
+  "Az-Zalzalah", "Al-Adiyat", "Al-Qari'ah", "At-Takathur", "Al-Asr", "Al-Humazah", "Al-Fil", "Quraysh",
+  "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"
+];
+
 export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [hifzHistory, setHifzHistory] = useState<HifzHistoryEntry[]>([]);
+  const [filteredHistory, setFilteredHistory] = useState<HifzHistoryEntry[]>([]);
   const [progressStats, setProgressStats] = useState<ProgressStats>({
     memorization: 0,
     revision: 0,
@@ -53,6 +76,9 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [selectedSurah, setSelectedSurah] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -95,6 +121,7 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
           prevRowsCount: "50"
         });
         setHifzHistory(response.history);
+        setFilteredHistory(response.history);
         
         const totalLines = 6236;
         let memTotal = 0;
@@ -143,6 +170,41 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
 
     fetchHifzHistory();
   }, [selectedStudent, toast]);
+
+  const handleFilterSubmit = () => {
+    let filtered = [...hifzHistory];
+
+    if (startDate) {
+      filtered = filtered.filter(entry => {
+        const entryDate = new Date(entry.lessonDateText);
+        return entryDate >= startDate;
+      });
+    }
+
+    if (endDate) {
+      filtered = filtered.filter(entry => {
+        const entryDate = new Date(entry.lessonDateText);
+        return entryDate <= endDate;
+      });
+    }
+
+    if (selectedSurah) {
+      filtered = filtered.filter(entry => entry.surah === selectedSurah);
+    }
+
+    setFilteredHistory(filtered);
+    toast({
+      title: "Filters Applied",
+      description: `Showing ${filtered.length} of ${hifzHistory.length} records`,
+    });
+  };
+
+  const handleClearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setSelectedSurah("");
+    setFilteredHistory(hifzHistory);
+  };
 
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "Invalid Date";
@@ -274,12 +336,71 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
             <CardHeader>
               <CardTitle>Hifz History</CardTitle>
             </CardHeader>
-          <CardContent>
-            {isLoadingHistory ? (
-              <div className="text-sm text-gray-600">Loading hifz history...</div>
-            ) : hifzHistory.length === 0 ? (
-              <div className="text-sm text-gray-600">No hifz history found</div>
-            ) : (
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {startDate ? format(startDate, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {endDate ? format(endDate, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Surah</Label>
+                    <Select value={selectedSurah} onValueChange={setSelectedSurah}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Surah" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Surahs</SelectItem>
+                        {SURAHS.map((surah, idx) => (
+                          <SelectItem key={idx} value={surah}>
+                            {surah}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="md:col-span-3 flex gap-2">
+                    <Button onClick={handleFilterSubmit} className="flex-1">
+                      Submit
+                    </Button>
+                    <Button onClick={handleClearFilters} variant="outline">
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+
+                {isLoadingHistory ? (
+                  <div className="text-sm text-gray-600">Loading hifz history...</div>
+                ) : filteredHistory.length === 0 ? (
+                  <div className="text-sm text-gray-600">No hifz history found</div>
+                ) : (
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -295,14 +416,14 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {hifzHistory.map((entry, index) => {
-                      const prevEntry = index > 0 ? hifzHistory[index - 1] : null;
+                    {filteredHistory.map((entry, index) => {
+                      const prevEntry = index > 0 ? filteredHistory[index - 1] : null;
                       const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
                       const bgColor = isDifferentDate 
-                        ? (index === 0 || (prevEntry && hifzHistory.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
+                        ? (index === 0 || (prevEntry && filteredHistory.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
                           ? "bg-gray-100" 
                           : "bg-white")
-                        : (hifzHistory.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
+                        : (filteredHistory.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
                           ? "bg-gray-100"
                           : "bg-white");
                       
@@ -326,9 +447,10 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                   </tbody>
                 </table>
               </div>
-            )}
-          </CardContent>
-        </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>
