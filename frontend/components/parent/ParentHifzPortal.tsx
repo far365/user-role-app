@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Grid3x3, List } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
@@ -80,6 +80,7 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedSurah, setSelectedSurah] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -335,7 +336,27 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Hifz History</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Hifz History</CardTitle>
+                <div className="flex gap-1">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="w-4 h-4 mr-1" />
+                    List
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid3x3 className="w-4 h-4 mr-1" />
+                    Grid
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -401,7 +422,7 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                   <div className="text-sm text-gray-600">Loading hifz history...</div>
                 ) : filteredHistory.length === 0 ? (
                   <div className="text-sm text-gray-600">No hifz history found</div>
-                ) : (
+                ) : viewMode === "list" ? (
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 <table className="w-full border-collapse hidden md:table">
                   <thead>
@@ -486,6 +507,45 @@ export function ParentHifzPortal({ user, onBack }: ParentHifzPortalProps) {
                   })()}
                 </div>
               </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto">
+                    {(() => {
+                      const dateColorMap = new Map<string, string>();
+                      let colorToggle = true;
+                      let lastDate = '';
+                      
+                      filteredHistory.forEach((entry) => {
+                        if (entry.lessonDateText !== lastDate) {
+                          colorToggle = !colorToggle;
+                          lastDate = entry.lessonDateText;
+                        }
+                        dateColorMap.set(entry.lessonDateText, colorToggle ? "bg-gray-50" : "bg-white");
+                      });
+                      
+                      return filteredHistory.map((entry, index) => (
+                        <div key={index} className={`p-3 rounded-lg border ${dateColorMap.get(entry.lessonDateText)}`}>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="text-xs font-medium text-gray-600">{formatDate(entry.lessonDateText)}</div>
+                            <span className="inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">
+                              {entry.hifzGrade || ''}
+                              {entry.hifzGrade?.toUpperCase() === 'A' && (
+                                <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                              )}
+                            </span>
+                          </div>
+                          <div className="text-sm capitalize text-gray-700 mb-1 font-medium">{entry.recordType || ''}</div>
+                          <div className="text-sm font-semibold mb-2">{entry.surah || ''}</div>
+                          <div className="flex items-center justify-between text-xs text-gray-600">
+                            <span>From: {entry.from || ''}</span>
+                            <span>To: {entry.to || ''}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-gray-600">
+                            Lines: {entry.lines || ''}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
                 )}
               </div>
             </CardContent>
