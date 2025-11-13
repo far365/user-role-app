@@ -616,8 +616,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 lg:gap-3">
-                      <div className="space-y-1 lg:col-span-1">
+                    <div className="space-y-2 lg:space-y-3">
+                      <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-700">Surah</label>
                         <Select
                           value={entry.surahNum?.toString() || ""}
@@ -638,47 +638,50 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-700">From</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max={maxAyats}
-                          value={entry.from || 1}
-                          onChange={(e) =>
-                            handleRowChange(index, "from", parseInt(e.target.value) || 1)
-                          }
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={isSaved}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-700">To</label>
-                        <input
-                          type="number"
-                          min={entry.from || 1}
-                          max={maxAyats}
-                          value={entry.to || 1}
-                          onChange={(e) =>
-                            handleRowChange(index, "to", parseInt(e.target.value) || 1)
-                          }
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={isSaved}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-700">Lines</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="40"
-                          value={entry.lines || 1}
-                          onChange={(e) =>
-                            handleRowChange(index, "lines", parseInt(e.target.value) || 1)
-                          }
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={isSaved}
-                        />
+                      
+                      <div className="grid grid-cols-3 gap-2 lg:gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-gray-700">From</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={maxAyats}
+                            value={entry.from || 1}
+                            onChange={(e) =>
+                              handleRowChange(index, "from", parseInt(e.target.value) || 1)
+                            }
+                            className="w-full px-3 py-2 border rounded"
+                            disabled={isSaved}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-gray-700">To</label>
+                          <input
+                            type="number"
+                            min={entry.from || 1}
+                            max={maxAyats}
+                            value={entry.to || 1}
+                            onChange={(e) =>
+                              handleRowChange(index, "to", parseInt(e.target.value) || 1)
+                            }
+                            className="w-full px-3 py-2 border rounded"
+                            disabled={isSaved}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-gray-700">Lines</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="40"
+                            value={entry.lines || 1}
+                            onChange={(e) =>
+                              handleRowChange(index, "lines", parseInt(e.target.value) || 1)
+                            }
+                            className="w-full px-3 py-2 border rounded"
+                            disabled={isSaved}
+                          />
+                        </div>
                       </div>
                     </div>
 
