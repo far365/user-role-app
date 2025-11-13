@@ -31,29 +31,60 @@ export function QRCodeGenerator({ name, phone, title, parentID, isAlternateConta
       let qrData = "";
       
       if (isAlternateContact && alternateName && parentName) {
-        // For alternate contacts, include both parent and alternate information
         qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nDate: ${currentDate}`;
         if (parentID) {
           qrData = `Parent: ${parentName}\nAlternate Pickup by: ${alternateName}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
         }
       } else if (parentID) {
-        // For regular parent contacts
         qrData = `Name: ${name}\nPhone: ${phone}\nParent ID: ${parentID}\nDate: ${currentDate}`;
       } else {
-        // Fallback for contacts without parent ID
         qrData = `Name: ${name}\nPhone: ${phone}\nDate: ${currentDate}`;
       }
       
-      const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
+      const baseQrCode = await QRCode.toDataURL(qrData, {
         width: 256,
         margin: 2,
+        errorCorrectionLevel: 'H',
         color: {
           dark: '#000000',
           light: '#FFFFFF'
         }
       });
       
-      setQrCodeUrl(qrCodeDataUrl);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        ctx.drawImage(img, 0, 0);
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const circleRadius = 30;
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('H.Q.A', centerX, centerY);
+        
+        setQrCodeUrl(canvas.toDataURL());
+      };
+      
+      img.src = baseQrCode;
     } catch (error) {
       console.error('Error generating QR code:', error);
     } finally {
