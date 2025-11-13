@@ -599,7 +599,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                 const isSaving = savingRows.has(index);
 
                 return (
-                  <div key={index} className="p-4 border rounded-lg space-y-3 bg-gray-50">
+                  <div key={index} className="p-3 lg:p-4 border rounded-lg space-y-2 lg:space-y-3 bg-gray-50">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700">Entry {index + 1}</span>
@@ -616,30 +616,29 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                       </Button>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-gray-700">Surah</label>
-                      <Select
-                        value={entry.surahNum?.toString() || ""}
-                        onValueChange={(value) =>
-                          handleRowChange(index, "surahName", value)
-                        }
-                        disabled={isSaved}
-                      >
-                        <SelectTrigger className="w-full text-blue-800 font-bold">
-                          <SelectValue placeholder="Select surah" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SURAHS.map((surah) => (
-                            <SelectItem key={surah.num} value={surah.num.toString()}>
-                              {surah.name_english} / {surah.name_arabic}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 lg:gap-3">
+                      <div className="space-y-1 lg:col-span-1">
+                        <label className="text-xs font-medium text-gray-700">Surah</label>
+                        <Select
+                          value={entry.surahNum?.toString() || ""}
+                          onValueChange={(value) =>
+                            handleRowChange(index, "surahName", value)
+                          }
+                          disabled={isSaved}
+                        >
+                          <SelectTrigger className="w-full text-blue-800 font-bold">
+                            <SelectValue placeholder="Select surah" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SURAHS.map((surah) => (
+                              <SelectItem key={surah.num} value={surah.num.toString()}>
+                                {surah.name_english} / {surah.name_arabic}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-700">From</label>
                         <input
                           type="number"
@@ -653,7 +652,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                           disabled={isSaved}
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-700">To</label>
                         <input
                           type="number"
@@ -667,37 +666,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                           disabled={isSaved}
                         />
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-gray-700">Hifz Grade</label>
-                      <Select
-                        value={entry.grade || "none"}
-                        onValueChange={(value) =>
-                          handleRowChange(
-                            index,
-                            "grade",
-                            value === "none" ? "" : value
-                          )
-                        }
-                        disabled={isSaved}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Grade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          {GRADES.map((g) => (
-                            <SelectItem key={g} value={g}>
-                              {g}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-700">Lines</label>
                         <input
                           type="number"
@@ -711,7 +680,10 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                           disabled={isSaved}
                         />
                       </div>
-                      <div className="space-y-2">
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 lg:gap-3">
+                      <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-700">Iterations</label>
                         <input
                           type="number"
@@ -725,9 +697,35 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                           disabled={isSaved}
                         />
                       </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-700">Hifz Grade</label>
+                        <Select
+                          value={entry.grade || "none"}
+                          onValueChange={(value) =>
+                            handleRowChange(
+                              index,
+                              "grade",
+                              value === "none" ? "" : value
+                            )
+                          }
+                          disabled={isSaved}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Grade" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {GRADES.map((g) => (
+                              <SelectItem key={g} value={g}>
+                                {g}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <label className="text-xs font-medium text-gray-700">Note (Optional)</label>
                       <input
                         type="text"
