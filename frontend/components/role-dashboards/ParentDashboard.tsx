@@ -305,7 +305,9 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         return 'bg-indigo-100 text-indigo-800';
       case 'LatePickup':
         return 'bg-teal-100 text-teal-800';
-      case 'AfterCare':
+      case 'AfterCareUnpaid':
+        return 'bg-pink-100 text-pink-800';
+      case 'AfterCarePaid':
         return 'bg-pink-100 text-pink-800';
       default:
         return 'bg-gray-100 text-gray-800';

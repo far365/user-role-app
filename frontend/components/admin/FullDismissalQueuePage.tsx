@@ -290,7 +290,10 @@ export function FullDismissalQueuePage({ user, onBack }: FullDismissalQueuePageP
         case 'LatePickup':
           counts.latePickup++;
           break;
-        case 'AfterCare':
+        case 'AfterCareUnpaid':
+          counts.afterCare++;
+          break;
+        case 'AfterCarePaid':
           counts.afterCare++;
           break;
       }

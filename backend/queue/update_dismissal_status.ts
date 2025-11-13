@@ -40,7 +40,7 @@ export const updateDismissalStatusByStudent = api<UpdateDismissalStatusRequest, 
     // Validate status values
     const validStatuses = [
       'Standby', 'InQueue', 'Released', 'Collected', 'Unknown', 
-      'NoShow', 'EarlyDismissal', 'DirectPickup', 'LatePickup', 'AfterCare'
+      'NoShow', 'EarlyDismissal', 'DirectPickup', 'LatePickup', 'AfterCareUnpaid', 'AfterCarePaid'
     ];
     
     if (!validStatuses.includes(newStatus.trim())) {

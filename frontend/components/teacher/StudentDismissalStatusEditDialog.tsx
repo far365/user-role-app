@@ -37,7 +37,8 @@ const dismissalStatuses = [
   { value: "EarlyDismissal", label: "Early Dismissal", description: "Student was dismissed early" },
   { value: "DirectPickup", label: "Direct Pickup", description: "Student was picked up directly from classroom" },
   { value: "LatePickup", label: "Late Pickup", description: "Parents indicated they will be late for pickup" },
-  { value: "AfterCare", label: "After Care", description: "Student goes to after-school care" }
+  { value: "AfterCareUnpaid", label: "After Care (Unpaid)", description: "Student goes to after-school care (unpaid)" },
+  { value: "AfterCarePaid", label: "After Care (Paid)", description: "Student goes to after-school care (paid)" }
 ];
 
 export function StudentDismissalStatusEditDialog({ student, isOpen, onClose, onStatusUpdated, userId }: StudentDismissalStatusEditDialogProps) {

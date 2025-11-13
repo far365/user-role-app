@@ -29,7 +29,8 @@ export function DismissalUpdateDialog({ isOpen, onClose, grade, user, onStatusUp
     { value: "EarlyDismissal", label: "EarlyDismissal" },
     { value: "DirectPickup", label: "DirectPickup" },
     { value: "LatePickup", label: "LatePickup" },
-    { value: "AfterCare", label: "AfterCare" },
+    { value: "AfterCareUnpaid", label: "AfterCareUnpaid" },
+    { value: "AfterCarePaid", label: "AfterCarePaid" },
     { value: "Released", label: "Released" }
   ];
 
