@@ -22,6 +22,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
   const [isSubmitAbsenceDialogOpen, setIsSubmitAbsenceDialogOpen] = useState(false);
   const [isViewHistoryOpen, setIsViewHistoryOpen] = useState(false);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
     };
 
     fetchAbsences();
-  }, [studentId]);
+  }, [studentId, refreshTrigger]);
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "N/A";
@@ -175,7 +176,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
               title: "Success",
               description: "Absence request submitted successfully",
             });
-            window.location.reload();
+            setRefreshTrigger(prev => prev + 1);
           }}
           userRole="Parent"
         />
@@ -295,7 +296,7 @@ export function StudentAbsenceCard({ studentId, studentName, grade }: StudentAbs
             title: "Success",
             description: "Absence request submitted successfully",
           });
-          window.location.reload();
+          setRefreshTrigger(prev => prev + 1);
         }}
         userRole="Parent"
       />

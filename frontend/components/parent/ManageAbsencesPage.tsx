@@ -18,6 +18,7 @@ interface ManageAbsencesPageProps {
 
 export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps) {
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
 
   return (
@@ -62,7 +63,7 @@ export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps
             ) : (
               students.map((student) => (
                 <StudentAbsenceCard
-                  key={student.studentId}
+                  key={`${student.studentId}-${refreshKey}`}
                   studentId={student.studentId}
                   studentName={student.studentName}
                   grade={student.grade}
@@ -82,7 +83,7 @@ export function ManageAbsencesPage({ students, onBack }: ManageAbsencesPageProps
             title: "Success",
             description: "Absence requests submitted successfully",
           });
-          window.location.reload();
+          setRefreshKey(prev => prev + 1);
         }}
       />
     </div>
