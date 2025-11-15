@@ -215,15 +215,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
     for (let i = 0; i < tempGridData.length; i++) {
       const entry = tempGridData[i];
-      
-      if (!entry.grade) {
-        toast({
-          title: "Validation Error",
-          description: `Row ${i + 1}: Please select a grade`,
-          variant: "destructive",
-        });
-        return;
-      }
 
       if ((entry.from ?? 1) > (entry.to ?? 1)) {
         toast({
