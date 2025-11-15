@@ -152,11 +152,13 @@ export namespace grades {
  * Import the endpoint handlers to derive the types for the client.
  */
 import { deleteHifzRcdByRcdId as api_hifz_delete_hifz_rcd_by_rcdid_deleteHifzRcdByRcdId } from "~backend/hifz/delete_hifz_rcd_by_rcdid";
+import { getAbsenceByStudentDate as api_hifz_get_absence_by_student_date_getAbsenceByStudentDate } from "~backend/hifz/get_absence_by_student_date";
 import { getData as api_hifz_get_data_getData } from "~backend/hifz/get_data";
 import { getGroupsByCategory as api_hifz_get_groups_by_category_getGroupsByCategory } from "~backend/hifz/get_groups_by_category";
 import { getHistoryByParentId as api_hifz_get_hifz_history_by_parentid_getHistoryByParentId } from "~backend/hifz/get_hifz_history_by_parentid";
 import { getHistoryByStudentId as api_hifz_get_hifz_history_by_studentid_getHistoryByStudentId } from "~backend/hifz/get_hifz_history_by_studentid";
 import { getHistory as api_hifz_get_history_getHistory } from "~backend/hifz/get_history";
+import { insertStudentAbsence as api_hifz_insert_student_absence_insertStudentAbsence } from "~backend/hifz/insert_student_absence";
 import { insertStudentHifz as api_hifz_insert_student_hifz_insertStudentHifz } from "~backend/hifz/insert_student_hifz";
 import { saveData as api_hifz_save_data_saveData } from "~backend/hifz/save_data";
 
@@ -168,11 +170,13 @@ export namespace hifz {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.deleteHifzRcdByRcdId = this.deleteHifzRcdByRcdId.bind(this)
+            this.getAbsenceByStudentDate = this.getAbsenceByStudentDate.bind(this)
             this.getData = this.getData.bind(this)
             this.getGroupsByCategory = this.getGroupsByCategory.bind(this)
             this.getHistory = this.getHistory.bind(this)
             this.getHistoryByParentId = this.getHistoryByParentId.bind(this)
             this.getHistoryByStudentId = this.getHistoryByStudentId.bind(this)
+            this.insertStudentAbsence = this.insertStudentAbsence.bind(this)
             this.insertStudentHifz = this.insertStudentHifz.bind(this)
             this.saveData = this.saveData.bind(this)
         }
@@ -181,6 +185,12 @@ export namespace hifz {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/hifz/delete-rcd-by-rcdid`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_delete_hifz_rcd_by_rcdid_deleteHifzRcdByRcdId>
+        }
+
+        public async getAbsenceByStudentDate(params: RequestType<typeof api_hifz_get_absence_by_student_date_getAbsenceByStudentDate>): Promise<ResponseType<typeof api_hifz_get_absence_by_student_date_getAbsenceByStudentDate>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/hifz/get-absence-by-student-date`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_absence_by_student_date_getAbsenceByStudentDate>
         }
 
         public async getData(params: RequestType<typeof api_hifz_get_data_getData>): Promise<ResponseType<typeof api_hifz_get_data_getData>> {
@@ -211,6 +221,12 @@ export namespace hifz {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/hifz/get-history-by-studentid`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_get_hifz_history_by_studentid_getHistoryByStudentId>
+        }
+
+        public async insertStudentAbsence(params: RequestType<typeof api_hifz_insert_student_absence_insertStudentAbsence>): Promise<ResponseType<typeof api_hifz_insert_student_absence_insertStudentAbsence>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/hifz/insert-student-absence`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_insert_student_absence_insertStudentAbsence>
         }
 
         public async insertStudentHifz(params: RequestType<typeof api_hifz_insert_student_hifz_insertStudentHifz>): Promise<ResponseType<typeof api_hifz_insert_student_hifz_insertStudentHifz>> {
