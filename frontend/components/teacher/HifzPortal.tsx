@@ -241,7 +241,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         editingSection === "memorization" ? "Memorization" : "Revision";
 
       try {
-        await backend.hifz.insertStudentHifz({
+        const response = await backend.hifz.insertStudentHifz({
           recordType,
           studentId: student,
           surah: entry.surahName || "",
@@ -255,6 +255,10 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
           hifzGrade: entry.grade,
         });
 
+        if (!response.success) {
+          throw new Error(response.message || "Failed to save");
+        }
+
         savedCount++;
         setSavedRows(prev => new Set(prev).add(i));
         newSavingRows.delete(i);
@@ -265,7 +269,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         setSavingRows(new Set(newSavingRows));
         toast({
           title: "Error",
-          description: `Failed to save row ${i + 1}`,
+          description: error instanceof Error ? error.message : `Failed to save row ${i + 1}`,
           variant: "destructive",
         });
         return;
@@ -569,6 +573,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               variant="ghost"
                               onClick={() => handleDeleteRow(index)}
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              disabled={isSaved}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -602,6 +607,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         variant="ghost"
                         onClick={() => handleDeleteRow(index)}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        disabled={isSaved}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
