@@ -1,6 +1,7 @@
 export type HifzGrade = "A+" | "A" | "B+" | "B" | "C" | "";
 
 export interface HifzEntry {
+  id?: number;
   surahName: string;
   surahNum?: number;
   from?: number;
@@ -92,4 +93,13 @@ export interface SurahSetup {
   name_english: string;
   name_arabic: string;
   ayats: number;
+}
+
+export interface DeleteHifzRcdByRcdIdRequest {
+  rcdId: number;
+}
+
+export interface DeleteHifzRcdByRcdIdResponse {
+  success: boolean;
+  message?: string;
 }

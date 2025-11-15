@@ -33,6 +33,7 @@ export const getData = api(
         const surah = SURAHS.find((s) => s.name_english === record.surah);
         
         const entry: HifzEntry = {
+          id: record.id,
           surahName: record.surah || "",
           surahNum: surah?.num,
           from: parseInt(record.from) || 1,

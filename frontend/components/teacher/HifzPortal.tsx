@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X, Plus } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -86,6 +87,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [history, setHistory] = useState<HifzHistoryEntry[]>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteRcdId, setDeleteRcdId] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -317,6 +320,49 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     setTempGridData([]);
   };
 
+  const handleDeleteClick = (rcdId: number | undefined) => {
+    if (!rcdId) {
+      toast({
+        title: "Error",
+        description: "Invalid record ID",
+        variant: "destructive",
+      });
+      return;
+    }
+    setDeleteRcdId(rcdId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteRcdId) return;
+
+    try {
+      const response = await backend.hifz.deleteHifzRcdByRcdId({ rcdId: deleteRcdId });
+      
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete record");
+      }
+
+      toast({
+        title: "Success",
+        description: "Record deleted successfully",
+      });
+      
+      await fetchHifzData();
+      await fetchHistory();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete record",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDeleteRcdId(null);
+    }
+  };
+
   const handleRowChange = (field: keyof HifzEntry, value: any) => {
     const newData = [...tempGridData];
     const index = 0;
@@ -391,10 +437,21 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                   const surah = SURAHS.find((s) => s.num === entry.surahNum);
                   return (
                     <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50">
-                      <div className="font-medium text-blue-800">
-                        {surah
-                          ? `${surah.name_english} / ${surah.name_arabic}`
-                          : entry.surahName}
+                      <div className="flex items-start justify-between">
+                        <div className="font-medium text-blue-800">
+                          {surah
+                            ? `${surah.name_english} / ${surah.name_arabic}`
+                            : entry.surahName}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteClick(entry.id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          disabled={isDisabled}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
@@ -549,6 +606,23 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   return (
     <>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this hifz record? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteRcdId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
         <DialogContent>
           <DialogHeader>
