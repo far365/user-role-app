@@ -237,6 +237,20 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       return;
     }
 
+    const hasData = 
+      combinedGridData.meaning.length > 0 || 
+      combinedGridData.memorization.length > 0 || 
+      combinedGridData.revision.length > 0;
+
+    if (hasData) {
+      toast({
+        title: "Cannot Submit Absence",
+        description: `You must delete all hifz records for ${new Date(selectedDate).toLocaleDateString()} before submitting an absence`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmittingAbsence(true);
     try {
       const response = await backend.hifz.insertStudentAbsence({
