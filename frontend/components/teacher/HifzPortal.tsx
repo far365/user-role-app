@@ -235,16 +235,28 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     return result;
   }, [history, selectedDate]);
 
+  const combinedGridData = useMemo(() => {
+    const sections: SectionType[] = ['meaning', 'memorization', 'revision'];
+    const result: Record<SectionType, HifzEntry[]> = {
+      meaning: [],
+      memorization: [],
+      revision: []
+    };
+
+    sections.forEach(section => {
+      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
+      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
+      result[section] = [...gridData[section], ...todaysEntries];
+    });
+
+    return result;
+  }, [gridData, todaysHistoryEntries]);
+
   const handleAddRow = (section: SectionType) => {
     if (editingSection) return;
     setEditingSection(section);
     
-    const combinedDataForSection = useMemo(() => {
-      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
-      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
-      return [...gridData[section], ...todaysEntries];
-    }, [gridData, todaysHistoryEntries, section]);
-    
+    const combinedDataForSection = combinedGridData[section];
     const usedSurahs = new Set(combinedDataForSection.map(entry => entry.surahNum).filter(Boolean));
     const availableSurahs = SURAHS.filter(s => !usedSurahs.has(s.num));
     
@@ -416,11 +428,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     
     if (field === "surahName") {
       const selectedSurahNum = parseInt(value);
-      const section = editingSection!;
-      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
-      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
-      const combinedDataForSection = [...gridData[section], ...todaysEntries];
-      const usedSurahs = new Set(combinedDataForSection.map(entry => entry.surahNum).filter(Boolean));
+      const usedSurahs = new Set(combinedGridData[editingSection!].map(entry => entry.surahNum).filter(Boolean));
       
       if (usedSurahs.has(selectedSurahNum)) {
         toast({
@@ -448,14 +456,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const renderGrid = (section: SectionType, title: string) => {
     const isEditing = editingSection === section;
-    
-    const combinedData = useMemo(() => {
-      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
-      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
-      return [...gridData[section], ...todaysEntries];
-    }, [section, gridData, todaysHistoryEntries]);
-    
-    const data = combinedData;
+    const data = combinedGridData[section];
     const isDisabled = editingSection !== null && !isEditing;
 
     return (
