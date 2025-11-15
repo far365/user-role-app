@@ -213,6 +213,13 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const handleSaveSection = async () => {
     if (!editingSection) return;
 
+    console.log("=== SAVE BUTTON CLICKED ===");
+    console.log("Editing Section:", editingSection);
+    console.log("Student ID:", student);
+    console.log("Selected Date:", selectedDate);
+    console.log("User ID:", user.userID);
+    console.log("Temp Grid Data:", tempGridData);
+
     for (let i = 0; i < tempGridData.length; i++) {
       const entry = tempGridData[i];
 
@@ -240,31 +247,39 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         editingSection === "meaning" ? "Meaning" :
         editingSection === "memorization" ? "Memorization" : "Revision";
 
+      const payload = {
+        recordType,
+        studentId: student,
+        surah: entry.surahName || "",
+        from: (entry.from ?? 1).toString(),
+        to: (entry.to ?? 1).toString(),
+        lines: (entry.lines ?? 1).toString(),
+        notes: entry.note || "",
+        addedBy: user.userID,
+        lessonDateText: selectedDate,
+        teacherId: user.userID,
+        hifzGrade: entry.grade,
+      };
+
+      console.log(`\n=== SAVING ROW ${i + 1} ===");
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+
       try {
-        const response = await backend.hifz.insertStudentHifz({
-          recordType,
-          studentId: student,
-          surah: entry.surahName || "",
-          from: (entry.from ?? 1).toString(),
-          to: (entry.to ?? 1).toString(),
-          lines: (entry.lines ?? 1).toString(),
-          notes: entry.note || "",
-          addedBy: user.userID,
-          lessonDateText: selectedDate,
-          teacherId: user.userID,
-          hifzGrade: entry.grade,
-        });
+        const response = await backend.hifz.insertStudentHifz(payload);
+        console.log(`Response for row ${i + 1}:`, response);
 
         if (!response.success) {
+          console.error(`Row ${i + 1} save failed:`, response.message);
           throw new Error(response.message || "Failed to save");
         }
 
+        console.log(`✓ Row ${i + 1} saved successfully`);
         savedCount++;
         setSavedRows(prev => new Set(prev).add(i));
         newSavingRows.delete(i);
         setSavingRows(new Set(newSavingRows));
       } catch (error) {
-        console.error(`Failed to save row ${i + 1}:`, error);
+        console.error(`❌ Failed to save row ${i + 1}:`, error);
         newSavingRows.delete(i);
         setSavingRows(new Set(newSavingRows));
         toast({
@@ -275,6 +290,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         return;
       }
     }
+
+    console.log(`\n=== SAVE COMPLETE ===");
+    console.log(`Total rows saved: ${savedCount}`);
 
     if (savedCount > 0) {
       toast({
