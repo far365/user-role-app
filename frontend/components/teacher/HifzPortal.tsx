@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, X, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -185,7 +185,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     try {
       const payload = {
         studentId: student,
-        prevRowsCount: "5",
+        prevRowsCount: "20",
       };
       const response = await backend.hifz.getHistoryByStudentId(payload);
       setHistory(response.history);
@@ -194,11 +194,58 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     }
   };
 
+  const todaysHistoryEntries = useMemo(() => {
+    if (!history.length || !selectedDate) {
+      return { meaning: [], memorization: [], revision: [] };
+    }
+
+    const todaysHistory = history.filter(entry => entry.lessonDateText === selectedDate);
+    
+    const result: HifzGridData = {
+      meaning: [],
+      memorization: [],
+      revision: []
+    };
+
+    todaysHistory.forEach(entry => {
+      const surah = SURAHS.find(s => s.name_english === entry.surah);
+      
+      const hifzEntry: HifzEntry = {
+        id: entry.id,
+        surahName: entry.surah || "",
+        surahNum: surah?.num,
+        from: entry.from ? parseInt(entry.from.toString()) : 1,
+        to: entry.to ? parseInt(entry.to.toString()) : 1,
+        lines: entry.lines ? parseInt(entry.lines.toString()) : 1,
+        iterations: entry.iterations ? parseInt(entry.iterations.toString()) : 1,
+        grade: entry.hifzGrade || "",
+        note: entry.notes || ""
+      };
+
+      const recordType = entry.recordType?.toLowerCase();
+      if (recordType === 'meaning') {
+        result.meaning.push(hifzEntry);
+      } else if (recordType === 'memorization') {
+        result.memorization.push(hifzEntry);
+      } else if (recordType === 'revision') {
+        result.revision.push(hifzEntry);
+      }
+    });
+
+    return result;
+  }, [history, selectedDate]);
+
   const handleAddRow = (section: SectionType) => {
     if (editingSection) return;
     setEditingSection(section);
     
-    const usedSurahs = new Set(gridData[section].map(entry => entry.surahNum).filter(Boolean));
+    const combinedDataForSection = useMemo(() => {
+      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
+      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
+      return [...gridData[section], ...todaysEntries];
+    }, [gridData, todaysHistoryEntries, section]);
+    
+    const usedSurahs = new Set(combinedDataForSection.map(entry => entry.surahNum).filter(Boolean));
     const availableSurahs = SURAHS.filter(s => !usedSurahs.has(s.num));
     
     if (availableSurahs.length === 0) {
@@ -369,7 +416,11 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     
     if (field === "surahName") {
       const selectedSurahNum = parseInt(value);
-      const usedSurahs = new Set(gridData[editingSection!].map(entry => entry.surahNum).filter(Boolean));
+      const section = editingSection!;
+      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
+      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
+      const combinedDataForSection = [...gridData[section], ...todaysEntries];
+      const usedSurahs = new Set(combinedDataForSection.map(entry => entry.surahNum).filter(Boolean));
       
       if (usedSurahs.has(selectedSurahNum)) {
         toast({
@@ -397,7 +448,14 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const renderGrid = (section: SectionType, title: string) => {
     const isEditing = editingSection === section;
-    const data = gridData[section];
+    
+    const combinedData = useMemo(() => {
+      const existingIds = new Set(gridData[section].map(e => e.id).filter(Boolean));
+      const todaysEntries = todaysHistoryEntries[section].filter(e => !existingIds.has(e.id));
+      return [...gridData[section], ...todaysEntries];
+    }, [section, gridData, todaysHistoryEntries]);
+    
+    const data = combinedData;
     const isDisabled = editingSection !== null && !isEditing;
 
     return (
