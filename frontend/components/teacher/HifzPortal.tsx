@@ -199,7 +199,11 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       return { meaning: [], memorization: [], revision: [] };
     }
 
-    const todaysHistory = history.filter(entry => entry.lessonDateText === selectedDate);
+    const todaysHistory = history.filter(entry => {
+      if (!entry.lessonDateText) return false;
+      const entryDate = new Date(entry.lessonDateText).toISOString().split('T')[0];
+      return entryDate === selectedDate;
+    });
     
     const result: HifzGridData = {
       meaning: [],
