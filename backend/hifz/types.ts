@@ -41,6 +41,7 @@ export interface SaveHifzDataResponse {
 }
 
 export interface HifzHistoryEntry {
+  id?: number;
   date?: string;
   section?: "meaning" | "memorization" | "revision";
   surahName?: string;
@@ -52,6 +53,8 @@ export interface HifzHistoryEntry {
   to?: string;
   hifzGrade?: string;
   lines?: string;
+  iterations?: number;
+  notes?: string;
   teacherId?: string;
 }
 

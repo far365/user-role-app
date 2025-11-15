@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Trash2, AlertCircle } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -89,6 +91,10 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [selectedNote, setSelectedNote] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteRcdId, setDeleteRcdId] = useState<number | null>(null);
+  const [absenceData, setAbsenceData] = useState<{ id: number; absenceType: "Excused" | "Unexcused"; notes?: string } | null>(null);
+  const [selectedAbsenceType, setSelectedAbsenceType] = useState<"Excused" | "Unexcused" | null>(null);
+  const [absenceNotes, setAbsenceNotes] = useState("");
+  const [isSubmittingAbsence, setIsSubmittingAbsence] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -116,6 +122,11 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     if (student && selectedDate) {
       fetchHifzData();
       fetchHistory();
+      fetchAbsenceData();
+    } else {
+      setAbsenceData(null);
+      setSelectedAbsenceType(null);
+      setAbsenceNotes("");
     }
   }, [student, selectedDate]);
 
@@ -194,6 +205,96 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     }
   };
 
+  const fetchAbsenceData = async () => {
+    try {
+      const response = await backend.hifz.getAbsenceByStudentDate({
+        studentId: student,
+        date: selectedDate,
+      });
+      if (response.absence) {
+        setAbsenceData(response.absence);
+        setSelectedAbsenceType(null);
+        setAbsenceNotes("");
+      } else {
+        setAbsenceData(null);
+        setSelectedAbsenceType(null);
+        setAbsenceNotes("");
+      }
+    } catch (error) {
+      console.error("Failed to fetch absence data:", error);
+    }
+  };
+
+  const handleSubmitAbsence = async () => {
+    if (!selectedAbsenceType) {
+      toast({
+        title: "Validation Error",
+        description: "Please select an absence type",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingAbsence(true);
+    try {
+      const response = await backend.hifz.insertStudentAbsence({
+        studentId: student,
+        absenceType: selectedAbsenceType,
+        lessonDateText: selectedDate,
+        teacherId: user.userID,
+        notes: absenceNotes,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to submit absence");
+      }
+
+      toast({
+        title: "Success",
+        description: "Absence recorded successfully",
+      });
+
+      await fetchAbsenceData();
+      await fetchHistory();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit absence",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingAbsence(false);
+    }
+  };
+
+  const handleDeleteAbsence = async () => {
+    if (!absenceData) return;
+
+    try {
+      const response = await backend.hifz.deleteHifzRcdByRcdId({ rcdId: absenceData.id });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to delete absence");
+      }
+
+      toast({
+        title: "Success",
+        description: "Absence deleted successfully",
+      });
+
+      await fetchAbsenceData();
+      await fetchHistory();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete absence",
+        variant: "destructive",
+      });
+    }
+  };
+
   const todaysHistoryEntries = useMemo(() => {
     if (!history.length || !selectedDate) {
       return { meaning: [], memorization: [], revision: [] };
@@ -222,7 +323,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         to: entry.to ? parseInt(entry.to.toString()) : 1,
         lines: entry.lines ? parseInt(entry.lines.toString()) : 1,
         iterations: entry.iterations ? parseInt(entry.iterations.toString()) : 1,
-        grade: entry.hifzGrade || "",
+        grade: (entry.hifzGrade || "") as HifzGrade,
         note: entry.notes || ""
       };
 
@@ -258,6 +359,15 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const handleAddRow = (section: SectionType) => {
     if (editingSection) return;
+    
+    if (absenceData) {
+      toast({
+        title: "Cannot Add Record",
+        description: "Cannot add hifz records when an absence is recorded for this date",
+        variant: "destructive",
+      });
+      return;
+    }
     setEditingSection(section);
     
     const combinedDataForSection = combinedGridData[section];
@@ -823,6 +933,97 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
         {student && (
           <>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  Student Absence
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {absenceData ? (
+                  <div className="space-y-4">
+                    <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="font-medium text-yellow-900 mb-2">
+                            Absence recorded for this date
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div>
+                              <span className="text-gray-600">Type:</span>{" "}
+                              <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${
+                                absenceData.absenceType === "Excused" 
+                                  ? "bg-blue-100 text-blue-800" 
+                                  : "bg-red-100 text-red-800"
+                              }`}>
+                                {absenceData.absenceType}
+                              </span>
+                            </div>
+                            {absenceData.notes && (
+                              <div>
+                                <span className="text-gray-600">Notes:</span>{" "}
+                                <span className="text-gray-900">{absenceData.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleDeleteAbsence}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded border border-blue-200">
+                      <strong>Note:</strong> Regular hifz records cannot be added when an absence is recorded. Delete the absence to add records.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-sm text-gray-600 mb-3">
+                      Mark student as absent for this date
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Absence Type *</Label>
+                        <RadioGroup value={selectedAbsenceType || ""} onValueChange={(value) => setSelectedAbsenceType(value as "Excused" | "Unexcused")}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Excused" id="excused" />
+                            <Label htmlFor="excused" className="cursor-pointer">Excused</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Unexcused" id="unexcused" />
+                            <Label htmlFor="unexcused" className="cursor-pointer">Unexcused</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Notes (Optional)</Label>
+                        <input
+                          type="text"
+                          value={absenceNotes}
+                          onChange={(e) => setAbsenceNotes(e.target.value)}
+                          placeholder="Optional notes"
+                          className="w-full px-3 py-2 border rounded"
+                        />
+                      </div>
+                      <Button
+                        onClick={handleSubmitAbsence}
+                        disabled={!selectedAbsenceType || isSubmittingAbsence}
+                        className="w-full"
+                      >
+                        {isSubmittingAbsence ? "Submitting..." : "Submit Absence"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="space-y-6">
               {renderGrid("meaning", "Meaning")}
               {renderGrid("memorization", "Memorization")}
@@ -855,23 +1056,37 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         {history.map((entry: any, index: number) => {
                           const prevEntry = index > 0 ? history[index - 1] : null;
                           const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
-                          const bgColor = isDifferentDate 
-                            ? (index === 0 || (prevEntry && history.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
-                              ? "bg-gray-100" 
-                              : "bg-white")
-                            : (history.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
-                              ? "bg-gray-100"
-                              : "bg-white");
+                          const isAbsence = entry.recordType === "Absence";
+                          const bgColor = isAbsence
+                            ? "bg-yellow-50"
+                            : isDifferentDate 
+                              ? (index === 0 || (prevEntry && history.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
+                                ? "bg-gray-100" 
+                                : "bg-white")
+                              : (history.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
+                                ? "bg-gray-100"
+                                : "bg-white");
                           
                           return (
                             <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
                               <td className="p-2 text-sm">{formatHistoryDate(entry.lessonDateText)}</td>
-                              <td className="p-2 text-sm capitalize">{entry.recordType || ''}</td>
+                              <td className="p-2 text-sm">
+                                <div className="flex items-center gap-1">
+                                  {isAbsence && <AlertCircle className="h-4 w-4 text-yellow-600" />}
+                                  <span className="capitalize">{entry.recordType || ''}</span>
+                                </div>
+                              </td>
                               <td className="p-2 text-sm">{entry.surah || ''}</td>
                               <td className="p-2 text-sm">{entry.from || ''}</td>
                               <td className="p-2 text-sm">{entry.to || ''}</td>
                               <td className="p-2">
-                                <span className="text-sm font-medium px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                <span className={`text-sm font-medium px-2 py-1 rounded ${
+                                  isAbsence
+                                    ? entry.hifzGrade === "Excused"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-red-100 text-red-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}>
                                   {entry.hifzGrade || ''}
                                 </span>
                               </td>
