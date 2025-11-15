@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X, Plus, Trash2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, X, Plus, Trash2, AlertCircle, ChevronDown } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -95,6 +96,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [selectedAbsenceType, setSelectedAbsenceType] = useState<"Excused" | "Unexcused" | null>(null);
   const [absenceNotes, setAbsenceNotes] = useState("");
   const [isSubmittingAbsence, setIsSubmittingAbsence] = useState(false);
+  const [isAbsenceCardOpen, setIsAbsenceCardOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -933,14 +935,21 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
         {student && (
           <>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
-                  Student Absence
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <Collapsible open={isAbsenceCardOpen} onOpenChange={setIsAbsenceCardOpen}>
+              <Card>
+                <CardHeader>
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center justify-between w-full text-left group">
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5" />
+                        Student Absence
+                      </CardTitle>
+                      <ChevronDown className={`h-5 w-5 transition-transform ${isAbsenceCardOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </CollapsibleTrigger>
+                </CardHeader>
+                <CollapsibleContent>
+                  <CardContent>
                 {absenceData ? (
                   <div className="space-y-4">
                     <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
@@ -1021,8 +1030,10 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             <div className="space-y-6">
               {renderGrid("meaning", "Meaning")}
