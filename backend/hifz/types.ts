@@ -40,10 +40,18 @@ export interface SaveHifzDataResponse {
 }
 
 export interface HifzHistoryEntry {
-  date: string;
-  section: "meaning" | "memorization" | "revision";
-  surahName: string;
-  grade: HifzGrade;
+  date?: string;
+  section?: "meaning" | "memorization" | "revision";
+  surahName?: string;
+  grade?: HifzGrade;
+  recordType?: string;
+  surah?: string;
+  lessonDateText?: string;
+  from?: string;
+  to?: string;
+  hifzGrade?: string;
+  lines?: string;
+  teacherId?: string;
 }
 
 export interface GetHifzHistoryRequest {
