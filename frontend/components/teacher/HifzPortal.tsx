@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, X, Plus, Trash2, MessageSquare, LayoutGrid, List } from "lucide-react";
+import { ArrowLeft, Save, X, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,12 +52,6 @@ interface StudyGroupItem {
   category: string;
 }
 
-
-
-
-
-
-
 const GRADES: HifzGrade[] = ["A+", "A", "B+", "B", "C"];
 
 type SectionType = "meaning" | "memorization" | "revision";
@@ -89,12 +83,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const [editingSection, setEditingSection] = useState<SectionType | null>(null);
   const [tempGridData, setTempGridData] = useState<HifzEntry[]>([]);
-  const [savedRows, setSavedRows] = useState<Set<number>>(new Set());
-  const [savingRows, setSavingRows] = useState<Set<number>>(new Set());
   const [history, setHistory] = useState<HifzHistoryEntry[]>([]);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -193,123 +184,18 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         studentId: student,
         prevRowsCount: "5",
       };
-      console.log("DEBUG: Payload being sent to getHistoryByStudentId:", JSON.stringify(payload));
       const response = await backend.hifz.getHistoryByStudentId(payload);
-      console.log("DEBUG: Response received:", response);
       setHistory(response.history);
     } catch (error) {
       console.error("Failed to fetch history:", error);
     }
   };
 
-  const handleEditSection = (section: SectionType) => {
+  const handleAddRow = (section: SectionType) => {
     if (editingSection) return;
     setEditingSection(section);
-    setTempGridData([...gridData[section]]);
-    setSavedRows(new Set());
-    setSavingRows(new Set());
-  };
-
-  const handleSaveSection = async () => {
-    if (!editingSection) return;
-
-    console.log("=== SAVE BUTTON CLICKED ===");
-    console.log("Editing Section:", editingSection);
-    console.log("Student ID:", student);
-    console.log("Selected Date:", selectedDate);
-    console.log("User ID:", user.userID);
-    console.log("Temp Grid Data:", tempGridData);
-
-    for (let i = 0; i < tempGridData.length; i++) {
-      const entry = tempGridData[i];
-
-      if ((entry.from ?? 1) > (entry.to ?? 1)) {
-        toast({
-          title: "Validation Error",
-          description: `Row ${i + 1}: "From" value cannot be greater than "To" value`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    const newSavingRows = new Set<number>();
-    let savedCount = 0;
-
-    for (let i = 0; i < tempGridData.length; i++) {
-      if (savedRows.has(i)) continue;
-
-      const entry = tempGridData[i];
-      newSavingRows.add(i);
-      setSavingRows(new Set(newSavingRows));
-
-      const recordType = 
-        editingSection === "meaning" ? "Meaning" :
-        editingSection === "memorization" ? "Memorization" : "Revision";
-
-      const payload = {
-        recordType,
-        studentId: student,
-        surah: entry.surahName || "",
-        from: (entry.from ?? 1).toString(),
-        to: (entry.to ?? 1).toString(),
-        lines: (entry.lines ?? 1).toString(),
-        notes: entry.note || "",
-        addedBy: user.userID,
-        lessonDateText: selectedDate,
-        teacherId: user.userID,
-        hifzGrade: entry.grade,
-      };
-
-      console.log(`\n=== SAVING ROW ${i + 1} ===");
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-
-      try {
-        const response = await backend.hifz.insertStudentHifz(payload);
-        console.log(`Response for row ${i + 1}:`, response);
-
-        if (!response.success) {
-          console.error(`Row ${i + 1} save failed:`, response.message);
-          throw new Error(response.message || "Failed to save");
-        }
-
-        console.log(`✓ Row ${i + 1} saved successfully`);
-        savedCount++;
-        setSavedRows(prev => new Set(prev).add(i));
-        newSavingRows.delete(i);
-        setSavingRows(new Set(newSavingRows));
-      } catch (error) {
-        console.error(`❌ Failed to save row ${i + 1}:`, error);
-        newSavingRows.delete(i);
-        setSavingRows(new Set(newSavingRows));
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : `Failed to save row ${i + 1}`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    console.log(`\n=== SAVE COMPLETE ===");
-    console.log(`Total rows saved: ${savedCount}`);
-
-    if (savedCount > 0) {
-      toast({
-        title: "Success",
-        description: `${savedCount} row(s) saved successfully`,
-      });
-      await fetchHistory();
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingSection(null);
-    setTempGridData([]);
-  };
-
-  const handleAddRow = () => {
-    const usedSurahs = new Set(tempGridData.map(entry => entry.surahNum).filter(Boolean));
+    
+    const usedSurahs = new Set(gridData[section].map(entry => entry.surahNum).filter(Boolean));
     const availableSurahs = SURAHS.filter(s => !usedSurahs.has(s.num));
     
     if (availableSurahs.length === 0) {
@@ -324,13 +210,13 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     let defaultSurahName = "";
     let defaultSurahNum: number | undefined = undefined;
     
-    if (editingSection && history.length > 0) {
+    if (history.length > 0) {
       const recordTypeMap = {
         "meaning": "Meaning",
         "memorization": "Memorization",
         "revision": "Revision"
       };
-      const targetType = recordTypeMap[editingSection];
+      const targetType = recordTypeMap[section];
       
       const lastHistoryEntry = history.find(entry => 
         entry.recordType && entry.recordType.toLowerCase() === targetType.toLowerCase()
@@ -348,59 +234,98 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       }
     }
     
-    setTempGridData([
-      ...tempGridData,
-      { 
-        surahName: defaultSurahName, 
-        surahNum: defaultSurahNum,
-        from: 1, 
-        to: 1, 
-        grade: "", 
-        lines: 1, 
-        iterations: 1, 
-        note: "" 
-      },
-    ]);
+    setTempGridData([{ 
+      surahName: defaultSurahName, 
+      surahNum: defaultSurahNum,
+      from: 1, 
+      to: 1, 
+      grade: "", 
+      lines: 1, 
+      iterations: 1, 
+      note: "" 
+    }]);
   };
 
-  const handleDeleteRow = (index: number) => {
-    setTempGridData(tempGridData.filter((_, i) => i !== index));
-    const newSavedRows = new Set(savedRows);
-    const newSavingRows = new Set(savingRows);
+  const handleSaveSection = async () => {
+    if (!editingSection || tempGridData.length === 0) return;
+
+    const entry = tempGridData[0];
     
-    newSavedRows.delete(index);
-    newSavingRows.delete(index);
-    
-    const updatedSavedRows = new Set<number>();
-    const updatedSavingRows = new Set<number>();
-    
-    newSavedRows.forEach(rowIndex => {
-      if (rowIndex > index) {
-        updatedSavedRows.add(rowIndex - 1);
-      } else {
-        updatedSavedRows.add(rowIndex);
+    if (!entry.grade) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a grade",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if ((entry.from ?? 1) > (entry.to ?? 1)) {
+      toast({
+        title: "Validation Error",
+        description: "\"From\" value cannot be greater than \"To\" value",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const recordType = 
+      editingSection === "meaning" ? "Meaning" :
+      editingSection === "memorization" ? "Memorization" : "Revision";
+
+    try {
+      const response = await backend.hifz.insertStudentHifz({
+        recordType,
+        studentId: student,
+        surah: entry.surahName || "",
+        from: (entry.from ?? 1).toString(),
+        to: (entry.to ?? 1).toString(),
+        lines: (entry.lines ?? 1).toString(),
+        notes: entry.note || "",
+        addedBy: user.userID,
+        lessonDateText: selectedDate,
+        teacherId: user.userID,
+        hifzGrade: entry.grade,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to save");
       }
-    });
-    
-    newSavingRows.forEach(rowIndex => {
-      if (rowIndex > index) {
-        updatedSavingRows.add(rowIndex - 1);
-      } else {
-        updatedSavingRows.add(rowIndex);
-      }
-    });
-    
-    setSavedRows(updatedSavedRows);
-    setSavingRows(updatedSavingRows);
+
+      toast({
+        title: "Success",
+        description: "Record saved successfully",
+      });
+      
+      await fetchHifzData();
+      await fetchHistory();
+      
+      setEditingSection(null);
+      setTempGridData([]);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleRowChange = (index: number, field: keyof HifzEntry, value: any) => {
+  const handleCancelEdit = () => {
+    setEditingSection(null);
+    setTempGridData([]);
+  };
+
+  const handleRowChange = (field: keyof HifzEntry, value: any) => {
     const newData = [...tempGridData];
+    const index = 0;
+    
     if (field === "surahName") {
       const selectedSurahNum = parseInt(value);
-      const isAlreadyUsed = tempGridData.some((entry, idx) => idx !== index && entry.surahNum === selectedSurahNum);
+      const usedSurahs = new Set(gridData[editingSection!].map(entry => entry.surahNum).filter(Boolean));
       
-      if (isAlreadyUsed) {
+      if (usedSurahs.has(selectedSurahNum)) {
         toast({
           title: "Duplicate Surah",
           description: "This surah has already been added to this section",
@@ -426,28 +351,25 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
   const renderGrid = (section: SectionType, title: string) => {
     const isEditing = editingSection === section;
-    const data = isEditing ? tempGridData : gridData[section];
+    const data = gridData[section];
     const isDisabled = editingSection !== null && !isEditing;
 
     return (
       <Card className={isDisabled ? "opacity-50" : ""}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>{title}</CardTitle>
-          {!isEditing && !editingSection && (
+          {!editingSection && (
             <Button
               size="sm"
-              onClick={() => handleEditSection(section)}
+              onClick={() => handleAddRow(section)}
               disabled={!student}
             >
-              Edit
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Add</span>
             </Button>
           )}
           {isEditing && (
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleAddRow} variant="outline">
-                <Plus className="h-4 w-4 md:mr-2" />
-                <span className="hidden md:inline">Add Row</span>
-              </Button>
               <Button size="sm" onClick={handleSaveSection} variant="default">
                 <Save className="h-4 w-4 md:mr-2" />
                 <span className="hidden md:inline">Save</span>
@@ -460,374 +382,166 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
           )}
         </CardHeader>
         <CardContent>
-          {isEditing ? (
-            viewMode === "list" ? (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2 text-sm font-medium">#</th>
-                      <th className="text-left p-2 text-sm font-medium">Status</th>
-                      <th className="text-left p-2 text-sm font-medium">Surah</th>
-                      <th className="text-left p-2 text-sm font-medium">From</th>
-                      <th className="text-left p-2 text-sm font-medium">To</th>
-                      <th className="text-left p-2 text-sm font-medium">Grade</th>
-                      <th className="text-left p-2 text-sm font-medium">Lines</th>
-                      <th className="text-left p-2 text-sm font-medium">Iterations</th>
-                      <th className="text-left p-2 text-sm font-medium">Note</th>
-                      <th className="text-left p-2 text-sm font-medium"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.map((entry, index) => {
-                      const selectedSurah = SURAHS.find((s) => s.num === entry.surahNum);
-                      const maxAyats = selectedSurah?.ayats || 1;
-                      const isSaved = savedRows.has(index);
-                      const isSaving = savingRows.has(index);
-                      return (
-                        <tr key={index} className="border-b hover:bg-gray-50">
-                          <td className="p-2 text-sm">{index + 1}</td>
-                          <td className="p-2">
-                            {isSaving ? (
-                              <span className="text-xs text-gray-500">Saving...</span>
-                            ) : isSaved ? (
-                              <span className="text-green-600">✓</span>
-                            ) : null}
-                          </td>
-                          <td className="p-2">
-                            <Select
-                              value={entry.surahNum?.toString() || ""}
-                              onValueChange={(value) => handleRowChange(index, "surahName", value)}
-                              disabled={isSaved}
-                            >
-                              <SelectTrigger className="w-full min-w-[200px] text-blue-800 font-bold">
-                                <SelectValue placeholder="Select surah" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {SURAHS.map((surah) => (
-                                  <SelectItem key={surah.num} value={surah.num.toString()}>
-                                    {surah.name_english} / {surah.name_arabic}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min="1"
-                              max={maxAyats}
-                              value={entry.from || 1}
-                              onChange={(e) => handleRowChange(index, "from", parseInt(e.target.value) || 1)}
-                              className="w-20 px-2 py-1 border rounded"
-                              disabled={isSaved}
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min={entry.from || 1}
-                              max={maxAyats}
-                              value={entry.to || 1}
-                              onChange={(e) => handleRowChange(index, "to", parseInt(e.target.value) || 1)}
-                              className="w-20 px-2 py-1 border rounded"
-                              disabled={isSaved}
-                            />
-                          </td>
-                          <td className="p-2">
-                            <Select
-                              value={entry.grade || "none"}
-                              onValueChange={(value) => handleRowChange(index, "grade", value === "none" ? "" : value)}
-                              disabled={isSaved}
-                            >
-                              <SelectTrigger className="w-24">
-                                <SelectValue placeholder="Grade" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">None</SelectItem>
-                                {GRADES.map((g) => (
-                                  <SelectItem key={g} value={g}>
-                                    {g}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min="1"
-                              max="40"
-                              value={entry.lines || 1}
-                              onChange={(e) => handleRowChange(index, "lines", parseInt(e.target.value) || 1)}
-                              className="w-20 px-2 py-1 border rounded"
-                              disabled={isSaved}
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min="1"
-                              max="10"
-                              value={entry.iterations || 1}
-                              onChange={(e) => handleRowChange(index, "iterations", parseInt(e.target.value) || 1)}
-                              className="w-20 px-2 py-1 border rounded"
-                              disabled={isSaved}
-                            />
-                          </td>
-                          <td className="p-2">
-                            <input
-                              type="text"
-                              value={entry.note || ""}
-                              onChange={(e) => handleRowChange(index, "note", e.target.value)}
-                              placeholder="Optional"
-                              className="w-32 px-2 py-1 border rounded"
-                              disabled={isSaved}
-                            />
-                          </td>
-                          <td className="p-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleDeleteRow(index)}
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              disabled={isSaved}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+          <div className="space-y-2">
+            {data.length === 0 && !isEditing ? (
+              <p className="text-gray-500 text-center py-4">No data available</p>
             ) : (
-              <div className="space-y-4">
-              {data.map((entry, index) => {
-                const selectedSurah = SURAHS.find(
-                  (s) => s.num === entry.surahNum
-                );
-                const maxAyats = selectedSurah?.ayats || 1;
-                const isSaved = savedRows.has(index);
-                const isSaving = savingRows.has(index);
-
-                return (
-                  <div key={index} className="p-3 lg:p-4 border rounded-lg space-y-2 lg:space-y-3 bg-gray-50">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">Entry {index + 1}</span>
-                        {isSaving && <span className="text-xs text-gray-500">Saving...</span>}
-                        {isSaved && <span className="text-green-600">✓ Saved</span>}
+              <div className="space-y-3">
+                {data.map((entry, index) => {
+                  const surah = SURAHS.find((s) => s.num === entry.surahNum);
+                  return (
+                    <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50">
+                      <div className="font-medium text-blue-800">
+                        {surah
+                          ? `${surah.name_english} / ${surah.name_arabic}`
+                          : entry.surahName}
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeleteRow(index)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        disabled={isSaved}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="space-y-2 lg:space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-700">Surah</label>
-                        <Select
-                          value={entry.surahNum?.toString() || ""}
-                          onValueChange={(value) =>
-                            handleRowChange(index, "surahName", value)
-                          }
-                          disabled={isSaved}
-                        >
-                          <SelectTrigger className="w-full text-blue-800 font-bold">
-                            <SelectValue placeholder="Select surah" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SURAHS.map((surah) => (
-                              <SelectItem key={surah.num} value={surah.num.toString()}>
-                                {surah.name_english} / {surah.name_arabic}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">From:</span>{" "}
+                          <span className="font-medium">{entry.from}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">To:</span>{" "}
+                          <span className="font-medium">{entry.to}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Lines:</span>{" "}
+                          <span className="font-medium">{entry.lines}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Iterations:</span>{" "}
+                          <span className="font-medium">{entry.iterations}</span>
+                        </div>
                       </div>
-                      
-                      <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-gray-700">From</label>
-                          <input
-                            type="number"
-                            min="1"
-                            max={maxAyats}
-                            value={entry.from || 1}
-                            onChange={(e) =>
-                              handleRowChange(index, "from", parseInt(e.target.value) || 1)
-                            }
-                            className="w-full px-3 py-2 border rounded"
-                            disabled={isSaved}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-gray-700">To</label>
-                          <input
-                            type="number"
-                            min={entry.from || 1}
-                            max={maxAyats}
-                            value={entry.to || 1}
-                            onChange={(e) =>
-                              handleRowChange(index, "to", parseInt(e.target.value) || 1)
-                            }
-                            className="w-full px-3 py-2 border rounded"
-                            disabled={isSaved}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-medium text-gray-700">Lines</label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="40"
-                            value={entry.lines || 1}
-                            onChange={(e) =>
-                              handleRowChange(index, "lines", parseInt(e.target.value) || 1)
-                            }
-                            className="w-full px-3 py-2 border rounded"
-                            disabled={isSaved}
-                          />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-gray-600 text-sm">Grade:</span>{" "}
+                          <span
+                            className={`inline-block px-3 py-1 rounded text-sm font-medium ${
+                              entry.grade
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-400"
+                            }`}
+                          >
+                            {entry.grade || "-"}
+                          </span>
                         </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {isEditing && tempGridData.length > 0 && (
+              <div className="p-3 lg:p-4 border-2 border-blue-500 rounded-lg space-y-2 lg:space-y-3 bg-blue-50">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-blue-700">New Entry</span>
+                </div>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 lg:gap-3">
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-700">Iterations</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="10"
-                          value={entry.iterations || 1}
-                          onChange={(e) =>
-                            handleRowChange(index, "iterations", parseInt(e.target.value) || 1)
-                          }
-                          className="w-full px-3 py-2 border rounded"
-                          disabled={isSaved}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-700">Hifz Grade</label>
-                        <Select
-                          value={entry.grade || "none"}
-                          onValueChange={(value) =>
-                            handleRowChange(
-                              index,
-                              "grade",
-                              value === "none" ? "" : value
-                            )
-                          }
-                          disabled={isSaved}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Grade" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            {GRADES.map((g) => (
-                              <SelectItem key={g} value={g}>
-                                {g}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
+                <div className="space-y-2 lg:space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-700">Surah *</label>
+                    <Select
+                      value={tempGridData[0].surahNum?.toString() || ""}
+                      onValueChange={(value) => handleRowChange("surahName", value)}
+                    >
+                      <SelectTrigger className="w-full text-blue-800 font-bold">
+                        <SelectValue placeholder="Select surah" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SURAHS.map((surah) => (
+                          <SelectItem key={surah.num} value={surah.num.toString()}>
+                            {surah.name_english} / {surah.name_arabic}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 lg:gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-gray-700">Note (Optional)</label>
+                      <label className="text-xs font-medium text-gray-700">From *</label>
                       <input
-                        type="text"
-                        value={entry.note || ""}
-                        onChange={(e) =>
-                          handleRowChange(index, "note", e.target.value)
-                        }
-                        placeholder="Optional note"
+                        type="number"
+                        min="1"
+                        max={SURAHS.find(s => s.num === tempGridData[0].surahNum)?.ayats || 1}
+                        value={tempGridData[0].from || 1}
+                        onChange={(e) => handleRowChange("from", parseInt(e.target.value) || 1)}
                         className="w-full px-3 py-2 border rounded"
-                        disabled={isSaved}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-gray-700">To *</label>
+                      <input
+                        type="number"
+                        min={tempGridData[0].from || 1}
+                        max={SURAHS.find(s => s.num === tempGridData[0].surahNum)?.ayats || 1}
+                        value={tempGridData[0].to || 1}
+                        onChange={(e) => handleRowChange("to", parseInt(e.target.value) || 1)}
+                        className="w-full px-3 py-2 border rounded"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-gray-700">Lines *</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="40"
+                        value={tempGridData[0].lines || 1}
+                        onChange={(e) => handleRowChange("lines", parseInt(e.target.value) || 1)}
+                        className="w-full px-3 py-2 border rounded"
                       />
                     </div>
                   </div>
-                );
-              })}
-            </div>
-            )
-          ) : (
-            <div className="space-y-2">
-              {data.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No data available</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.map((entry, index) => {
-                    const surah = SURAHS.find((s) => s.num === entry.surahNum);
-                    return (
-                      <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50">
-                        <div className="font-medium text-blue-800">
-                          {surah
-                            ? `${surah.name_english} / ${surah.name_arabic}`
-                            : entry.surahName}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="text-gray-600">From:</span>{" "}
-                            <span className="font-medium">{entry.from}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">To:</span>{" "}
-                            <span className="font-medium">{entry.to}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Lines:</span>{" "}
-                            <span className="font-medium">{entry.lines}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Iterations:</span>{" "}
-                            <span className="font-medium">{entry.iterations}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-gray-600 text-sm">Grade:</span>{" "}
-                            <span
-                              className={`inline-block px-3 py-1 rounded text-sm font-medium ${
-                                entry.grade
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-gray-100 text-gray-400"
-                              }`}
-                            >
-                              {entry.grade || "-"}
-                            </span>
-                          </div>
-                          {entry.note && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedNote(entry.note || "");
-                                setNoteDialogOpen(true);
-                              }}
-                              className="h-8 w-8 p-0"
-                            >
-                              <MessageSquare className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
-              )}
-            </div>
-          )}
+
+                <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 lg:gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-700">Iterations *</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={tempGridData[0].iterations || 1}
+                      onChange={(e) => handleRowChange("iterations", parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border rounded"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-700">Hifz Grade *</label>
+                    <Select
+                      value={tempGridData[0].grade || ""}
+                      onValueChange={(value) => handleRowChange("grade", value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRADES.map((g) => (
+                          <SelectItem key={g} value={g}>
+                            {g}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-700">Note (Optional)</label>
+                  <input
+                    type="text"
+                    value={tempGridData[0].note || ""}
+                    onChange={(e) => handleRowChange("note", e.target.value)}
+                    placeholder="Optional note"
+                    className="w-full px-3 py-2 border rounded"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -972,28 +686,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
         {student && (
           <>
-            <div className="flex justify-end mb-4">
-              <div className="flex gap-2 bg-white rounded-lg border p-1">
-                <Button
-                  size="sm"
-                  variant={viewMode === "grid" ? "default" : "ghost"}
-                  onClick={() => setViewMode("grid")}
-                  className="gap-2"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  Grid
-                </Button>
-                <Button
-                  size="sm"
-                  variant={viewMode === "list" ? "default" : "ghost"}
-                  onClick={() => setViewMode("list")}
-                  className="gap-2"
-                >
-                  <List className="h-4 w-4" />
-                  List
-                </Button>
-              </div>
-            </div>
             <div className="space-y-6">
               {renderGrid("meaning", "Meaning")}
               {renderGrid("memorization", "Memorization")}
