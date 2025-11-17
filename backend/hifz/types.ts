@@ -28,18 +28,6 @@ export interface GetHifzDataResponse {
   data: HifzGridData;
 }
 
-export interface SaveHifzDataRequest {
-  studyGroupId: string;
-  studentId: string;
-  date: string;
-  section: "meaning" | "memorization" | "revision";
-  entries: HifzEntry[];
-}
-
-export interface SaveHifzDataResponse {
-  success: boolean;
-}
-
 export interface HifzHistoryEntry {
   id?: number;
   date?: string;
