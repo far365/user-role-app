@@ -92,7 +92,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
   const [selectedNote, setSelectedNote] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteRcdId, setDeleteRcdId] = useState<number | null>(null);
-  const [absenceData, setAbsenceData] = useState<{ id: number; absenceType: "Excused" | "Unexcused"; notes?: string } | null>(null);
   const [selectedAbsenceType, setSelectedAbsenceType] = useState<"Excused" | "Unexcused" | null>(null);
   const [absenceNotes, setAbsenceNotes] = useState("");
   const [isSubmittingAbsence, setIsSubmittingAbsence] = useState(false);
@@ -124,12 +123,9 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     if (student && selectedDate) {
       fetchHifzData();
       fetchHistory();
-      fetchAbsenceData();
-    } else {
-      setAbsenceData(null);
-      setSelectedAbsenceType(null);
-      setAbsenceNotes("");
     }
+    setSelectedAbsenceType(null);
+    setAbsenceNotes("");
   }, [student, selectedDate]);
 
   useEffect(() => {
@@ -207,26 +203,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
     }
   };
 
-  const fetchAbsenceData = async () => {
-    try {
-      const response = await backend.hifz.getAbsenceByStudentDate({
-        studentId: student,
-        date: selectedDate,
-      });
-      if (response.absence) {
-        setAbsenceData(response.absence);
-        setSelectedAbsenceType(null);
-        setAbsenceNotes("");
-      } else {
-        setAbsenceData(null);
-        setSelectedAbsenceType(null);
-        setAbsenceNotes("");
-      }
-    } catch (error) {
-      console.error("Failed to fetch absence data:", error);
-    }
-  };
-
   const handleSubmitAbsence = async () => {
     if (!selectedAbsenceType) {
       toast({
@@ -270,7 +246,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         description: "Absence recorded successfully",
       });
 
-      await fetchAbsenceData();
+      setSelectedAbsenceType(null);
+      setAbsenceNotes("");
       await fetchHistory();
     } catch (error) {
       console.error(error);
@@ -299,7 +276,6 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
         description: "Absence deleted successfully",
       });
 
-      await fetchAbsenceData();
       await fetchHistory();
     } catch (error) {
       console.error(error);
@@ -310,6 +286,28 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
       });
     }
   };
+
+  const absenceData = useMemo(() => {
+    if (!history.length || !selectedDate || !student) {
+      return null;
+    }
+
+    const todaysAbsence = history.find(entry => {
+      if (!entry.lessonDateText || entry.recordType !== "Absence") return false;
+      const entryDate = entry.lessonDateText.includes('T') 
+        ? entry.lessonDateText.split('T')[0] 
+        : entry.lessonDateText.split(' ')[0];
+      return entryDate === selectedDate;
+    });
+
+    if (!todaysAbsence || !todaysAbsence.id) return null;
+
+    return {
+      id: todaysAbsence.id,
+      absenceType: todaysAbsence.hifzGrade as "Excused" | "Unexcused",
+      notes: todaysAbsence.notes
+    };
+  }, [history, selectedDate, student]);
 
   const todaysHistoryEntries = useMemo(() => {
     if (!history.length || !selectedDate) {
