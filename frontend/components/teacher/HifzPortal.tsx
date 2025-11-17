@@ -1083,7 +1083,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left p-2 text-sm font-medium">Date</th>
+                          <th className="text-left p-2 text-sm font-medium">Lesson Date</th>
                           <th className="text-left p-2 text-sm font-medium">Type</th>
                           <th className="text-left p-2 text-sm font-medium">Surah</th>
                           <th className="text-left p-2 text-sm font-medium">From</th>
@@ -1094,21 +1094,27 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {history.map((entry: any, index: number) => {
-                          const prevEntry = index > 0 ? history[index - 1] : null;
-                          const isDifferentDate = !prevEntry || entry.lessonDateText !== prevEntry.lessonDateText;
-                          const isAbsence = entry.recordType === "Absence";
-                          const bgColor = isAbsence
-                            ? "bg-yellow-50"
-                            : isDifferentDate 
-                              ? (index === 0 || (prevEntry && history.findIndex(e => e.lessonDateText === prevEntry.lessonDateText) % 2 === 0)
-                                ? "bg-gray-100" 
-                                : "bg-white")
-                              : (history.findIndex(e => e.lessonDateText === entry.lessonDateText) % 2 === 0
-                                ? "bg-gray-100"
-                                : "bg-white");
+                        {(() => {
+                          const dateGroups = new Map<string, number>();
+                          let groupIndex = 0;
+                          history.forEach((entry, idx) => {
+                            const dateKey = extractDateString(entry.lessonDateText) || '';
+                            if (idx === 0 || extractDateString(history[idx - 1].lessonDateText) !== dateKey) {
+                              dateGroups.set(dateKey, groupIndex++);
+                            }
+                          });
                           
-                          return (
+                          return history.map((entry: any, index: number) => {
+                            const dateKey = extractDateString(entry.lessonDateText) || '';
+                            const dateGroupIndex = dateGroups.get(dateKey) || 0;
+                            const isAbsence = entry.recordType === "Absence";
+                            const bgColor = isAbsence
+                              ? "bg-yellow-50"
+                              : dateGroupIndex % 2 === 0
+                                ? "bg-gray-100"
+                                : "bg-white";
+                            
+                            return (
                             <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
                               <td className="p-2 text-sm">{formatHistoryDate(entry.lessonDateText)}</td>
                               <td className="p-2 text-sm">
@@ -1135,7 +1141,8 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                               <td className="p-2 text-sm">{entry.teacherId || ''}</td>
                             </tr>
                           );
-                        })}
+                        });
+                        })()}
                       </tbody>
                     </table>
                   </div>
