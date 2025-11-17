@@ -45,6 +45,26 @@ function formatHistoryDate(dateStr: string | null | undefined): string {
   }
 }
 
+function extractDateString(lessonDateText: any): string | null {
+  if (!lessonDateText) return null;
+  
+  if (lessonDateText instanceof Date) {
+    return lessonDateText.toISOString().split('T')[0];
+  }
+  
+  if (typeof lessonDateText === 'string') {
+    if (lessonDateText.includes('T')) {
+      return lessonDateText.split('T')[0];
+    }
+    if (lessonDateText.includes(' ')) {
+      return lessonDateText.split(' ')[0];
+    }
+    return lessonDateText;
+  }
+  
+  return null;
+}
+
 interface HifzPortalProps {
   user: UserType;
   onBack: () => void;
@@ -294,9 +314,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
     const todaysAbsence = history.find(entry => {
       if (!entry.lessonDateText || entry.recordType !== "Absence") return false;
-      const entryDate = entry.lessonDateText.includes('T') 
-        ? entry.lessonDateText.split('T')[0] 
-        : entry.lessonDateText.split(' ')[0];
+      const entryDate = extractDateString(entry.lessonDateText);
       return entryDate === selectedDate;
     });
 
@@ -316,9 +334,7 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
 
     const todaysHistory = history.filter(entry => {
       if (!entry.lessonDateText) return false;
-      const entryDate = entry.lessonDateText.includes('T') 
-        ? entry.lessonDateText.split('T')[0] 
-        : entry.lessonDateText.split(' ')[0];
+      const entryDate = extractDateString(entry.lessonDateText);
       return entryDate === selectedDate;
     });
     
