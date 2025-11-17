@@ -159,7 +159,6 @@ import { getHistoryByStudentId as api_hifz_get_hifz_history_by_studentid_getHist
 import { getHistory as api_hifz_get_history_getHistory } from "~backend/hifz/get_history";
 import { insertStudentAbsence as api_hifz_insert_student_absence_insertStudentAbsence } from "~backend/hifz/insert_student_absence";
 import { insertStudentHifz as api_hifz_insert_student_hifz_insertStudentHifz } from "~backend/hifz/insert_student_hifz";
-import { saveData as api_hifz_save_data_saveData } from "~backend/hifz/save_data";
 
 export namespace hifz {
 
@@ -176,7 +175,6 @@ export namespace hifz {
             this.getHistoryByStudentId = this.getHistoryByStudentId.bind(this)
             this.insertStudentAbsence = this.insertStudentAbsence.bind(this)
             this.insertStudentHifz = this.insertStudentHifz.bind(this)
-            this.saveData = this.saveData.bind(this)
         }
 
         public async deleteHifzRcdByRcdId(params: RequestType<typeof api_hifz_delete_hifz_rcd_by_rcdid_deleteHifzRcdByRcdId>): Promise<ResponseType<typeof api_hifz_delete_hifz_rcd_by_rcdid_deleteHifzRcdByRcdId>> {
@@ -225,12 +223,6 @@ export namespace hifz {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/hifz/insert-student-hifz`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_insert_student_hifz_insertStudentHifz>
-        }
-
-        public async saveData(params: RequestType<typeof api_hifz_save_data_saveData>): Promise<ResponseType<typeof api_hifz_save_data_saveData>> {
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/hifz/save-data`, {method: "POST", body: JSON.stringify(params)})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_hifz_save_data_saveData>
         }
     }
 }
