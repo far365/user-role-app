@@ -1079,72 +1079,73 @@ export function HifzPortal({ user, onBack }: HifzPortalProps) {
                 {history.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No history available</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2 text-sm font-medium">Lesson Date</th>
-                          <th className="text-left p-2 text-sm font-medium">Type</th>
-                          <th className="text-left p-2 text-sm font-medium">Surah</th>
-                          <th className="text-left p-2 text-sm font-medium">From</th>
-                          <th className="text-left p-2 text-sm font-medium">To</th>
-                          <th className="text-left p-2 text-sm font-medium">Grade</th>
-                          <th className="text-left p-2 text-sm font-medium">Lines</th>
-                          <th className="text-left p-2 text-sm font-medium">Teacher</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(() => {
-                          const dateGroups = new Map<string, number>();
-                          let groupIndex = 0;
-                          history.forEach((entry, idx) => {
-                            const dateKey = extractDateString(entry.lessonDateText) || '';
-                            if (idx === 0 || extractDateString(history[idx - 1].lessonDateText) !== dateKey) {
-                              dateGroups.set(dateKey, groupIndex++);
-                            }
-                          });
-                          
-                          return history.map((entry: any, index: number) => {
-                            const dateKey = extractDateString(entry.lessonDateText) || '';
-                            const dateGroupIndex = dateGroups.get(dateKey) || 0;
-                            const isAbsence = entry.recordType === "Absence";
-                            const bgColor = isAbsence
-                              ? "bg-yellow-50"
-                              : dateGroupIndex % 2 === 0
-                                ? "bg-gray-100"
-                                : "bg-white";
-                            
-                            return (
-                            <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
-                              <td className="p-2 text-sm">{formatHistoryDate(entry.lessonDateText)}</td>
-                              <td className="p-2 text-sm">
-                                <div className="flex items-center gap-1">
-                                  {isAbsence && <AlertCircle className="h-4 w-4 text-yellow-600" />}
-                                  <span className="capitalize">{entry.recordType || ''}</span>
-                                </div>
-                              </td>
-                              <td className="p-2 text-sm">{entry.surah || ''}</td>
-                              <td className="p-2 text-sm">{entry.from || ''}</td>
-                              <td className="p-2 text-sm">{entry.to || ''}</td>
-                              <td className="p-2">
-                                <span className={`text-sm font-medium px-2 py-1 rounded ${
-                                  isAbsence
-                                    ? entry.hifzGrade === "Excused"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-red-100 text-red-800"
-                                    : "bg-blue-100 text-blue-800"
-                                }`}>
-                                  {entry.hifzGrade || ''}
-                                </span>
-                              </td>
-                              <td className="p-2 text-sm">{entry.lines || ''}</td>
-                              <td className="p-2 text-sm">{entry.teacherId || ''}</td>
-                            </tr>
-                          );
-                        });
-                        })()}
-                      </tbody>
-                    </table>
+                  <div className="space-y-4">
+                    {(() => {
+                      const groupedByDate = new Map<string, typeof history>();
+                      history.forEach((entry) => {
+                        const dateKey = extractDateString(entry.lessonDateText) || '';
+                        if (!groupedByDate.has(dateKey)) {
+                          groupedByDate.set(dateKey, []);
+                        }
+                        groupedByDate.get(dateKey)!.push(entry);
+                      });
+
+                      return Array.from(groupedByDate.entries()).map(([dateKey, entries], groupIndex) => (
+                        <div key={dateKey || groupIndex} className="border rounded-lg overflow-hidden">
+                          <div className="bg-blue-100 px-4 py-2 font-semibold text-blue-900">
+                            {formatHistoryDate(dateKey)}
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                              <thead>
+                                <tr className="bg-gray-50 border-b">
+                                  <th className="text-left p-2 text-sm font-medium">Type</th>
+                                  <th className="text-left p-2 text-sm font-medium">Surah</th>
+                                  <th className="text-left p-2 text-sm font-medium">From</th>
+                                  <th className="text-left p-2 text-sm font-medium">To</th>
+                                  <th className="text-left p-2 text-sm font-medium">Grade</th>
+                                  <th className="text-left p-2 text-sm font-medium">Lines</th>
+                                  <th className="text-left p-2 text-sm font-medium">Teacher</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {entries.map((entry: any, index: number) => {
+                                  const isAbsence = entry.recordType === "Absence";
+                                  const bgColor = isAbsence ? "bg-yellow-50" : "bg-white";
+                                  
+                                  return (
+                                    <tr key={index} className={`border-b hover:opacity-80 ${bgColor}`}>
+                                      <td className="p-2 text-sm">
+                                        <div className="flex items-center gap-1">
+                                          {isAbsence && <AlertCircle className="h-4 w-4 text-yellow-600" />}
+                                          <span className="capitalize">{entry.recordType || ''}</span>
+                                        </div>
+                                      </td>
+                                      <td className="p-2 text-sm">{entry.surah || ''}</td>
+                                      <td className="p-2 text-sm">{entry.from || ''}</td>
+                                      <td className="p-2 text-sm">{entry.to || ''}</td>
+                                      <td className="p-2">
+                                        <span className={`text-sm font-medium px-2 py-1 rounded ${
+                                          isAbsence
+                                            ? entry.hifzGrade === "Excused"
+                                              ? "bg-blue-100 text-blue-800"
+                                              : "bg-red-100 text-red-800"
+                                            : "bg-blue-100 text-blue-800"
+                                        }`}>
+                                          {entry.hifzGrade || ''}
+                                        </span>
+                                      </td>
+                                      <td className="p-2 text-sm">{entry.lines || ''}</td>
+                                      <td className="p-2 text-sm">{entry.teacherId || ''}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 )}
               </CardContent>
