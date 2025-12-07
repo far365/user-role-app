@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import backend from "~backend/client";
 import type { User } from "~backend/user/types";
+import type { Grade } from "~backend/grades/types";
 
 interface ScheduleManagementPageProps {
   user: User;
@@ -22,6 +25,27 @@ const getMondayOfCurrentWeek = () => {
 export function ScheduleManagementPage({ user, onBack }: ScheduleManagementPageProps) {
   const [academicYear, setAcademicYear] = useState("AY25-26");
   const [effectiveDate, setEffectiveDate] = useState(getMondayOfCurrentWeek());
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<string>("");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadGrades = async () => {
+      try {
+        const response = await backend.grades.list();
+        setGrades(response.grades);
+      } catch (error) {
+        console.error("Failed to load grades:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load grade list",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadGrades();
+  }, [toast]);
 
   return (
     <div className="space-y-6">
@@ -37,7 +61,7 @@ export function ScheduleManagementPage({ user, onBack }: ScheduleManagementPageP
         <p className="text-gray-600">Manage class schedules and timings</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-2">
           <Label htmlFor="academic-year">Academic Year</Label>
           <Select value={academicYear} onValueChange={setAcademicYear}>
@@ -60,6 +84,22 @@ export function ScheduleManagementPage({ user, onBack }: ScheduleManagementPageP
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={getMondayOfCurrentWeek()}>{getMondayOfCurrentWeek()}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="grade">Grade</Label>
+          <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+            <SelectTrigger id="grade">
+              <SelectValue placeholder="Select grade" />
+            </SelectTrigger>
+            <SelectContent>
+              {grades.map((grade) => (
+                <SelectItem key={grade.name} value={grade.name}>
+                  {grade.name} - Building {grade.building}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
