@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode, ClipboardList } from "lucide-react";
+import { Settings, Users, BarChart3, Shield, List, UserPlus, GraduationCap, Truck, BookOpen, QrCode, ClipboardList, Calendar } from "lucide-react";
 import { ParentSetupPage } from "../admin/ParentSetupPage";
 import { StudentSetupPage } from "../admin/StudentSetupPage";
 import { QueueSetupPage } from "../admin/QueueSetupPage";
 import { QRScanPage } from "../admin/QRScanPage";
 import { FullDismissalQueuePage } from "../admin/FullDismissalQueuePage";
 import { FullAttendanceBySchoolPage } from "../admin/FullAttendanceBySchoolPage";
+import { ScheduleManagementPage } from "../admin/ScheduleManagementPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -46,6 +47,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   if (currentPage === 'full-attendance-by-school') {
     return <FullAttendanceBySchoolPage user={user} onBack={handleBackToDashboard} />;
+  }
+
+  if (currentPage === 'schedule-management') {
+    return <ScheduleManagementPage user={user} onBack={handleBackToDashboard} />;
   }
 
   return (
@@ -119,6 +124,15 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         >
           <GraduationCap className="h-5 w-5 mr-3" />
           Teacher Setup
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-pink-700 hover:text-pink-800 hover:bg-pink-50"
+          onClick={() => handleNavigate('schedule-management')}
+        >
+          <Calendar className="h-5 w-5 mr-3" />
+          Schedule Management
         </Button>
 
         <Button 
