@@ -88,7 +88,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     
     const endTime = incrementTime(time, 60);
     const newActivity: Activity = {
-      id: `activity-${Date.now()}`,
+      id: `activity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: "New Activity",
       type: "Academics",
       day,
@@ -108,6 +108,11 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     setIsDialogOpen(true);
   };
 
+  const normalizeTime = (time: string): string => {
+    const [h, m] = time.split(":").map(Number);
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  };
+
   const handleSaveActivity = () => {
     if (!editingActivity) return;
 
@@ -120,13 +125,19 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       return;
     }
 
-    const existingIndex = activities.findIndex((a) => a.id === editingActivity.id);
+    const normalizedActivity = {
+      ...editingActivity,
+      startTime: normalizeTime(editingActivity.startTime),
+      endTime: normalizeTime(editingActivity.endTime),
+    };
+
+    const existingIndex = activities.findIndex((a) => a.id === normalizedActivity.id);
     if (existingIndex >= 0) {
       const updated = [...activities];
-      updated[existingIndex] = editingActivity;
+      updated[existingIndex] = normalizedActivity;
       setActivities(updated);
     } else {
-      setActivities([...activities, editingActivity]);
+      setActivities([...activities, normalizedActivity]);
     }
 
     setIsDialogOpen(false);
@@ -584,11 +595,13 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                         onValueChange={(value) => {
                           const newTeachers = [...editingActivity.teachers];
                           if (value === "none") {
-                            newTeachers.splice(index, 1);
+                            delete newTeachers[index];
+                            const filtered = newTeachers.filter((t) => t !== undefined);
+                            setEditingActivity({ ...editingActivity, teachers: filtered });
                           } else {
                             newTeachers[index] = value;
+                            setEditingActivity({ ...editingActivity, teachers: newTeachers });
                           }
-                          setEditingActivity({ ...editingActivity, teachers: newTeachers });
                         }}
                       >
                         <SelectTrigger>
