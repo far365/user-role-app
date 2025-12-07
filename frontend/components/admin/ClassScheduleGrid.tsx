@@ -590,7 +590,6 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                           <SelectValue placeholder="Select teacher" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
                           {MOCK_TEACHERS.map((teacher) => (
                             <SelectItem key={teacher.id} value={teacher.id}>
                               {teacher.name}
