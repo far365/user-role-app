@@ -62,6 +62,8 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEffectiveDateDialogOpen, setIsEffectiveDateDialogOpen] = useState(false);
+  const [effectiveDate, setEffectiveDate] = useState("");
   const { toast } = useToast();
 
   const timeToMinutes = (time: string): number => {
@@ -79,6 +81,61 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     return activities
       .filter((a) => a.day === day)
       .sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+  };
+
+  const isMonday = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    return date.getDay() === 1;
+  };
+
+  const isFutureDate = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return date > today;
+  };
+
+  const handleSaveAndExit = () => {
+    setIsEffectiveDateDialogOpen(true);
+  };
+
+  const handleConfirmSave = () => {
+    if (!effectiveDate) {
+      toast({
+        title: "Error",
+        description: "Please select an effective date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isMonday(effectiveDate)) {
+      toast({
+        title: "Error",
+        description: "Effective date must be a Monday",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isFutureDate(effectiveDate)) {
+      toast({
+        title: "Error",
+        description: "Effective date must be in the future",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: `Schedule saved with effective date: ${effectiveDate}`,
+    });
+
+    setIsEffectiveDateDialogOpen(false);
+    setIsEditMode(false);
+    setEffectiveDate("");
   };
 
   const getNextStartTime = (day: number): string => {
@@ -296,7 +353,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
               </Button>
             ) : (
               <>
-                <Button onClick={() => setIsEditMode(false)} variant="default">
+                <Button onClick={handleSaveAndExit} variant="default">
                   <Save className="w-4 h-4 mr-2" />
                   Save & Exit
                 </Button>
@@ -582,6 +639,33 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEffectiveDateDialogOpen} onOpenChange={setIsEffectiveDateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set Effective Date</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Effective Date (Must be a future Monday)</Label>
+              <Input
+                type="date"
+                value={effectiveDate}
+                onChange={(e) => setEffectiveDate(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                This schedule will take effect starting on the selected Monday.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEffectiveDateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmSave}>Confirm & Save</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
