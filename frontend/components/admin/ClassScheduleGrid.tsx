@@ -152,6 +152,43 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       return;
     }
 
+    const otherActivitiesOnSameDay = activities.filter(
+      (a) => a.day === editingActivity.day && a.id !== editingActivity.id
+    );
+
+    const hasDuplicateName = otherActivitiesOnSameDay.some(
+      (a) => a.name.toLowerCase().trim() === editingActivity.name.toLowerCase().trim()
+    );
+
+    if (hasDuplicateName) {
+      toast({
+        title: "Error",
+        description: `An activity named "${editingActivity.name}" already exists on ${DAYS[editingActivity.day]}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const hasOverlap = otherActivitiesOnSameDay.some((a) => {
+      const aStart = timeToMinutes(a.startTime);
+      const aEnd = timeToMinutes(a.endTime);
+      
+      return (
+        (startMinutes >= aStart && startMinutes < aEnd) ||
+        (endMinutes > aStart && endMinutes <= aEnd) ||
+        (startMinutes <= aStart && endMinutes >= aEnd)
+      );
+    });
+
+    if (hasOverlap) {
+      toast({
+        title: "Error",
+        description: "This time slot overlaps with another activity on the same day",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const existingIndex = activities.findIndex((a) => a.id === editingActivity.id);
     if (existingIndex >= 0) {
       const updated = [...activities];
