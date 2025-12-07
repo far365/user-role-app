@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Save, X, Copy, Trash2, RotateCcw, Plus } from "lucide-react";
+import { Pencil, Save, X, Copy, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
