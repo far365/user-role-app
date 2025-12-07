@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Save, X, Copy, Trash2, Plus } from "lucide-react";
+import { Pencil, Save, X, Copy, Trash2, Plus, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
@@ -340,11 +340,16 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                     <div
                       key={activity.id}
                       onClick={() => handleEditActivity(activity)}
-                      className={`p-2 rounded cursor-pointer transition-all ${
+                      className={`p-2 rounded cursor-pointer transition-all relative ${
                         isEditMode ? "hover:opacity-80 hover:shadow-md" : ""
                       } ${getActivityColor(activity.type)}`}
                     >
-                      <div className="font-semibold text-xs mb-1">{activity.name}</div>
+                      {activity.attendanceRequired && (
+                        <div className="absolute top-1 right-1" title="Attendance Required">
+                          <CheckCircle2 className="w-3 h-3 fill-current opacity-70" />
+                        </div>
+                      )}
+                      <div className="font-semibold text-xs mb-1 pr-4">{activity.name}</div>
                       <div className="text-[10px] font-medium mb-1">
                         {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
                       </div>
