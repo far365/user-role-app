@@ -64,23 +64,24 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [draggedActivity, setDraggedActivity] = useState<Activity | null>(null);
   const { toast } = useToast();
 
   const generateTimeSlots = () => {
     const slots: string[] = [];
     for (let hour = START_HOUR; hour < END_HOUR; hour++) {
-      for (let min = 0; min < 60; min += 15) {
-        const h = hour.toString().padStart(2, "0");
-        const m = min.toString().padStart(2, "0");
-        slots.push(`${h}:${m}`);
-      }
+      slots.push(`${hour.toString().padStart(2, "0")}:00`);
+      slots.push(`${hour.toString().padStart(2, "0")}:30`);
     }
     slots.push(`${END_HOUR}:00`);
     return slots;
   };
 
   const timeSlots = generateTimeSlots();
+
+  const timeToMinutes = (time: string): number => {
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
+  };
 
   const handleAddActivity = (day: number, time: string) => {
     if (!isEditMode) return;
@@ -180,48 +181,30 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     return `${newHour.toString().padStart(2, "0")}:${newMin.toString().padStart(2, "0")}`;
   };
 
-  const getActivitiesForCell = (day: number, time: string): Activity[] => {
-    return activities.filter((a) => {
+  const getActivitiesStartingInCell = (day: number, time: string): Activity[] => {
+    return activities.filter((a) => a.day === day && a.startTime === time);
+  };
+
+  const calculateColSpan = (activity: Activity): number => {
+    const startMinutes = timeToMinutes(activity.startTime);
+    const endMinutes = timeToMinutes(activity.endTime);
+    const durationMinutes = endMinutes - startMinutes;
+    const slotDuration = 30;
+    return Math.ceil(durationMinutes / slotDuration);
+  };
+
+  const isTimeSlotOccupied = (day: number, time: string): boolean => {
+    const timeMinutes = timeToMinutes(time);
+    return activities.some((a) => {
       if (a.day !== day) return false;
-      return a.startTime <= time && a.endTime > time;
+      const startMinutes = timeToMinutes(a.startTime);
+      const endMinutes = timeToMinutes(a.endTime);
+      return timeMinutes >= startMinutes && timeMinutes < endMinutes && a.startTime !== time;
     });
   };
 
-  const handleDragStart = (e: React.DragEvent, activity: Activity) => {
-    if (!isEditMode) return;
-    setDraggedActivity(activity);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    if (!isEditMode || !draggedActivity) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
-  const handleDrop = (e: React.DragEvent, day: number, time: string) => {
-    e.preventDefault();
-    if (!isEditMode || !draggedActivity) return;
-
-    const duration = getActivityDuration(draggedActivity);
-    const updatedActivity = {
-      ...draggedActivity,
-      day,
-      startTime: time,
-      endTime: incrementTime(time, duration),
-    };
-
-    const updated = activities.map((a) =>
-      a.id === draggedActivity.id ? updatedActivity : a
-    );
-    setActivities(updated);
-    setDraggedActivity(null);
-  };
-
-  const getActivityDuration = (activity: Activity): number => {
-    const [startH, startM] = activity.startTime.split(":").map(Number);
-    const [endH, endM] = activity.endTime.split(":").map(Number);
-    return (endH * 60 + endM) - (startH * 60 + startM);
+  const getTeacherName = (teacherId: string): string => {
+    return MOCK_TEACHERS.find((t) => t.id === teacherId)?.name || "";
   };
 
   const renderDaysAsRows = () => (
@@ -231,7 +214,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
           <tr>
             <th className="border border-gray-300 bg-gray-100 p-2 w-32">Day</th>
             {timeSlots.map((time) => (
-              <th key={time} className="border border-gray-300 bg-gray-100 p-1 text-xs min-w-[60px]">
+              <th key={time} className="border border-gray-300 bg-gray-100 p-1 text-xs min-w-[80px]">
                 {time}
               </th>
             ))}
@@ -268,31 +251,41 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                 </div>
               </td>
               {timeSlots.map((time) => {
-                const cellActivities = getActivitiesForCell(dayIndex, time);
+                if (isTimeSlotOccupied(dayIndex, time)) {
+                  return null;
+                }
+
+                const cellActivities = getActivitiesStartingInCell(dayIndex, time);
+                const colSpan = cellActivities.length > 0 ? calculateColSpan(cellActivities[0]) : 1;
+
                 return (
                   <td
                     key={`${day}-${time}`}
-                    className="border border-gray-300 p-1 h-16 align-top relative hover:bg-gray-50"
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, dayIndex, time)}
+                    colSpan={colSpan}
+                    className="border border-gray-300 p-2 h-24 align-top relative hover:bg-gray-50"
                     onClick={() => !cellActivities.length && handleAddActivity(dayIndex, time)}
                   >
                     {cellActivities.map((activity) => (
                       <div
                         key={activity.id}
-                        draggable={isEditMode}
-                        onDragStart={(e) => handleDragStart(e, activity)}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditActivity(activity);
                         }}
-                        className={`text-xs p-1 rounded cursor-pointer mb-1 ${
+                        className={`text-xs p-2 rounded cursor-pointer h-full ${
                           isEditMode ? "hover:opacity-80" : ""
                         } ${getActivityColor(activity.type)}`}
-                        title={`${activity.name}\n${activity.startTime} - ${activity.endTime}`}
                       >
-                        <div className="font-semibold truncate">{activity.name}</div>
-                        <div className="text-[10px] opacity-80">{activity.type}</div>
+                        <div className="font-semibold mb-1">{activity.name}</div>
+                        <div className="text-[10px] mb-1">
+                          {activity.startTime} - {activity.endTime}
+                        </div>
+                        <div className="text-[10px] opacity-80 mb-1">{activity.type}</div>
+                        {activity.teachers.length > 0 && (
+                          <div className="text-[10px] opacity-70">
+                            {activity.teachers.map(getTeacherName).join(", ")}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </td>
@@ -312,7 +305,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
           <tr>
             <th className="border border-gray-300 bg-gray-100 p-2 w-24">Time</th>
             {DAYS.map((day, dayIndex) => (
-              <th key={day} className="border border-gray-300 bg-gray-100 p-2">
+              <th key={day} className="border border-gray-300 bg-gray-100 p-2 min-w-[150px]">
                 <div className="flex items-center justify-between">
                   <span>{day}</span>
                   {isEditMode && (
@@ -349,31 +342,41 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                 {time}
               </td>
               {DAYS.map((day, dayIndex) => {
-                const cellActivities = getActivitiesForCell(dayIndex, time);
+                if (isTimeSlotOccupied(dayIndex, time)) {
+                  return null;
+                }
+
+                const cellActivities = getActivitiesStartingInCell(dayIndex, time);
+                const rowSpan = cellActivities.length > 0 ? calculateColSpan(cellActivities[0]) : 1;
+
                 return (
                   <td
                     key={`${time}-${day}`}
-                    className="border border-gray-300 p-1 h-16 align-top relative hover:bg-gray-50"
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, dayIndex, time)}
+                    rowSpan={rowSpan}
+                    className="border border-gray-300 p-2 h-24 align-top relative hover:bg-gray-50"
                     onClick={() => !cellActivities.length && handleAddActivity(dayIndex, time)}
                   >
                     {cellActivities.map((activity) => (
                       <div
                         key={activity.id}
-                        draggable={isEditMode}
-                        onDragStart={(e) => handleDragStart(e, activity)}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditActivity(activity);
                         }}
-                        className={`text-xs p-1 rounded cursor-pointer mb-1 ${
+                        className={`text-xs p-2 rounded cursor-pointer h-full ${
                           isEditMode ? "hover:opacity-80" : ""
                         } ${getActivityColor(activity.type)}`}
-                        title={`${activity.name}\n${activity.startTime} - ${activity.endTime}`}
                       >
-                        <div className="font-semibold truncate">{activity.name}</div>
-                        <div className="text-[10px] opacity-80">{activity.type}</div>
+                        <div className="font-semibold mb-1">{activity.name}</div>
+                        <div className="text-[10px] mb-1">
+                          {activity.startTime} - {activity.endTime}
+                        </div>
+                        <div className="text-[10px] opacity-80 mb-1">{activity.type}</div>
+                        {activity.teachers.length > 0 && (
+                          <div className="text-[10px] opacity-70">
+                            {activity.teachers.map(getTeacherName).join(", ")}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </td>
@@ -454,7 +457,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         {isEditMode && (
           <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
             <p className="text-sm text-blue-900">
-              <strong>Edit Mode:</strong> Click on empty cells to add activities, click on activities to edit them, or drag activities to move them around.
+              <strong>Edit Mode:</strong> Click on empty cells to add activities or click on activities to edit them.
             </p>
           </div>
         )}
@@ -538,6 +541,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                   <Label>Start Time</Label>
                   <Input
                     type="time"
+                    step="60"
                     value={editingActivity.startTime}
                     onChange={(e) =>
                       setEditingActivity({ ...editingActivity, startTime: e.target.value })
@@ -548,6 +552,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                   <Label>End Time</Label>
                   <Input
                     type="time"
+                    step="60"
                     value={editingActivity.endTime}
                     onChange={(e) =>
                       setEditingActivity({ ...editingActivity, endTime: e.target.value })
@@ -575,10 +580,10 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                         Teacher {index + 1} {index === 0 && "(Required)"}
                       </Label>
                       <Select
-                        value={editingActivity.teachers[index] || ""}
+                        value={editingActivity.teachers[index] || "none"}
                         onValueChange={(value) => {
                           const newTeachers = [...editingActivity.teachers];
-                          if (value === "") {
+                          if (value === "none") {
                             newTeachers.splice(index, 1);
                           } else {
                             newTeachers[index] = value;
@@ -590,6 +595,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                           <SelectValue placeholder="Select teacher" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
                           {MOCK_TEACHERS.map((teacher) => (
                             <SelectItem key={teacher.id} value={teacher.id}>
                               {teacher.name}
