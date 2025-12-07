@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Save, X, Copy, Trash2, Plus, CheckCircle2 } from "lucide-react";
+import { Pencil, Save, X, Copy, Trash2, Plus, CheckCircle2, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
@@ -415,6 +415,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                           title={`Copy to ${DAYS[dayIndex + 1]}`}
                         >
                           <Copy className="w-3 h-3" />
+                          <ArrowRight className="w-3 h-3 ml-0.5" />
                         </Button>
                       )}
                       <Button
