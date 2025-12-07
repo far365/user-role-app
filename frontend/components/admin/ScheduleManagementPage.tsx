@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { User } from "~backend/user/types";
 import type { Grade } from "~backend/grades/types";
+import { ClassScheduleGrid } from "./ClassScheduleGrid";
 
 interface ScheduleManagementPageProps {
   user: User;
@@ -104,6 +105,12 @@ export function ScheduleManagementPage({ user, onBack }: ScheduleManagementPageP
           </Select>
         </div>
       </div>
+
+      {selectedGrade && (
+        <div className="mt-8">
+          <ClassScheduleGrid grade={selectedGrade} />
+        </div>
+      )}
     </div>
   );
 }
