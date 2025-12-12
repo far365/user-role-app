@@ -12,7 +12,7 @@ export const getCurrentYear = api(
     //console.log("Is array:", Array.isArray(data));
     
     if (error) {
-      throw new Error(error.message);
+      throw APIError.unavailable("Failed to fetch current academic year: " + error.message);
     }
     
     const rawData = Array.isArray(data) ? data[0] : data;
