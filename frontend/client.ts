@@ -94,6 +94,7 @@ export interface ClientOptions {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { addCourseSetup as api_academic_add_course_setup_addCourseSetup } from "~backend/academic/add_course_setup";
 import { getAllCourseSetup as api_academic_get_all_course_setup_getAllCourseSetup } from "~backend/academic/get_all_course_setup";
 import { getCurrentYear as api_academic_get_current_year_getCurrentYear } from "~backend/academic/get_current_year";
 
@@ -104,8 +105,15 @@ export namespace academic {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.addCourseSetup = this.addCourseSetup.bind(this)
             this.getAllCourseSetup = this.getAllCourseSetup.bind(this)
             this.getCurrentYear = this.getCurrentYear.bind(this)
+        }
+
+        public async addCourseSetup(params: RequestType<typeof api_academic_add_course_setup_addCourseSetup>): Promise<ResponseType<typeof api_academic_add_course_setup_addCourseSetup>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/academic/courses`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_add_course_setup_addCourseSetup>
         }
 
         public async getAllCourseSetup(): Promise<ResponseType<typeof api_academic_get_all_course_setup_getAllCourseSetup>> {
