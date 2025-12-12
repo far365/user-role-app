@@ -8,6 +8,7 @@ import { QRScanPage } from "../admin/QRScanPage";
 import { FullDismissalQueuePage } from "../admin/FullDismissalQueuePage";
 import { FullAttendanceBySchoolPage } from "../admin/FullAttendanceBySchoolPage";
 import { ScheduleManagementPage } from "../admin/ScheduleManagementPage";
+import { CourseSetupPage } from "../admin/CourseSetupPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -51,6 +52,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   if (currentPage === 'schedule-management') {
     return <ScheduleManagementPage user={user} onBack={handleBackToDashboard} />;
+  }
+
+  if (currentPage === 'course-setup') {
+    return <CourseSetupPage onBack={handleBackToDashboard} />;
   }
 
   return (
@@ -124,6 +129,15 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         >
           <GraduationCap className="h-5 w-5 mr-3" />
           Teacher Setup
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-blue-700 hover:text-blue-800 hover:bg-blue-50"
+          onClick={() => handleNavigate('course-setup')}
+        >
+          <BookOpen className="h-5 w-5 mr-3" />
+          Course Setup
         </Button>
 
         <Button 
