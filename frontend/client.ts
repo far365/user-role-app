@@ -94,6 +94,7 @@ export interface ClientOptions {
 /**
  * Import the endpoint handlers to derive the types for the client.
  */
+import { getAllCourseSetup as api_academic_get_all_course_setup_getAllCourseSetup } from "~backend/academic/get_all_course_setup";
 import { getCurrentYear as api_academic_get_current_year_getCurrentYear } from "~backend/academic/get_current_year";
 
 export namespace academic {
@@ -103,7 +104,14 @@ export namespace academic {
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.getAllCourseSetup = this.getAllCourseSetup.bind(this)
             this.getCurrentYear = this.getCurrentYear.bind(this)
+        }
+
+        public async getAllCourseSetup(): Promise<ResponseType<typeof api_academic_get_all_course_setup_getAllCourseSetup>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/academic/courses`, {method: "GET", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_get_all_course_setup_getAllCourseSetup>
         }
 
         public async getCurrentYear(): Promise<ResponseType<typeof api_academic_get_current_year_getCurrentYear>> {
