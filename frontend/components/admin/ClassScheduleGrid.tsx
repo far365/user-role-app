@@ -184,7 +184,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
 
     const newActivity: Activity = {
       id: `activity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: "New Class",
+      name: "",
       type: "Academics",
       day,
       startTime,
@@ -205,6 +205,15 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
 
   const handleSaveActivity = () => {
     if (!editingActivity) return;
+
+    if (!editingActivity.name || editingActivity.name.trim() === "") {
+      toast({
+        title: "Error",
+        description: "Activity name is required",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (editingActivity.type === "Academics" && editingActivity.teachers.length === 0) {
       toast({
@@ -512,7 +521,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingActivity?.name === "New Class" ? "Add Activity" : "Edit Activity"}
+              {activities.find((a) => a.id === editingActivity?.id) ? "Edit Activity" : "Add Activity"}
             </DialogTitle>
           </DialogHeader>
           {editingActivity && (
@@ -667,7 +676,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
 
               <div className="flex justify-between pt-4">
                 <div>
-                  {editingActivity.name !== "New Class" && (
+                  {activities.find((a) => a.id === editingActivity.id) && (
                     <Button
                       variant="destructive"
                       onClick={() => {
