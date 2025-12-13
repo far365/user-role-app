@@ -13,11 +13,6 @@ import type { CourseSetup } from "~backend/academic/types";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
 
-interface Teacher {
-  id: string;
-  name: string;
-}
-
 interface Activity {
   id: string;
   name: string;
@@ -26,25 +21,11 @@ interface Activity {
   startTime: string;
   endTime: string;
   attendanceRequired: boolean;
-  teachers: string[];
 }
 
 interface ClassScheduleGridProps {
   grade: string;
 }
-
-const MOCK_TEACHERS: Teacher[] = [
-  { id: "t1", name: "Mrs. Johnson" },
-  { id: "t2", name: "Mr. Smith" },
-  { id: "t3", name: "Ms. Williams" },
-  { id: "t4", name: "Mr. Brown" },
-  { id: "t5", name: "Mrs. Davis" },
-  { id: "t6", name: "Mr. Miller" },
-  { id: "t7", name: "Ms. Wilson" },
-  { id: "t8", name: "Mrs. Moore" },
-  { id: "t9", name: "Mr. Taylor" },
-  { id: "t10", name: "Ms. Anderson" },
-];
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const MIN_START_TIME = "07:00";
@@ -190,7 +171,6 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       startTime,
       endTime,
       attendanceRequired: true,
-      teachers: [],
     };
 
     setEditingActivity(newActivity);
@@ -210,15 +190,6 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       toast({
         title: "Error",
         description: "Activity name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (editingActivity.type === "Academics" && editingActivity.teachers.length === 0) {
-      toast({
-        title: "Error",
-        description: "Academic classes require at least one teacher",
         variant: "destructive",
       });
       return;
@@ -354,10 +325,6 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     }
   };
 
-  const getTeacherName = (teacherId: string): string => {
-    return MOCK_TEACHERS.find((t) => t.id === teacherId)?.name || "";
-  };
-
   const formatTime = (time: string): string => {
     const [h, m] = time.split(":").map(Number);
     const period = h >= 12 ? "PM" : "AM";
@@ -485,11 +452,6 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                         {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
                       </div>
                       <div className="text-[10px] opacity-70 mb-1">{getActivityTypeDisplay(activity.type)}</div>
-                      {activity.teachers.length > 0 && (
-                        <div className="text-[10px] opacity-60 truncate">
-                          {activity.teachers.map(getTeacherName).join(", ")}
-                        </div>
-                      )}
                     </div>
                   ))}
 
@@ -637,45 +599,6 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                 />
                 <Label>Attendance Required</Label>
               </div>
-
-              {editingActivity.type === "Academics" && (
-                <div className="space-y-2">
-                  <Label>Teachers (up to 4, first is required)</Label>
-                  {[0, 1, 2, 3].map((index) => (
-                    <div key={index} className="space-y-1">
-                      <Label className="text-sm">
-                        Teacher {index + 1} {index === 0 && "(Required)"}
-                      </Label>
-                      <Select
-                        value={editingActivity.teachers[index] || "none"}
-                        onValueChange={(value) => {
-                          const newTeachers = [...editingActivity.teachers];
-                          if (value === "none") {
-                            delete newTeachers[index];
-                            const filtered = newTeachers.filter((t) => t !== undefined);
-                            setEditingActivity({ ...editingActivity, teachers: filtered });
-                          } else {
-                            newTeachers[index] = value;
-                            setEditingActivity({ ...editingActivity, teachers: newTeachers });
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select teacher" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          {MOCK_TEACHERS.map((teacher) => (
-                            <SelectItem key={teacher.id} value={teacher.id}>
-                              {teacher.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </div>
-              )}
 
               <div className="flex justify-between pt-4">
                 <div>
