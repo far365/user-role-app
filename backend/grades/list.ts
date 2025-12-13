@@ -7,7 +7,7 @@ export const list = api<void, ListGradesResponse>(
   async () => {
     const grades: Grade[] = [
       {
-        name: "kindergarten",
+        name: "Kindergarten",
         building: "A",
         sortOrder: 0
       },
