@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -523,6 +523,9 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
             <DialogTitle>
               {activities.find((a) => a.id === editingActivity?.id) ? "Edit Activity" : "Add Activity"}
             </DialogTitle>
+            <DialogDescription>
+              {activities.find((a) => a.id === editingActivity?.id) ? "Update the activity details below." : "Add a new activity to the schedule."}
+            </DialogDescription>
           </DialogHeader>
           {editingActivity && (
             <div className="space-y-4">
@@ -706,6 +709,9 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Set Effective Date</DialogTitle>
+            <DialogDescription>
+              Choose when this schedule should take effect.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
