@@ -59,6 +59,10 @@ const ACTIVITY_TYPES: ActivityType[] = [
   "Other",
 ];
 
+const getActivityTypeDisplay = (type: ActivityType): string => {
+  return type === "Academics" ? "Class" : type;
+};
+
 export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -401,7 +405,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
           {ACTIVITY_TYPES.map((type) => (
             <div key={type} className="flex items-center gap-2">
               <div className={`w-4 h-4 rounded ${getActivityColor(type)}`}></div>
-              <span className="text-sm">{type}</span>
+              <span className="text-sm">{getActivityTypeDisplay(type)}</span>
             </div>
           ))}
         </div>
@@ -471,7 +475,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                       <div className="text-[10px] font-medium mb-1">
                         {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
                       </div>
-                      <div className="text-[10px] opacity-70 mb-1">{activity.type}</div>
+                      <div className="text-[10px] opacity-70 mb-1">{getActivityTypeDisplay(activity.type)}</div>
                       {activity.teachers.length > 0 && (
                         <div className="text-[10px] opacity-60 truncate">
                           {activity.teachers.map(getTeacherName).join(", ")}
@@ -561,7 +565,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                     <SelectContent>
                       {ACTIVITY_TYPES.map((type) => (
                         <SelectItem key={type} value={type}>
-                          {type}
+                          {getActivityTypeDisplay(type)}
                         </SelectItem>
                       ))}
                     </SelectContent>
