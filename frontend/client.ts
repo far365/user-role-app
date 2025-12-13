@@ -95,8 +95,10 @@ export interface ClientOptions {
  * Import the endpoint handlers to derive the types for the client.
  */
 import { addCourseSetup as api_academic_add_course_setup_addCourseSetup } from "~backend/academic/add_course_setup";
+import { deleteCourseSetup as api_academic_delete_course_setup_deleteCourseSetup } from "~backend/academic/delete_course_setup";
 import { getAllCourseSetup as api_academic_get_all_course_setup_getAllCourseSetup } from "~backend/academic/get_all_course_setup";
 import { getCurrentYear as api_academic_get_current_year_getCurrentYear } from "~backend/academic/get_current_year";
+import { updateCourseSetup as api_academic_update_course_setup_updateCourseSetup } from "~backend/academic/update_course_setup";
 
 export namespace academic {
 
@@ -106,14 +108,22 @@ export namespace academic {
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
             this.addCourseSetup = this.addCourseSetup.bind(this)
+            this.deleteCourseSetup = this.deleteCourseSetup.bind(this)
             this.getAllCourseSetup = this.getAllCourseSetup.bind(this)
             this.getCurrentYear = this.getCurrentYear.bind(this)
+            this.updateCourseSetup = this.updateCourseSetup.bind(this)
         }
 
         public async addCourseSetup(params: RequestType<typeof api_academic_add_course_setup_addCourseSetup>): Promise<ResponseType<typeof api_academic_add_course_setup_addCourseSetup>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/academic/courses`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_add_course_setup_addCourseSetup>
+        }
+
+        public async deleteCourseSetup(params: { course_code: string }): Promise<ResponseType<typeof api_academic_delete_course_setup_deleteCourseSetup>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/academic/courses/${encodeURIComponent(params.course_code)}`, {method: "DELETE", body: undefined})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_delete_course_setup_deleteCourseSetup>
         }
 
         public async getAllCourseSetup(): Promise<ResponseType<typeof api_academic_get_all_course_setup_getAllCourseSetup>> {
@@ -126,6 +136,24 @@ export namespace academic {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/academic/current`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_get_current_year_getCurrentYear>
+        }
+
+        public async updateCourseSetup(params: RequestType<typeof api_academic_update_course_setup_updateCourseSetup>): Promise<ResponseType<typeof api_academic_update_course_setup_updateCourseSetup>> {
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                color:            params.color,
+                "course_name":    params["course_name"],
+                credits:          params.credits,
+                description:      params.description,
+                "grade_level":    params["grade_level"],
+                "max_enrollment": params["max_enrollment"],
+                subject:          params.subject,
+                term:             params.term,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/academic/courses/${encodeURIComponent(params.course_code)}`, {method: "PUT", body: JSON.stringify(body)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_academic_update_course_setup_updateCourseSetup>
         }
     }
 }
