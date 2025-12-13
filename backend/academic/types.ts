@@ -8,7 +8,7 @@ export interface CourseSetup {
   course_code: string;
   course_name: string;
   subject: string;
-  grade_level: string;
+  grade: string;
   credits: number;
   term: string;
   color_scheme: string;

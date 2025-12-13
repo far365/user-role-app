@@ -78,7 +78,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       try {
         const response = await backend.academic.getAllCourseSetup();
         const filteredCourses = response.courses.filter(
-          (course) => course.grade_level === grade
+          (course) => course.grade === grade
         );
         setCourses(filteredCourses);
       } catch (error) {
