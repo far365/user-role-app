@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,8 +11,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import backend from "~backend/client";
 import { useToast } from "@/components/ui/use-toast";
+import type { Grade } from "~backend/grades/types";
 
 interface CourseAddDialogProps {
   open: boolean;
@@ -29,8 +37,26 @@ export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDial
     max_enrollment: "",
     description: "",
   });
+  const [grades, setGrades] = useState<Grade[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const response = await backend.grades.list();
+        setGrades(response.grades);
+      } catch (error) {
+        console.error("Failed to fetch grades:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load grade levels",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchGrades();
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,12 +135,22 @@ export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDial
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="grade_level">Grade Level</Label>
-                <Input
-                  id="grade_level"
+                <Select
                   value={formData.grade_level}
-                  onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
+                  onValueChange={(value) => setFormData({ ...formData, grade_level: value })}
                   required
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grade level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade.name} value={grade.name}>
+                        {grade.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="max_enrollment">Max Enrollment</Label>
