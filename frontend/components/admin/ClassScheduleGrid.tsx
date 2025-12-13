@@ -396,7 +396,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         {isEditMode && (
           <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
             <p className="text-sm text-blue-900">
-              <strong>Edit Mode:</strong> Click the <Plus className="w-3 h-3 inline" /> button to add classes. New classes automatically start 1 minute after the previous class ends.
+              <strong>Edit Mode:</strong> Click the <Plus className="w-3 h-3 inline" /> button to add activities. New activities automatically start 1 minute after the previous activity ends.
             </p>
           </div>
         )}
@@ -492,7 +492,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                       onClick={() => handleAddActivity(dayIndex)}
                     >
                       <Plus className="w-4 h-4 mr-1" />
-                      Add Class
+                      Add Activity
                     </Button>
                   )}
 
@@ -512,7 +512,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingActivity?.name === "New Class" ? "Add Class" : "Edit Class"}
+              {editingActivity?.name === "New Class" ? "Add Activity" : "Edit Activity"}
             </DialogTitle>
           </DialogHeader>
           {editingActivity && (
@@ -677,7 +677,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                       }}
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Class
+                      Delete Activity
                     </Button>
                   )}
                 </div>
@@ -685,7 +685,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSaveActivity}>Save Class</Button>
+                  <Button onClick={handleSaveActivity}>Save Activity</Button>
                 </div>
               </div>
             </div>
