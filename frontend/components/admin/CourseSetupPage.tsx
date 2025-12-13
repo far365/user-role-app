@@ -118,7 +118,7 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
                   <tr className="border-b bg-gray-50">
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Course Code</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Course Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Grade Level</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Grade</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Color</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Max Enrollment</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>

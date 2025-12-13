@@ -141,7 +141,7 @@ export function CourseEditDialog({ course, open, onOpenChange, onSuccess }: Cour
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="grade_level">Grade Level</Label>
+                <Label htmlFor="grade_level">Grade</Label>
                 <Select
                   value={formData.grade_level}
                   onValueChange={(value) => setFormData({ ...formData, grade_level: value })}
