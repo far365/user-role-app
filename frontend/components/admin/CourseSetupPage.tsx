@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import backend from "~backend/client";
 import type { CourseSetup } from "~backend/academic/types";
 import { useToast } from "@/components/ui/use-toast";
+import { CourseEditDialog } from "./CourseEditDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CourseSetupPageProps {
   onBack: () => void;
@@ -13,6 +24,8 @@ interface CourseSetupPageProps {
 export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
   const [courses, setCourses] = useState<CourseSetup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingCourse, setEditingCourse] = useState<CourseSetup | null>(null);
+  const [deletingCourse, setDeletingCourse] = useState<CourseSetup | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,6 +46,31 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingCourse) return;
+
+    try {
+      await backend.academic.deleteCourseSetup({
+        course_code: deletingCourse.course_code,
+      });
+
+      toast({
+        title: "Success",
+        description: "Course deleted successfully",
+      });
+
+      setDeletingCourse(null);
+      loadCourses();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to delete course",
+        variant: "destructive",
+      });
     }
   };
 
@@ -76,6 +114,7 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Color</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Max Enrollment</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -95,6 +134,26 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{course.max_enrollment}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{course.description || '-'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingCourse(course)}
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeletingCourse(course)}
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -103,6 +162,32 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
           )}
         </CardContent>
       </Card>
+
+      {editingCourse && (
+        <CourseEditDialog
+          course={editingCourse}
+          open={!!editingCourse}
+          onOpenChange={(open) => !open && setEditingCourse(null)}
+          onSuccess={loadCourses}
+        />
+      )}
+
+      <AlertDialog open={!!deletingCourse} onOpenChange={(open) => !open && setDeletingCourse(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Course</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingCourse?.course_name}"? This action will soft delete the course.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
