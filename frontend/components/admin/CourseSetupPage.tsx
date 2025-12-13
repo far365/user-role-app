@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Plus } from "lucide-react";
 import backend from "~backend/client";
 import type { CourseSetup } from "~backend/academic/types";
 import { useToast } from "@/components/ui/use-toast";
 import { CourseEditDialog } from "./CourseEditDialog";
+import { CourseAddDialog } from "./CourseAddDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ interface CourseSetupPageProps {
 export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
   const [courses, setCourses] = useState<CourseSetup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseSetup | null>(null);
   const [deletingCourse, setDeletingCourse] = useState<CourseSetup | null>(null);
   const { toast } = useToast();
@@ -76,19 +78,25 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          className="h-8 w-8"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Course Setup</h2>
-          <p className="text-sm text-gray-600">View all course configurations</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="h-8 w-8"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Course Setup</h2>
+            <p className="text-sm text-gray-600">View all course configurations</p>
+          </div>
         </div>
+        <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Course
+        </Button>
       </div>
 
       <Card>
@@ -162,6 +170,12 @@ export function CourseSetupPage({ onBack }: CourseSetupPageProps) {
           )}
         </CardContent>
       </Card>
+
+      <CourseAddDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSuccess={loadCourses}
+      />
 
       {editingCourse && (
         <CourseEditDialog

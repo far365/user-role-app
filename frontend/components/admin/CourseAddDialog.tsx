@@ -1,0 +1,170 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import backend from "~backend/client";
+import { useToast } from "@/components/ui/use-toast";
+
+interface CourseAddDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+}
+
+export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDialogProps) {
+  const [formData, setFormData] = useState({
+    course_code: "",
+    course_name: "",
+    grade_level: "",
+    color: "#3b82f6",
+    max_enrollment: "",
+    description: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      await backend.academic.addCourseSetup({
+        course_code: formData.course_code,
+        course_name: formData.course_name,
+        grade_level: formData.grade_level,
+        color: formData.color,
+        max_enrollment: formData.max_enrollment,
+        description: formData.description,
+      });
+
+      toast({
+        title: "Success",
+        description: "Course added successfully",
+      });
+
+      setFormData({
+        course_code: "",
+        course_name: "",
+        grade_level: "",
+        color: "#3b82f6",
+        max_enrollment: "",
+        description: "",
+      });
+
+      onSuccess();
+      onOpenChange(false);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to add course",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add New Course</DialogTitle>
+          <DialogDescription>
+            Create a new course configuration
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="course_code">Course Code</Label>
+                <Input
+                  id="course_code"
+                  value={formData.course_code}
+                  onChange={(e) => setFormData({ ...formData, course_code: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="course_name">Course Name</Label>
+                <Input
+                  id="course_name"
+                  value={formData.course_name}
+                  onChange={(e) => setFormData({ ...formData, course_name: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="grade_level">Grade Level</Label>
+                <Input
+                  id="grade_level"
+                  value={formData.grade_level}
+                  onChange={(e) => setFormData({ ...formData, grade_level: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="max_enrollment">Max Enrollment</Label>
+                <Input
+                  id="max_enrollment"
+                  value={formData.max_enrollment}
+                  onChange={(e) => setFormData({ ...formData, max_enrollment: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="color">Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="color"
+                  type="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="w-20 h-10"
+                />
+                <Input
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Adding..." : "Add Course"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
