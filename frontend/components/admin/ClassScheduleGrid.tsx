@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Pencil, Save, X, Copy, Trash2, Plus, CheckCircle2, ArrowRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import backend from "~backend/client";
+import type { CourseSetup } from "~backend/academic/types";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
 
@@ -64,7 +66,28 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEffectiveDateDialogOpen, setIsEffectiveDateDialogOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
+  const [courses, setCourses] = useState<CourseSetup[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const response = await backend.academic.getAllCourseSetup();
+        const filteredCourses = response.courses.filter(
+          (course) => course.grade_level === grade
+        );
+        setCourses(filteredCourses);
+      } catch (error) {
+        console.error("Failed to load courses:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load courses for this grade",
+          variant: "destructive",
+        });
+      }
+    };
+    loadCourses();
+  }, [grade, toast]);
 
   const timeToMinutes = (time: string): number => {
     const [h, m] = time.split(":").map(Number);
@@ -493,13 +516,36 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Class Name</Label>
-                  <Input
-                    value={editingActivity.name}
-                    onChange={(e) =>
-                      setEditingActivity({ ...editingActivity, name: e.target.value })
-                    }
-                    placeholder="e.g., Math Class"
-                  />
+                  {editingActivity.type === "Academics" ? (
+                    <Select
+                      value={editingActivity.name}
+                      onValueChange={(value) =>
+                        setEditingActivity({ ...editingActivity, name: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => {
+                          const displayName = `${course.course_code} - ${course.course_name}`;
+                          return (
+                            <SelectItem key={course.course_code} value={displayName}>
+                              {displayName}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={editingActivity.name}
+                      onChange={(e) =>
+                        setEditingActivity({ ...editingActivity, name: e.target.value })
+                      }
+                      placeholder="e.g., Lunch, Recess"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Activity Type</Label>
