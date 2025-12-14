@@ -792,7 +792,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
 const jsonPayload = JSON.stringify(payload);
 
 const { data, error } = await supabase.rpc("add_class_schedule", {
-  schedule_json: jsonPayload
+  json_input: jsonPayload
 });`}</pre>
               </div>
             </div>
@@ -801,7 +801,7 @@ const { data, error } = await supabase.rpc("add_class_schedule", {
               <h3 className="font-semibold mb-2 text-sm">Supabase RPC Call Parameter:</h3>
               <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
                 <pre>{`{
-  "schedule_json": ${JSON.stringify(JSON.stringify(jsonPayload))}
+  "json_input": ${JSON.stringify(JSON.stringify(jsonPayload))}
 }`}</pre>
               </div>
             </div>

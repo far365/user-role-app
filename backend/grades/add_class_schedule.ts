@@ -35,7 +35,7 @@ export const addClassSchedule = api(
     const jsonPayload = JSON.stringify(payload);
 
     const { data, error } = await supabase.rpc("add_class_schedule", {
-      schedule_json: jsonPayload,
+      json_input: jsonPayload,
     });
 
     if (error) {
