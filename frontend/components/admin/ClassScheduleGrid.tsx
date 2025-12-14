@@ -10,6 +10,7 @@ import { Pencil, Save, X, Copy, Trash2, Plus, CheckCircle2, ArrowRight } from "l
 import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { CourseSetup } from "~backend/academic/types";
+import type { AcademicYear } from "~backend/academic/types";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
 
@@ -29,6 +30,14 @@ interface ClassScheduleGridProps {
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const MIN_START_TIME = "07:00";
+
+const getNextMonday = (): string => {
+  const today = new Date();
+  const daysUntilNextMonday = ((1 - today.getDay() + 7) % 7) || 7;
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+  return nextMonday.toISOString().split('T')[0];
+};
 
 const ACTIVITY_TYPES: ActivityType[] = [
   "Academics",
@@ -53,18 +62,23 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [isEffectiveDateDialogOpen, setIsEffectiveDateDialogOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
   const [courses, setCourses] = useState<CourseSetup[]>([]);
+  const [currentYear, setCurrentYear] = useState<AcademicYear | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadCourses = async () => {
+    const loadData = async () => {
       try {
-        const response = await backend.academic.getAllCourseSetup();
-        const filteredCourses = response.courses.filter(
+        const [coursesResponse, yearResponse] = await Promise.all([
+          backend.academic.getAllCourseSetup(),
+          backend.academic.getCurrentYear(),
+        ]);
+        const filteredCourses = coursesResponse.courses.filter(
           (course) => course.grade === grade
         );
         setCourses(filteredCourses);
+        setCurrentYear(yearResponse);
       } catch (error) {
-        console.error("Failed to load courses:", error);
+        console.error("Failed to load data:", error);
         toast({
           title: "Error",
           description: "Failed to load courses for this grade",
@@ -72,7 +86,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         });
       }
     };
-    loadCourses();
+    loadData();
   }, [grade, toast]);
 
   const timeToMinutes = (time: string): number => {
@@ -110,13 +124,58 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     setEditingDay(day);
   };
 
-  const handleSaveDay = () => {
-    setEditingDay(null);
-    setIsEditMode(false);
-    toast({
-      title: "Success",
-      description: `${DAYS[editingDay!]} schedule saved`,
-    });
+  const handleSaveDay = async () => {
+    if (editingDay === null || !currentYear) return;
+
+    const dayActivities = getActivitiesForDay(editingDay);
+    
+    if (dayActivities.length === 0) {
+      toast({
+        title: "Error",
+        description: "Cannot save an empty day. Add at least one activity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const nextMonday = getNextMonday();
+
+    const scheduleActivities = dayActivities.map((activity) => ({
+      activity_name: activity.name,
+      activity_type: activity.type,
+      start_time: activity.startTime,
+      end_time: activity.endTime,
+      day_of_week: DAYS[activity.day],
+      notes: activity.attendanceRequired ? "Attendance Required" : undefined,
+    }));
+
+    try {
+      await backend.grades.addClassSchedule({
+        header: {
+          timezone: "America/New_York",
+          ayid: currentYear.ayid,
+          grade: grade,
+          day_of_week: DAYS[editingDay],
+          effective_date: nextMonday,
+          start_time: dayActivities[0].startTime,
+        },
+        activities: scheduleActivities,
+      });
+
+      setEditingDay(null);
+      setIsEditMode(false);
+      toast({
+        title: "Success",
+        description: `${DAYS[editingDay]} schedule saved with effective date ${nextMonday}`,
+      });
+    } catch (error) {
+      console.error("Failed to save schedule:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save schedule. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelEditingDay = () => {
