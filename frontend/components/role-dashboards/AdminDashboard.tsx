@@ -9,6 +9,7 @@ import { FullDismissalQueuePage } from "../admin/FullDismissalQueuePage";
 import { FullAttendanceBySchoolPage } from "../admin/FullAttendanceBySchoolPage";
 import { ScheduleManagementPage } from "../admin/ScheduleManagementPage";
 import { CourseSetupPage } from "../admin/CourseSetupPage";
+import { TeacherAssignmentPage } from "../admin/TeacherAssignmentPage";
 import type { User } from "~backend/user/types";
 
 interface AdminDashboardProps {
@@ -56,6 +57,10 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   if (currentPage === 'course-setup') {
     return <CourseSetupPage onBack={handleBackToDashboard} />;
+  }
+
+  if (currentPage === 'teacher-assignment') {
+    return <TeacherAssignmentPage user={user} onBack={handleBackToDashboard} />;
   }
 
   return (
@@ -129,6 +134,15 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
         >
           <GraduationCap className="h-5 w-5 mr-3" />
           Teacher Setup
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          className="justify-start h-12 px-4 text-teal-700 hover:text-teal-800 hover:bg-teal-50"
+          onClick={() => handleNavigate('teacher-assignment')}
+        >
+          <GraduationCap className="h-5 w-5 mr-3" />
+          Teacher Assignment
         </Button>
 
         <Button 
