@@ -15,9 +15,25 @@ export const addClassSchedule = api(
       throw APIError.invalidArgument("At least one activity is required");
     }
 
+    const dayOfWeekMap: { [key: string]: number } = {
+      "Sunday": 0,
+      "Monday": 1,
+      "Tuesday": 2,
+      "Wednesday": 3,
+      "Thursday": 4,
+      "Friday": 5,
+      "Saturday": 6,
+    };
+
     const effectiveDate = new Date(header.effective_date);
-    if (effectiveDate.getDay() !== 1) {
-      throw APIError.invalidArgument("Effective date must be a Monday");
+    const expectedDay = dayOfWeekMap[header.day_of_week];
+    
+    if (expectedDay === undefined) {
+      throw APIError.invalidArgument(`Invalid day_of_week: ${header.day_of_week}`);
+    }
+
+    if (effectiveDate.getDay() !== expectedDay) {
+      throw APIError.invalidArgument(`Effective date must be a ${header.day_of_week}`);
     }
 
     const today = new Date();
