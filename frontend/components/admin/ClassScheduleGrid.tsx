@@ -46,6 +46,7 @@ const getActivityTypeDisplay = (type: ActivityType): string => {
 
 export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [isEditMode, setIsEditMode] = useState(false);
+  const [editingDay, setEditingDay] = useState<number | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -104,6 +105,25 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
     return date > today;
   };
 
+  const handleStartEditingDay = (day: number) => {
+    setIsEditMode(true);
+    setEditingDay(day);
+  };
+
+  const handleSaveDay = () => {
+    setEditingDay(null);
+    setIsEditMode(false);
+    toast({
+      title: "Success",
+      description: `${DAYS[editingDay!]} schedule saved`,
+    });
+  };
+
+  const handleCancelEditingDay = () => {
+    setEditingDay(null);
+    setIsEditMode(false);
+  };
+
   const handleSaveAndExit = () => {
     setIsEffectiveDateDialogOpen(true);
   };
@@ -143,6 +163,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
 
     setIsEffectiveDateDialogOpen(false);
     setIsEditMode(false);
+    setEditingDay(null);
     setEffectiveDate("");
   };
 
@@ -157,7 +178,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   };
 
   const handleAddActivity = (day: number) => {
-    if (!isEditMode) return;
+    if (!isEditMode || editingDay !== day) return;
 
     const startTime = getNextStartTime(day);
     const startMinutes = timeToMinutes(startTime);
@@ -178,7 +199,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   };
 
   const handleEditActivity = (activity: Activity) => {
-    if (!isEditMode) return;
+    if (!isEditMode || editingDay !== activity.day) return;
     setEditingActivity({ ...activity });
     setIsDialogOpen(true);
   };
@@ -271,7 +292,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   };
 
   const handleDeleteDay = (day: number) => {
-    if (!isEditMode) return;
+    if (!isEditMode || editingDay !== day) return;
     setActivities(activities.filter((a) => a.day !== day));
     toast({
       title: "Success",
@@ -280,7 +301,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   };
 
   const handleCopyDay = (sourceDay: number, targetDay: number) => {
-    if (!isEditMode) return;
+    if (!isEditMode || editingDay !== sourceDay) return;
 
     const targetActivities = activities.filter((a) => a.day === targetDay);
     if (targetActivities.length > 0) {
@@ -347,20 +368,20 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
           <div>
             <h3 className="text-lg font-semibold">Weekly Schedule - {grade}</h3>
             <p className="text-sm text-muted-foreground">Custom class timings (earliest start: 7:00 AM)</p>
+            {isEditMode && editingDay !== null && (
+              <p className="text-sm text-blue-600 font-medium mt-1">
+                Editing: {DAYS[editingDay]}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
-            {!isEditMode ? (
-              <Button onClick={() => setIsEditMode(true)} variant="default">
-                <Pencil className="w-4 h-4 mr-2" />
-                Edit Schedule
-              </Button>
-            ) : (
+            {isEditMode && editingDay !== null && (
               <>
-                <Button onClick={handleSaveAndExit} variant="default">
+                <Button onClick={handleSaveDay} variant="default">
                   <Save className="w-4 h-4 mr-2" />
-                  Save & Exit
+                  Save {DAYS[editingDay]}
                 </Button>
-                <Button onClick={() => setIsEditMode(false)} variant="outline">
+                <Button onClick={handleCancelEditingDay} variant="outline">
                   <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
@@ -369,10 +390,10 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
           </div>
         </div>
 
-        {isEditMode && (
+        {isEditMode && editingDay !== null && (
           <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
             <p className="text-sm text-blue-900">
-              <strong>Edit Mode:</strong> Click the <Plus className="w-3 h-3 inline" /> button to add activities. New activities automatically start 1 minute after the previous activity ends.
+              <strong>Edit Mode ({DAYS[editingDay]}):</strong> Click the <Plus className="w-3 h-3 inline" /> button to add activities. New activities automatically start 1 minute after the previous activity ends.
             </p>
           </div>
         )}
@@ -404,33 +425,47 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
         <div className="flex-1 grid grid-cols-5 gap-4">
           {DAYS.map((day, dayIndex) => {
             const dayActivities = getActivitiesForDay(dayIndex);
+            const isDayLocked = isEditMode && editingDay !== null && editingDay !== dayIndex;
+            const isDayEditing = isEditMode && editingDay === dayIndex;
             return (
-              <Card key={day} className="p-3">
+              <Card key={day} className={`p-3 relative ${isDayLocked ? 'opacity-50 bg-gray-50' : ''} ${isDayEditing ? 'ring-2 ring-blue-500' : ''}`}>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-sm">{day}</h4>
-                  {isEditMode && (
-                    <div className="flex gap-1">
-                      {dayIndex < DAYS.length - 1 && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleCopyDay(dayIndex, dayIndex + 1)}
-                          title={`Copy to ${DAYS[dayIndex + 1]}`}
-                        >
-                          <Copy className="w-3 h-3" />
-                          <ArrowRight className="w-3 h-3 ml-0.5" />
-                        </Button>
-                      )}
+                  <div className="flex gap-1">
+                    {!isEditMode && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDeleteDay(dayIndex)}
-                        title="Clear day"
+                        onClick={() => handleStartEditingDay(dayIndex)}
+                        title={`Edit ${day}`}
                       >
-                        <Trash2 className="w-3 h-3 text-red-600" />
+                        <Pencil className="w-3 h-3" />
                       </Button>
-                    </div>
-                  )}
+                    )}
+                    {isDayEditing && (
+                      <>
+                        {dayIndex < DAYS.length - 1 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCopyDay(dayIndex, dayIndex + 1)}
+                            title={`Copy to ${DAYS[dayIndex + 1]}`}
+                          >
+                            <Copy className="w-3 h-3" />
+                            <ArrowRight className="w-3 h-3 ml-0.5" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteDay(dayIndex)}
+                          title="Clear day"
+                        >
+                          <Trash2 className="w-3 h-3 text-red-600" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -438,8 +473,8 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                     <div
                       key={activity.id}
                       onClick={() => handleEditActivity(activity)}
-                      className={`p-2 rounded cursor-pointer transition-all relative ${
-                        isEditMode ? "hover:opacity-80 hover:shadow-md" : ""
+                      className={`p-2 rounded transition-all relative ${
+                        isDayEditing ? "cursor-pointer hover:opacity-80 hover:shadow-md" : isDayLocked ? "cursor-not-allowed" : ""
                       } ${getActivityColor(activity.type)}`}
                     >
                       {activity.attendanceRequired && (
@@ -455,7 +490,7 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                     </div>
                   ))}
 
-                  {isEditMode && (
+                  {isDayEditing && (
                     <Button
                       variant="outline"
                       size="sm"
