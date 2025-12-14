@@ -572,16 +572,23 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                     )}
                   </div>
                   </div>
-                  <div className="mb-2">
-                    <Label className="text-xs text-muted-foreground">Effective Date</Label>
-                    <Input
-                      type="date"
-                      value={effectiveDates[dayIndex] || ""}
-                      onChange={(e) => setEffectiveDates({...effectiveDates, [dayIndex]: e.target.value})}
-                      disabled={!isDayEditing}
-                      className="text-xs h-7 mt-1"
-                    />
-                  </div>
+                  {effectiveDates[dayIndex] && (
+                    <div className="mb-2 pb-2 border-b">
+                      <Label className="text-xs text-muted-foreground">Current Effective Date</Label>
+                      <p className="text-xs font-medium mt-1">{effectiveDates[dayIndex]}</p>
+                    </div>
+                  )}
+                  {isDayEditing && (
+                    <div className="mb-2">
+                      <Label className="text-xs text-muted-foreground">New Effective Date</Label>
+                      <Input
+                        type="date"
+                        value={effectiveDates[dayIndex] || getNextMonday()}
+                        onChange={(e) => setEffectiveDates({...effectiveDates, [dayIndex]: e.target.value})}
+                        className="text-xs h-7 mt-1"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
