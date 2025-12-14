@@ -766,17 +766,46 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       </Dialog>
 
       <Dialog open={isJsonPreviewDialogOpen} onOpenChange={setIsJsonPreviewDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Confirm Schedule JSON</DialogTitle>
             <DialogDescription>
-              Review the JSON payload that will be sent to grades.addClassSchedule
+              Review the exact code and payload that will be sent to Supabase
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{JSON.stringify(jsonPayload, null, 2)}</pre>
+            <div>
+              <h3 className="font-semibold mb-2 text-sm">Backend API Endpoint Request Payload:</h3>
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                <pre>{JSON.stringify(jsonPayload, null, 2)}</pre>
+              </div>
             </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2 text-sm">Backend Code (grades.addClassSchedule):</h3>
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                <pre>{`const payload = {
+  header: ${JSON.stringify(jsonPayload?.header, null, 2)},
+  activities: ${JSON.stringify(jsonPayload?.activities, null, 2)}
+};
+
+const jsonPayload = JSON.stringify(payload);
+
+const { data, error } = await supabase.rpc("add_class_schedule", {
+  schedule_json: jsonPayload
+});`}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2 text-sm">Supabase RPC Call Parameter:</h3>
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                <pre>{`{
+  "schedule_json": ${JSON.stringify(JSON.stringify(jsonPayload))}
+}`}</pre>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsJsonPreviewDialogOpen(false)}>
                 Cancel
