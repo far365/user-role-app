@@ -27,24 +27,16 @@ export const addClassSchedule = api(
       throw APIError.invalidArgument("Effective date must be in the future");
     }
 
-    const scheduleData = activities.map((activity) => ({
-      ayid: header.ayid,
-      grade: header.grade,
-      day_of_week: activity.day_of_week,
-      activity_name: activity.activity_name,
-      activity_type: activity.activity_type,
-      start_time: activity.start_time,
-      end_time: activity.end_time,
-      effective_date: header.effective_date,
-      timezone: header.timezone,
-      notes: activity.notes || null,
-      created_at: new Date().toISOString(),
-    }));
+    const payload = {
+      header,
+      activities,
+    };
 
-    const { data, error } = await supabase
-      .from("class_schedules")
-      .insert(scheduleData)
-      .select();
+    const jsonPayload = JSON.stringify(payload);
+
+    const { data, error } = await supabase.rpc("add_class_schedule", {
+      schedule_json: jsonPayload,
+    });
 
     if (error) {
       console.error("Failed to insert class schedule:", error);
@@ -54,7 +46,7 @@ export const addClassSchedule = api(
     return {
       success: true,
       message: `Successfully saved ${activities.length} activities for grade ${header.grade}`,
-      schedule_id: data?.[0]?.id,
+      schedule_id: data?.schedule_id,
     };
   }
 );
