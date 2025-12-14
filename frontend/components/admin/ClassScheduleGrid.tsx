@@ -699,7 +699,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                   <Select
                     value={editingActivity.type}
                     onValueChange={(value: ActivityType) =>
-                      setEditingActivity({ ...editingActivity, type: value })
+                      setEditingActivity({ ...editingActivity, type: value, name: "" })
                     }
                   >
                     <SelectTrigger>
