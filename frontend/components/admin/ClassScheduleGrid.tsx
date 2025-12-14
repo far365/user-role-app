@@ -63,6 +63,8 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   const [effectiveDate, setEffectiveDate] = useState("");
   const [courses, setCourses] = useState<CourseSetup[]>([]);
   const [currentYear, setCurrentYear] = useState<AcademicYear | null>(null);
+  const [isJsonPreviewDialogOpen, setIsJsonPreviewDialogOpen] = useState(false);
+  const [jsonPayload, setJsonPayload] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -161,16 +163,23 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       activities: scheduleActivities,
     };
 
-    console.log("Save Monday payload:", JSON.stringify(payload, null, 2));
+    setJsonPayload(payload);
+    setIsJsonPreviewDialogOpen(true);
+  };
+
+  const handleConfirmJsonSubmit = async () => {
+    if (!jsonPayload) return;
 
     try {
-      await backend.grades.addClassSchedule(payload);
+      await backend.grades.addClassSchedule(jsonPayload);
 
       setEditingDay(null);
       setIsEditMode(false);
+      setIsJsonPreviewDialogOpen(false);
+      setJsonPayload(null);
       toast({
         title: "Success",
-        description: `${DAYS[editingDay]} schedule saved with effective date ${nextMonday}`,
+        description: `${DAYS[jsonPayload.header.day_of_week]} schedule saved with effective date ${jsonPayload.header.effective_date}`,
       });
     } catch (error) {
       console.error("Failed to save schedule:", error);
@@ -751,6 +760,31 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
                 Cancel
               </Button>
               <Button onClick={handleConfirmSave}>Confirm & Save</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isJsonPreviewDialogOpen} onOpenChange={setIsJsonPreviewDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Confirm Schedule JSON</DialogTitle>
+            <DialogDescription>
+              Review the JSON payload that will be sent to grades.addClassSchedule
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+              <pre>{JSON.stringify(jsonPayload, null, 2)}</pre>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsJsonPreviewDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmJsonSubmit}>
+                <Save className="w-4 h-4 mr-2" />
+                Submit to API
+              </Button>
             </div>
           </div>
         </DialogContent>
