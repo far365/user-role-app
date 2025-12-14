@@ -719,23 +719,11 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Day</Label>
-                  <Select
-                    value={editingActivity.day.toString()}
-                    onValueChange={(value) =>
-                      setEditingActivity({ ...editingActivity, day: parseInt(value) })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DAYS.map((day, index) => (
-                        <SelectItem key={day} value={index.toString()}>
-                          {day}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    value={DAYS[editingActivity.day]}
+                    disabled
+                    className="bg-muted"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Start Time</Label>
