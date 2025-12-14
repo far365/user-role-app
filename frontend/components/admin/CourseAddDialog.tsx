@@ -35,6 +35,8 @@ export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDial
     grade_level: "",
     color: "#3b82f6",
     max_enrollment: "",
+    min_teachers: 1,
+    min_assistants: 0,
     description: "",
   });
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -69,6 +71,8 @@ export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDial
         grade_level: formData.grade_level,
         color: formData.color,
         max_enrollment: formData.max_enrollment,
+        min_teachers: formData.min_teachers,
+        min_assistants: formData.min_assistants,
         description: formData.description,
       });
 
@@ -83,6 +87,8 @@ export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDial
         grade_level: "",
         color: "#3b82f6",
         max_enrollment: "",
+        min_teachers: 1,
+        min_assistants: 0,
         description: "",
       });
 
@@ -158,6 +164,31 @@ export function CourseAddDialog({ open, onOpenChange, onSuccess }: CourseAddDial
                   id="max_enrollment"
                   value={formData.max_enrollment}
                   onChange={(e) => setFormData({ ...formData, max_enrollment: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="min_teachers">Min Teachers</Label>
+                <Input
+                  id="min_teachers"
+                  type="number"
+                  min="0"
+                  value={formData.min_teachers}
+                  onChange={(e) => setFormData({ ...formData, min_teachers: parseInt(e.target.value) || 0 })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="min_assistants">Min Assistants</Label>
+                <Input
+                  id="min_assistants"
+                  type="number"
+                  min="0"
+                  value={formData.min_assistants}
+                  onChange={(e) => setFormData({ ...formData, min_assistants: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>

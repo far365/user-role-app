@@ -603,26 +603,36 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                 </div>
 
                 <div className="space-y-2">
-                  {dayActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      onClick={() => handleEditActivity(activity)}
-                      className={`p-2 rounded transition-all relative ${
-                        isDayEditing ? "cursor-pointer hover:opacity-80 hover:shadow-md" : isDayLocked ? "cursor-not-allowed" : ""
-                      } ${getActivityColor(activity.type)}`}
-                    >
-                      {activity.attendanceRequired && (
-                        <div className="absolute top-1 right-1" title="Attendance Required">
-                          <CheckCircle2 className="w-3 h-3 fill-current opacity-70" />
+                  {dayActivities.map((activity) => {
+                    const matchingCourse = activity.type === "Academics" 
+                      ? courses.find(c => activity.name.includes(c.course_code))
+                      : null;
+                    return (
+                      <div
+                        key={activity.id}
+                        onClick={() => handleEditActivity(activity)}
+                        className={`p-2 rounded transition-all relative ${
+                          isDayEditing ? "cursor-pointer hover:opacity-80 hover:shadow-md" : isDayLocked ? "cursor-not-allowed" : ""
+                        } ${getActivityColor(activity.type)}`}
+                      >
+                        {activity.attendanceRequired && (
+                          <div className="absolute top-1 right-1" title="Attendance Required">
+                            <CheckCircle2 className="w-3 h-3 fill-current opacity-70" />
+                          </div>
+                        )}
+                        <div className="font-semibold text-xs mb-1 pr-4">{activity.name}</div>
+                        <div className="text-[10px] font-medium mb-1">
+                          {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
                         </div>
-                      )}
-                      <div className="font-semibold text-xs mb-1 pr-4">{activity.name}</div>
-                      <div className="text-[10px] font-medium mb-1">
-                        {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
+                        <div className="text-[10px] opacity-70 mb-1">{getActivityTypeDisplay(activity.type)}</div>
+                        {matchingCourse && (
+                          <div className="text-[10px] font-medium mt-1 pt-1 border-t border-current/20">
+                            Teachers: {matchingCourse.min_teachers} | Assistants: {matchingCourse.min_assistants}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-[10px] opacity-70 mb-1">{getActivityTypeDisplay(activity.type)}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {isDayEditing && (
                     <Button
@@ -715,6 +725,22 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                   </Select>
                 </div>
               </div>
+
+              {editingActivity.type === "Academics" && editingActivity.name && (() => {
+                const matchingCourse = courses.find(c => editingActivity.name.includes(c.course_code));
+                if (matchingCourse) {
+                  return (
+                    <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                      <div className="text-sm font-medium text-blue-900 mb-1">Staffing Requirements</div>
+                      <div className="grid grid-cols-2 gap-4 text-sm text-blue-800">
+                        <div>Min Teachers: <span className="font-semibold">{matchingCourse.min_teachers}</span></div>
+                        <div>Min Assistants: <span className="font-semibold">{matchingCourse.min_assistants}</span></div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">

@@ -40,6 +40,8 @@ export function CourseEditDialog({ course, open, onOpenChange, onSuccess }: Cour
     term: course.term,
     color: course.color_scheme,
     max_enrollment: course.max_enrollment,
+    min_teachers: course.min_teachers,
+    min_assistants: course.min_assistants,
     description: course.description || "",
   });
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -77,6 +79,8 @@ export function CourseEditDialog({ course, open, onOpenChange, onSuccess }: Cour
         term: formData.term,
         color: formData.color,
         max_enrollment: formData.max_enrollment,
+        min_teachers: formData.min_teachers,
+        min_assistants: formData.min_assistants,
         description: formData.description,
       });
 
@@ -189,6 +193,31 @@ export function CourseEditDialog({ course, open, onOpenChange, onSuccess }: Cour
                   type="number"
                   value={formData.max_enrollment}
                   onChange={(e) => setFormData({ ...formData, max_enrollment: parseInt(e.target.value) })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="min_teachers">Min Teachers</Label>
+                <Input
+                  id="min_teachers"
+                  type="number"
+                  min="0"
+                  value={formData.min_teachers}
+                  onChange={(e) => setFormData({ ...formData, min_teachers: parseInt(e.target.value) || 0 })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="min_assistants">Min Assistants</Label>
+                <Input
+                  id="min_assistants"
+                  type="number"
+                  min="0"
+                  value={formData.min_assistants}
+                  onChange={(e) => setFormData({ ...formData, min_assistants: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>

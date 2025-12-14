@@ -13,6 +13,8 @@ export interface CourseSetup {
   term: string;
   color_scheme: string;
   max_enrollment: number;
+  min_teachers: number;
+  min_assistants: number;
   description: string | null;
   created_at: string;
 }

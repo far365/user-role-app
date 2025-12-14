@@ -147,6 +147,8 @@ export namespace academic {
                 description:      params.description,
                 "grade_level":    params["grade_level"],
                 "max_enrollment": params["max_enrollment"],
+                "min_assistants": params["min_assistants"],
+                "min_teachers":   params["min_teachers"],
                 subject:          params.subject,
                 term:             params.term,
             }

@@ -10,6 +10,8 @@ export interface UpdateCourseSetupRequest {
   term: string;
   color: string;
   max_enrollment: number;
+  min_teachers: number;
+  min_assistants: number;
   description: string;
 }
 
@@ -25,6 +27,8 @@ export const updateCourseSetup = api(
       p_term: req.term,
       p_color: req.color,
       p_max_enrollment: req.max_enrollment,
+      p_min_teachers: req.min_teachers,
+      p_min_assistants: req.min_assistants,
       p_description: req.description,
     });
 

@@ -7,6 +7,8 @@ export interface AddCourseSetupRequest {
   grade_level: string;
   color: string;
   max_enrollment: string;
+  min_teachers: number;
+  min_assistants: number;
   description: string;
 }
 
@@ -19,6 +21,8 @@ export const addCourseSetup = api(
       p_grade_level: req.grade_level,
       p_color: req.color,
       p_max_enrollment: req.max_enrollment,
+      p_min_teachers: req.min_teachers,
+      p_min_assistants: req.min_assistants,
       p_description: req.description,
     });
 
