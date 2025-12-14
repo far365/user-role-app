@@ -149,18 +149,22 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
       notes: activity.attendanceRequired ? "Attendance Required" : undefined,
     }));
 
+    const payload = {
+      header: {
+        timezone: "America/New_York",
+        ayid: currentYear.ayid,
+        grade: grade,
+        day_of_week: DAYS[editingDay],
+        effective_date: nextMonday,
+        start_time: dayActivities[0].startTime,
+      },
+      activities: scheduleActivities,
+    };
+
+    console.log("Save Monday payload:", JSON.stringify(payload, null, 2));
+
     try {
-      await backend.grades.addClassSchedule({
-        header: {
-          timezone: "America/New_York",
-          ayid: currentYear.ayid,
-          grade: grade,
-          day_of_week: DAYS[editingDay],
-          effective_date: nextMonday,
-          start_time: dayActivities[0].startTime,
-        },
-        activities: scheduleActivities,
-      });
+      await backend.grades.addClassSchedule(payload);
 
       setEditingDay(null);
       setIsEditMode(false);
