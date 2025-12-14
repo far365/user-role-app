@@ -25,7 +25,8 @@ export const addClassSchedule = api(
       "Saturday": 6,
     };
 
-    const effectiveDate = new Date(header.effective_date);
+    const [year, month, day] = header.effective_date.split('-').map(Number);
+    const effectiveDate = new Date(year, month - 1, day);
     const expectedDay = dayOfWeekMap[header.day_of_week];
     
     if (expectedDay === undefined) {
@@ -36,8 +37,8 @@ export const addClassSchedule = api(
       throw APIError.invalidArgument(`Effective date must be a ${header.day_of_week}`);
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     effectiveDate.setHours(0, 0, 0, 0);
     if (effectiveDate <= today) {
       throw APIError.invalidArgument("Effective date must be in the future");
