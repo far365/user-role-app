@@ -106,9 +106,9 @@ export function ScheduleManagementPage({ user, onBack }: ScheduleManagementPageP
         </div>
       </div>
 
-      {selectedGrade && (
+      {selectedGrade && academicYear && (
         <div className="mt-8">
-          <ClassScheduleGrid grade={selectedGrade} />
+          <ClassScheduleGrid grade={selectedGrade} academicYear={academicYear} />
         </div>
       )}
     </div>

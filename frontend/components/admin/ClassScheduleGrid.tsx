@@ -26,6 +26,7 @@ interface Activity {
 
 interface ClassScheduleGridProps {
   grade: string;
+  academicYear: string;
 }
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -53,7 +54,7 @@ const getActivityTypeDisplay = (type: ActivityType): string => {
   return type === "Academics" ? "Class" : type;
 };
 
-export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
+export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingDay, setEditingDay] = useState<number | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -70,26 +71,47 @@ export function ClassScheduleGrid({ grade }: ClassScheduleGridProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [coursesResponse, yearResponse] = await Promise.all([
+        const [coursesResponse, yearResponse, scheduleResponse] = await Promise.all([
           backend.academic.getAllCourseSetup(),
           backend.academic.getCurrentYear(),
+          backend.grades.getClassScheduleByGrade({
+            timezone: "America/New_York",
+            ayid: academicYear,
+            grade: grade,
+          }),
         ]);
         const filteredCourses = coursesResponse.courses.filter(
           (course) => course.grade === grade
         );
         setCourses(filteredCourses);
         setCurrentYear(yearResponse);
+
+        if (scheduleResponse.schedule && scheduleResponse.schedule.length > 0) {
+          const loadedActivities: Activity[] = scheduleResponse.schedule.map((item: any) => {
+            const dayIndex = DAYS.indexOf(item.day_of_week);
+            return {
+              id: `activity-${item.activity_name}-${item.start_time}-${Math.random()}`,
+              name: item.activity_name,
+              type: item.activity_type as ActivityType,
+              day: dayIndex >= 0 ? dayIndex : 0,
+              startTime: item.start_time,
+              endTime: item.end_time,
+              attendanceRequired: item.notes === "Attendance Required",
+            };
+          });
+          setActivities(loadedActivities);
+        }
       } catch (error) {
         console.error("Failed to load data:", error);
         toast({
           title: "Error",
-          description: "Failed to load courses for this grade",
+          description: "Failed to load schedule data",
           variant: "destructive",
         });
       }
     };
     loadData();
-  }, [grade, toast]);
+  }, [grade, academicYear, toast]);
 
   const timeToMinutes = (time: string): number => {
     const [h, m] = time.split(":").map(Number);
