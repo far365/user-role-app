@@ -36,3 +36,13 @@ export interface AddClassScheduleResponse {
   message: string;
   schedule_id?: string;
 }
+
+export interface GetClassScheduleByGradeRequest {
+  timezone: string;
+  ayid: string;
+  grade: string;
+}
+
+export interface GetClassScheduleByGradeResponse {
+  schedule: any[];
+}

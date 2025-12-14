@@ -163,6 +163,7 @@ export namespace academic {
  */
 import { addClassSchedule as api_grades_add_class_schedule_addClassSchedule } from "~backend/grades/add_class_schedule";
 import { classTimings as api_grades_class_timings_classTimings } from "~backend/grades/class_timings";
+import { getClassScheduleByGrade as api_grades_get_class_schedule_by_grade_getClassScheduleByGrade } from "~backend/grades/get_class_schedule_by_grade";
 import { list as api_grades_list_list } from "~backend/grades/list";
 
 export namespace grades {
@@ -174,6 +175,7 @@ export namespace grades {
             this.baseClient = baseClient
             this.addClassSchedule = this.addClassSchedule.bind(this)
             this.classTimings = this.classTimings.bind(this)
+            this.getClassScheduleByGrade = this.getClassScheduleByGrade.bind(this)
             this.list = this.list.bind(this)
         }
 
@@ -187,6 +189,12 @@ export namespace grades {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/grades/${encodeURIComponent(params.grade)}/class-timings`, {method: "GET", body: undefined})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_grades_class_timings_classTimings>
+        }
+
+        public async getClassScheduleByGrade(params: RequestType<typeof api_grades_get_class_schedule_by_grade_getClassScheduleByGrade>): Promise<ResponseType<typeof api_grades_get_class_schedule_by_grade_getClassScheduleByGrade>> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI(`/grades/class-schedule/by-grade`, {method: "POST", body: JSON.stringify(params)})
+            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_grades_get_class_schedule_by_grade_getClassScheduleByGrade>
         }
 
         /**
