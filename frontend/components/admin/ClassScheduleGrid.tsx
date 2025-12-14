@@ -54,6 +54,17 @@ const getActivityTypeDisplay = (type: ActivityType): string => {
   return type === "Academics" ? "Class" : type;
 };
 
+const formatEffectiveDate = (date: any): string => {
+  if (!date) return "";
+  if (date instanceof Date) {
+    return date.toISOString().split('T')[0];
+  }
+  if (typeof date === 'string') {
+    return date.split('T')[0];
+  }
+  return String(date).split('T')[0];
+};
+
 export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingDay, setEditingDay] = useState<number | null>(null);
@@ -106,7 +117,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           scheduleResponse.schedule.forEach((item: any) => {
             const dayIndex = DAYS.indexOf(item.day_of_week);
             if (dayIndex >= 0 && item.effective_date && !dates[dayIndex]) {
-              dates[dayIndex] = item.effective_date.split('T')[0];
+              dates[dayIndex] = formatEffectiveDate(item.effective_date);
             }
           });
           setEffectiveDates(dates);
