@@ -15,6 +15,8 @@ export interface ScheduleActivity {
   end_time: string;
   day_of_week: string;
   notes?: string;
+  min_teachers?: number;
+  min_assistants?: number;
 }
 
 export interface ScheduleHeader {

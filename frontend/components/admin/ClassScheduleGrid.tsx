@@ -22,6 +22,8 @@ interface Activity {
   startTime: string;
   endTime: string;
   attendanceRequired: boolean;
+  minTeachers?: number;
+  minAssistants?: number;
 }
 
 interface ClassScheduleGridProps {
@@ -109,6 +111,8 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               startTime: item.start_time,
               endTime: item.end_time,
               attendanceRequired: item.notes === "Attendance Required",
+              minTeachers: item.min_teachers,
+              minAssistants: item.min_assistants,
             };
           });
           setActivities(loadedActivities);
@@ -192,6 +196,8 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       end_time: activity.endTime,
       day_of_week: DAYS[activity.day],
       notes: activity.attendanceRequired ? "Attendance Required" : undefined,
+      min_teachers: activity.minTeachers,
+      min_assistants: activity.minAssistants,
     }));
 
     const payload = {
@@ -307,6 +313,8 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       startTime,
       endTime,
       attendanceRequired: true,
+      minTeachers: undefined,
+      minAssistants: undefined,
     };
 
     setEditingActivity(newActivity);
@@ -676,9 +684,15 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                   {editingActivity.type === "Academics" ? (
                     <Select
                       value={editingActivity.name}
-                      onValueChange={(value) =>
-                        setEditingActivity({ ...editingActivity, name: value })
-                      }
+                      onValueChange={(value) => {
+                        const selectedCourse = courses.find(c => value.includes(c.course_code));
+                        setEditingActivity({ 
+                          ...editingActivity, 
+                          name: value,
+                          minTeachers: selectedCourse?.min_teachers,
+                          minAssistants: selectedCourse?.min_assistants,
+                        });
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select course" />
@@ -726,21 +740,41 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                 </div>
               </div>
 
-              {editingActivity.type === "Academics" && editingActivity.name && (() => {
-                const matchingCourse = courses.find(c => editingActivity.name.includes(c.course_code));
-                if (matchingCourse) {
-                  return (
-                    <div className="p-3 bg-blue-50 rounded border border-blue-200">
-                      <div className="text-sm font-medium text-blue-900 mb-1">Staffing Requirements</div>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-blue-800">
-                        <div>Min Teachers: <span className="font-semibold">{matchingCourse.min_teachers}</span></div>
-                        <div>Min Assistants: <span className="font-semibold">{matchingCourse.min_assistants}</span></div>
-                      </div>
+              {editingActivity.type === "Academics" && (
+                <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                  <div className="text-sm font-medium text-blue-900 mb-2">Staffing Requirements</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="min_teachers">Min Teachers:</Label>
+                      <Input
+                        id="min_teachers"
+                        type="number"
+                        min="0"
+                        value={editingActivity.minTeachers ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? undefined : parseInt(e.target.value);
+                          setEditingActivity({ ...editingActivity, minTeachers: value });
+                        }}
+                        placeholder="Optional"
+                      />
                     </div>
-                  );
-                }
-                return null;
-              })()}
+                    <div className="space-y-2">
+                      <Label htmlFor="min_assistants">Min Assistants:</Label>
+                      <Input
+                        id="min_assistants"
+                        type="number"
+                        min="0"
+                        value={editingActivity.minAssistants ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? undefined : parseInt(e.target.value);
+                          setEditingActivity({ ...editingActivity, minAssistants: value });
+                        }}
+                        placeholder="Optional"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
