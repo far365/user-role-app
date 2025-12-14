@@ -62,6 +62,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEffectiveDateDialogOpen, setIsEffectiveDateDialogOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
+  const [effectiveDates, setEffectiveDates] = useState<{[key: number]: string}>({});
   const [courses, setCourses] = useState<CourseSetup[]>([]);
   const [currentYear, setCurrentYear] = useState<AcademicYear | null>(null);
   const [isJsonPreviewDialogOpen, setIsJsonPreviewDialogOpen] = useState(false);
@@ -100,6 +101,15 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
             };
           });
           setActivities(loadedActivities);
+
+          const dates: {[key: number]: string} = {};
+          scheduleResponse.schedule.forEach((item: any) => {
+            const dayIndex = DAYS.indexOf(item.day_of_week);
+            if (dayIndex >= 0 && item.effective_date && !dates[dayIndex]) {
+              dates[dayIndex] = item.effective_date.split('T')[0];
+            }
+          });
+          setEffectiveDates(dates);
         }
       } catch (error) {
         console.error("Failed to load data:", error);
@@ -162,7 +172,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       return;
     }
 
-    const nextMonday = getNextMonday();
+    const effectiveDateForDay = effectiveDates[editingDay] || getNextMonday();
 
     const scheduleActivities = dayActivities.map((activity) => ({
       activity_name: activity.name,
@@ -179,7 +189,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
         ayid: currentYear.ayid,
         grade: grade,
         day_of_week: DAYS[editingDay],
-        effective_date: nextMonday,
+        effective_date: effectiveDateForDay,
         start_time: dayActivities[0].startTime,
       },
       activities: scheduleActivities,
@@ -523,9 +533,10 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
             const isDayEditing = isEditMode && editingDay === dayIndex;
             return (
               <Card key={day} className={`p-3 relative ${isDayLocked ? 'opacity-50 bg-gray-50' : ''} ${isDayEditing ? 'ring-2 ring-blue-500' : ''}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-sm">{day}</h4>
-                  <div className="flex gap-1">
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm">{day}</h4>
+                    <div className="flex gap-1">
                     {!isEditMode && (
                       <Button
                         size="sm"
@@ -559,6 +570,17 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                         </Button>
                       </>
                     )}
+                  </div>
+                  </div>
+                  <div className="mb-2">
+                    <Label className="text-xs text-muted-foreground">Effective Date</Label>
+                    <Input
+                      type="date"
+                      value={effectiveDates[dayIndex] || ""}
+                      onChange={(e) => setEffectiveDates({...effectiveDates, [dayIndex]: e.target.value})}
+                      disabled={!isDayEditing}
+                      className="text-xs h-7 mt-1"
+                    />
                   </div>
                 </div>
 
