@@ -71,7 +71,6 @@ const formatEffectiveDate = (date: any): string => {
 
 export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProps) {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingDay, setEditingDay] = useState<number | null>(null);
   const [allActivities, setAllActivities] = useState<Activity[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -212,20 +211,19 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     return date > today;
   };
 
-  const handleStartEditingDay = (day: number) => {
+  const handleStartEditingWeek = () => {
     setIsEditMode(true);
-    setEditingDay(day);
   };
 
-  const handleSaveDay = async () => {
-    if (editingDay === null || !currentYear) return;
+  const handleSaveWeek = async () => {
+    if (!currentYear) return;
 
-    const dayActivities = getActivitiesForDay(editingDay);
+    const hasActivities = DAYS.some((_, dayIndex) => getActivitiesForDay(dayIndex).length > 0);
     
-    if (dayActivities.length === 0) {
+    if (!hasActivities) {
       toast({
         title: "Error",
-        description: "Cannot save an empty day. Add at least one activity.",
+        description: "Cannot save an empty week. Add at least one activity.",
         variant: "destructive",
       });
       return;
@@ -236,7 +234,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleConfirmEffectiveDateAndPreview = () => {
-    if (editingDay === null || !currentYear) return;
+    if (!currentYear) return;
 
     if (!effectiveDate) {
       toast({
@@ -265,29 +263,25 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       return;
     }
 
-    const dayActivities = getActivitiesForDay(editingDay);
-
-    const scheduleActivities = dayActivities.map((activity) => ({
-      activity_name: activity.name,
-      activity_type: activity.type,
-      start_time: activity.startTime,
-      end_time: activity.endTime,
-      day_of_week: DAYS[activity.day],
-      notes: activity.attendanceRequired ? "Attendance Required" : undefined,
-      min_teachers: activity.minTeachers,
-      min_assistants: activity.minAssistants,
-    }));
+    const weekSchedule = DAYS.map((day, dayIndex) => {
+      const dayActivities = getActivitiesForDay(dayIndex);
+      return dayActivities.map((activity) => ({
+        day_of_week: day,
+        activity_name: activity.name,
+        activity_type: activity.type,
+        start_time: activity.startTime,
+        end_time: activity.endTime,
+        notes: activity.attendanceRequired ? "Attendance Required" : undefined,
+        min_teachers: activity.minTeachers,
+        min_assistants: activity.minAssistants,
+      }));
+    }).flat();
 
     const payload = {
-      header: {
-        timezone: "America/New_York",
-        ayid: currentYear.ayid,
-        grade: grade,
-        day_of_week: DAYS[editingDay],
-        effective_date: effectiveDate,
-        start_time: dayActivities[0].startTime,
-      },
-      activities: scheduleActivities,
+      ayid: currentYear.ayid,
+      grade: grade,
+      effective_date: effectiveDate,
+      week_schedule: weekSchedule,
     };
 
     setJsonPayload(payload);
@@ -299,9 +293,8 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     if (!jsonPayload) return;
 
     try {
-      await backend.grades.addClassSchedule(jsonPayload);
+      await backend.grades.addClassScheduleWeek(jsonPayload);
 
-      setEditingDay(null);
       setIsEditMode(false);
       setIsJsonPreviewDialogOpen(false);
       setJsonPayload(null);
@@ -309,7 +302,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       
       toast({
         title: "Success",
-        description: `${DAYS[jsonPayload.header.day_of_week]} schedule saved with effective date ${jsonPayload.header.effective_date}`,
+        description: `Week schedule saved with effective date ${jsonPayload.effective_date}`,
       });
 
       const [scheduleResponse] = await Promise.all([
@@ -373,13 +366,14 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     }
   };
 
-  const handleCancelEditingDay = () => {
-    setEditingDay(null);
+  const handleCancelEditingWeek = () => {
     setIsEditMode(false);
     setEffectiveDate("");
+    const filtered = allActivities.filter(
+      activity => activity.effectiveDate === selectedEffectiveDate
+    );
+    setActivities(filtered);
   };
-
-
 
   const getNextStartTime = (day: number): string => {
     const dayActivities = getActivitiesForDay(day);
@@ -392,7 +386,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleAddActivity = (day: number) => {
-    if (!isEditMode || editingDay !== day) return;
+    if (!isEditMode) return;
 
     const startTime = getNextStartTime(day);
     const startMinutes = timeToMinutes(startTime);
@@ -415,7 +409,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleEditActivity = (activity: Activity) => {
-    if (!isEditMode || editingDay !== activity.day) return;
+    if (!isEditMode) return;
     setEditingActivity({ ...activity });
     setIsDialogOpen(true);
   };
@@ -508,7 +502,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleDeleteDay = (day: number) => {
-    if (!isEditMode || editingDay !== day) return;
+    if (!isEditMode) return;
     setActivities(activities.filter((a) => a.day !== day));
     toast({
       title: "Success",
@@ -517,7 +511,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleCopyDay = (sourceDay: number, targetDay: number) => {
-    if (!isEditMode || editingDay !== sourceDay) return;
+    if (!isEditMode) return;
 
     const targetActivities = activities.filter((a) => a.day === targetDay);
     if (targetActivities.length > 0) {
@@ -584,9 +578,9 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           <div className="flex-1">
             <h3 className="text-lg font-semibold">Weekly Schedule - {grade}</h3>
             <p className="text-sm text-muted-foreground">Custom class timings (earliest start: 7:00 AM)</p>
-            {isEditMode && editingDay !== null && (
+            {isEditMode && (
               <p className="text-sm text-blue-600 font-medium mt-1">
-                Editing: {DAYS[editingDay]}
+                Editing: Entire Week
               </p>
             )}
           </div>
@@ -613,13 +607,18 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               </div>
             )}
             <div className="flex gap-2">
-              {isEditMode && editingDay !== null && (
+              {!isEditMode ? (
+                <Button onClick={handleStartEditingWeek} variant="default">
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit Week
+                </Button>
+              ) : (
                 <>
-                  <Button onClick={handleSaveDay} variant="default">
+                  <Button onClick={handleSaveWeek} variant="default">
                     <Save className="w-4 h-4 mr-2" />
-                    Save Schedule
+                    Save Week
                   </Button>
-                  <Button onClick={handleCancelEditingDay} variant="outline">
+                  <Button onClick={handleCancelEditingWeek} variant="outline">
                     <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>
@@ -629,10 +628,10 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           </div>
         </div>
 
-        {isEditMode && editingDay !== null && (
+        {isEditMode && (
           <div className="mb-4 p-3 bg-blue-50 rounded border border-blue-200">
             <p className="text-sm text-blue-900">
-              <strong>Edit Mode ({DAYS[editingDay]}):</strong> Click the <Plus className="w-3 h-3 inline" /> button to add activities. New activities automatically start 1 minute after the previous activity ends.
+              <strong>Edit Mode (Entire Week):</strong> Click the <Plus className="w-3 h-3 inline" /> button to add activities to any day. Use the copy button to duplicate a day's schedule to the next day.
             </p>
           </div>
         )}
@@ -664,25 +663,13 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
         <div className="flex-1 grid grid-cols-5 gap-4">
           {DAYS.map((day, dayIndex) => {
             const dayActivities = getActivitiesForDay(dayIndex);
-            const isDayLocked = isEditMode && editingDay !== null && editingDay !== dayIndex;
-            const isDayEditing = isEditMode && editingDay === dayIndex;
             return (
-              <Card key={day} className={`p-3 relative ${isDayLocked ? 'opacity-50 bg-gray-50' : ''} ${isDayEditing ? 'ring-2 ring-blue-500' : ''}`}>
+              <Card key={day} className={`p-3 relative ${isEditMode ? 'ring-2 ring-blue-500' : ''}`}>
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-sm">{day}</h4>
                     <div className="flex gap-1">
-                    {!isEditMode && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleStartEditingDay(dayIndex)}
-                        title={`Edit ${day}`}
-                      >
-                        <Pencil className="w-3 h-3" />
-                      </Button>
-                    )}
-                    {isDayEditing && (
+                    {isEditMode && (
                       <>
                         {dayIndex < DAYS.length - 1 && (
                           <Button
@@ -730,7 +717,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                         key={activity.id}
                         onClick={() => handleEditActivity(activity)}
                         className={`p-2 rounded transition-all relative ${
-                          isDayEditing ? "cursor-pointer hover:opacity-80 hover:shadow-md" : isDayLocked ? "cursor-not-allowed" : ""
+                          isEditMode ? "cursor-pointer hover:opacity-80 hover:shadow-md" : ""
                         } ${getActivityColor(activity.type)}`}
                       >
                         {activity.attendanceRequired && (
@@ -752,7 +739,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                     );
                   })}
 
-                  {isDayEditing && (
+                  {isEditMode && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -988,7 +975,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       <Dialog open={isJsonPreviewDialogOpen} onOpenChange={setIsJsonPreviewDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Confirm Schedule JSON</DialogTitle>
+            <DialogTitle>Confirm Week Schedule JSON</DialogTitle>
             <DialogDescription>
               Review the exact code and payload that will be sent to Supabase
             </DialogDescription>
@@ -1002,27 +989,21 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
             </div>
             
             <div>
-              <h3 className="font-semibold mb-2 text-sm">Backend Code (grades.addClassSchedule):</h3>
+              <h3 className="font-semibold mb-2 text-sm">Backend Code (grades.addClassScheduleWeek):</h3>
               <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
                 <pre>{`const payload = {
-  header: ${JSON.stringify(jsonPayload?.header, null, 2)},
-  activities: ${JSON.stringify(jsonPayload?.activities, null, 2)}
+  ayid: "${jsonPayload?.ayid}",
+  grade: "${jsonPayload?.grade}",
+  effective_date: "${jsonPayload?.effective_date}",
+  week_schedule: ${JSON.stringify(jsonPayload?.week_schedule, null, 2)}
 };
 
-const jsonPayload = JSON.stringify(payload);
-
-const { data, error } = await supabase.rpc("add_class_schedule", {
-  json_input: jsonPayload
+const { data, error } = await supabase.rpc("add_class_schedule_week", {
+  p_ayid: payload.ayid,
+  p_effective_date: payload.effective_date,
+  p_grade: payload.grade,
+  p_week_schedule: payload.week_schedule
 });`}</pre>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2 text-sm">Supabase RPC Call Parameter:</h3>
-              <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs overflow-x-auto">
-                <pre>{`{
-  "json_input": ${JSON.stringify(JSON.stringify(jsonPayload))}
-}`}</pre>
               </div>
             </div>
 
