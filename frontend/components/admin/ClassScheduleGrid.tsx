@@ -605,7 +605,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                   <SelectContent>
                     {availableEffectiveDates.map((date) => (
                       <SelectItem key={date} value={date}>
-                        {new Date(date).toLocaleDateString()}
+                        {date}
                       </SelectItem>
                     ))}
                   </SelectContent>
