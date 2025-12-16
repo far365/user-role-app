@@ -46,5 +46,5 @@ export interface GetClassScheduleByGradeRequest {
 }
 
 export interface GetClassScheduleByGradeResponse {
-  schedule: any[];
+  schedule: ScheduleActivity[];
 }
