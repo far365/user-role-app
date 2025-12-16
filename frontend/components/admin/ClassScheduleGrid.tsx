@@ -95,6 +95,13 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
             grade: grade,
           }),
         ]);
+        
+        console.log("=== FRONTEND: getClassScheduleByGrade Response ===");
+        console.log("Full response:", scheduleResponse);
+        console.log("Schedule array:", scheduleResponse.schedule);
+        console.log("First item:", scheduleResponse.schedule?.[0]);
+        console.log("=================================================");
+        
         const filteredCourses = coursesResponse.courses.filter(
           (course) => course.grade === grade
         );
@@ -104,6 +111,11 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
         if (scheduleResponse.schedule && scheduleResponse.schedule.length > 0) {
           const loadedActivities: Activity[] = scheduleResponse.schedule.map((item: ScheduleActivity) => {
             const dayIndex = DAYS.indexOf(item.day_of_week);
+            console.log("Mapping schedule item:", {
+              activity_name: item.activity_name,
+              min_teachers: item.min_teachers,
+              min_assistants: item.min_assistants,
+            });
             return {
               id: `activity-${item.activity_name}-${item.start_time}-${Math.random()}`,
               name: item.activity_name,
@@ -116,6 +128,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               minAssistants: item.min_assistants,
             };
           });
+          console.log("Loaded activities:", loadedActivities);
           setActivities(loadedActivities);
 
           const dates: {[key: number]: string} = {};
@@ -616,6 +629,17 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                     const matchingCourse = activity.type === "Academics" 
                       ? courses.find(c => activity.name.includes(c.course_code))
                       : null;
+                    console.log("Activity display:", {
+                      name: activity.name,
+                      type: activity.type,
+                      minTeachers: activity.minTeachers,
+                      minAssistants: activity.minAssistants,
+                      matchingCourse: matchingCourse ? {
+                        code: matchingCourse.course_code,
+                        teachers: matchingCourse.min_teachers,
+                        assistants: matchingCourse.min_assistants,
+                      } : null,
+                    });
                     return (
                       <div
                         key={activity.id}

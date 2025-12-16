@@ -22,6 +22,12 @@ export const getClassScheduleByGrade = api(
       throw APIError.internal(`Failed to fetch class schedule: ${error.message}`);
     }
 
+    console.log("=== getClassScheduleByGrade OUTPUT ===");
+    console.log("Request params:", { timezone, ayid, grade });
+    console.log("Raw data from Supabase:", JSON.stringify(data, null, 2));
+    console.log("Number of records:", data?.length || 0);
+    console.log("=====================================");
+
     return {
       schedule: data || [],
     };
