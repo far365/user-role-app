@@ -237,7 +237,14 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleConfirmEffectiveDateAndPreview = () => {
-    if (!currentYear) return;
+    if (!currentYear) {
+      toast({
+        title: "Error",
+        description: "Academic year data not loaded. Please refresh the page.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (!effectiveDate) {
       toast({
