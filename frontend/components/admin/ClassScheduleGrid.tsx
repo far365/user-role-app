@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import backend from "~backend/client";
 import type { CourseSetup } from "~backend/academic/types";
 import type { AcademicYear } from "~backend/academic/types";
+import type { ScheduleActivity } from "~backend/grades/types";
 
 type ActivityType = "Academics" | "Lunch Break" | "P.E" | "Recess" | "Assembly" | "Study Hall" | "Other";
 
@@ -101,7 +102,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
         setCurrentYear(yearResponse);
 
         if (scheduleResponse.schedule && scheduleResponse.schedule.length > 0) {
-          const loadedActivities: Activity[] = scheduleResponse.schedule.map((item: any) => {
+          const loadedActivities: Activity[] = scheduleResponse.schedule.map((item: ScheduleActivity) => {
             const dayIndex = DAYS.indexOf(item.day_of_week);
             return {
               id: `activity-${item.activity_name}-${item.start_time}-${Math.random()}`,
@@ -118,7 +119,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           setActivities(loadedActivities);
 
           const dates: {[key: number]: string} = {};
-          scheduleResponse.schedule.forEach((item: any) => {
+          scheduleResponse.schedule.forEach((item: ScheduleActivity) => {
             const dayIndex = DAYS.indexOf(item.day_of_week);
             if (dayIndex >= 0 && item.effective_date && !dates[dayIndex]) {
               dates[dayIndex] = formatEffectiveDate(item.effective_date);
