@@ -617,7 +617,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                 <>
                   <Button onClick={handleSaveDay} variant="default">
                     <Save className="w-4 h-4 mr-2" />
-                    Save {DAYS[editingDay]}
+                    Save Schedule
                   </Button>
                   <Button onClick={handleCancelEditingDay} variant="outline">
                     <X className="w-4 h-4 mr-2" />
