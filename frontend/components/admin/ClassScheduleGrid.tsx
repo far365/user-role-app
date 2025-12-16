@@ -200,15 +200,16 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const isMonday = (dateString: string): boolean => {
-    const date = new Date(dateString);
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.getDay() === 1;
   };
 
   const isFutureDate = (dateString: string): boolean => {
-    const date = new Date(dateString);
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
     return date > today;
   };
 
@@ -237,12 +238,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleConfirmEffectiveDateAndPreview = () => {
-    console.log("=== handleConfirmEffectiveDateAndPreview called ===");
-    console.log("currentYear:", currentYear);
-    console.log("effectiveDate:", effectiveDate);
-    
     if (!currentYear) {
-      console.log("ERROR: No current year");
       toast({
         title: "Error",
         description: "Academic year data not loaded. Please refresh the page.",
@@ -252,7 +248,6 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     }
 
     if (!effectiveDate) {
-      console.log("ERROR: No effective date");
       toast({
         title: "Error",
         description: "Please select an effective date",
@@ -261,15 +256,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       return;
     }
 
-    const selectedDate = new Date(effectiveDate);
-    const dayOfWeek = selectedDate.getDay();
-    console.log("selectedDate:", selectedDate);
-    console.log("dayOfWeek:", dayOfWeek, "(1 = Monday)");
-    console.log("isMonday:", isMonday(effectiveDate));
-    console.log("isFutureDate:", isFutureDate(effectiveDate));
-
     if (!isMonday(effectiveDate)) {
-      console.log("ERROR: Not a Monday");
       toast({
         title: "Error",
         description: "Effective date must be a Monday",
@@ -279,7 +266,6 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     }
 
     if (!isFutureDate(effectiveDate)) {
-      console.log("ERROR: Not a future date");
       toast({
         title: "Error",
         description: "Effective date must be in the future",
