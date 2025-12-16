@@ -658,9 +658,9 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                           {formatTime(activity.startTime)} - {formatTime(activity.endTime)}
                         </div>
                         <div className="text-[10px] opacity-70 mb-1">{getActivityTypeDisplay(activity.type)}</div>
-                        {matchingCourse && (
+                        {activity.type === "Academics" && (activity.minTeachers !== undefined || activity.minAssistants !== undefined) && (
                           <div className="text-[10px] font-medium mt-1 pt-1 border-t border-current/20">
-                            Teachers: {matchingCourse.min_teachers} | Assistants: {matchingCourse.min_assistants}
+                            Teachers: {activity.minTeachers ?? 0} | Assistants: {activity.minAssistants ?? 0}
                           </div>
                         )}
                       </div>
