@@ -49,3 +49,26 @@ export interface GetClassScheduleByGradeRequest {
 export interface GetClassScheduleByGradeResponse {
   schedule: ScheduleActivity[];
 }
+
+export interface WeekScheduleActivity {
+  day_of_week: string;
+  activity_name: string;
+  activity_type?: string;
+  start_time: string;
+  end_time: string;
+  notes?: string;
+  min_teachers?: number;
+  min_assistants?: number;
+}
+
+export interface AddClassScheduleWeekRequest {
+  ayid: string;
+  effective_date: string;
+  grade: string;
+  week_schedule: WeekScheduleActivity[];
+}
+
+export interface AddClassScheduleWeekResponse {
+  success: boolean;
+  message: string;
+}
