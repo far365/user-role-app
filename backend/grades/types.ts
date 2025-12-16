@@ -17,6 +17,7 @@ export interface ScheduleActivity {
   notes?: string;
   min_teachers?: number;
   min_assistants?: number;
+  effective_date?: string;
 }
 
 export interface ScheduleHeader {

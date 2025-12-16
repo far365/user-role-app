@@ -25,6 +25,7 @@ interface Activity {
   attendanceRequired: boolean;
   minTeachers?: number;
   minAssistants?: number;
+  effectiveDate?: string;
 }
 
 interface ClassScheduleGridProps {
@@ -71,12 +72,14 @@ const formatEffectiveDate = (date: any): string => {
 export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingDay, setEditingDay] = useState<number | null>(null);
+  const [allActivities, setAllActivities] = useState<Activity[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEffectiveDateDialogOpen, setIsEffectiveDateDialogOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
-  const [effectiveDates, setEffectiveDates] = useState<{[key: number]: string}>({});
+  const [availableEffectiveDates, setAvailableEffectiveDates] = useState<string[]>([]);
+  const [selectedEffectiveDate, setSelectedEffectiveDate] = useState<string>("");
   const [courses, setCourses] = useState<CourseSetup[]>([]);
   const [currentYear, setCurrentYear] = useState<AcademicYear | null>(null);
   const [isJsonPreviewDialogOpen, setIsJsonPreviewDialogOpen] = useState(false);
@@ -111,13 +114,15 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
         if (scheduleResponse.schedule && scheduleResponse.schedule.length > 0) {
           const loadedActivities: Activity[] = scheduleResponse.schedule.map((item: ScheduleActivity) => {
             const dayIndex = DAYS.indexOf(item.day_of_week);
+            const formattedEffectiveDate = formatEffectiveDate(item.effective_date);
             console.log("Mapping schedule item:", {
               activity_name: item.activity_name,
               min_teachers: item.min_teachers,
               min_assistants: item.min_assistants,
+              effective_date: formattedEffectiveDate,
             });
             return {
-              id: `activity-${item.activity_name}-${item.start_time}-${Math.random()}`,
+              id: `activity-${item.activity_name}-${item.start_time}-${formattedEffectiveDate}-${Math.random()}`,
               name: item.activity_name,
               type: item.activity_type as ActivityType,
               day: dayIndex >= 0 ? dayIndex : 0,
@@ -126,19 +131,35 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               attendanceRequired: item.notes === "Attendance Required",
               minTeachers: item.min_teachers,
               minAssistants: item.min_assistants,
+              effectiveDate: formattedEffectiveDate,
             };
           });
           console.log("Loaded activities:", loadedActivities);
-          setActivities(loadedActivities);
+          setAllActivities(loadedActivities);
 
-          const dates: {[key: number]: string} = {};
-          scheduleResponse.schedule.forEach((item: ScheduleActivity) => {
-            const dayIndex = DAYS.indexOf(item.day_of_week);
-            if (dayIndex >= 0 && item.effective_date && !dates[dayIndex]) {
-              dates[dayIndex] = formatEffectiveDate(item.effective_date);
-            }
-          });
-          setEffectiveDates(dates);
+          const uniqueDates = Array.from(
+            new Set(
+              scheduleResponse.schedule
+                .map((item: ScheduleActivity) => formatEffectiveDate(item.effective_date))
+                .filter(Boolean)
+            )
+          ).sort();
+          
+          setAvailableEffectiveDates(uniqueDates);
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          const defaultDate = uniqueDates
+            .filter(date => {
+              const d = new Date(date);
+              d.setHours(0, 0, 0, 0);
+              return d <= today;
+            })
+            .sort()
+            .pop() || uniqueDates[uniqueDates.length - 1] || "";
+
+          setSelectedEffectiveDate(defaultDate);
         }
       } catch (error) {
         console.error("Failed to load data:", error);
@@ -151,6 +172,15 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     };
     loadData();
   }, [grade, academicYear, toast]);
+
+  useEffect(() => {
+    if (selectedEffectiveDate) {
+      const filtered = allActivities.filter(
+        activity => activity.effectiveDate === selectedEffectiveDate
+      );
+      setActivities(filtered);
+    }
+  }, [selectedEffectiveDate, allActivities]);
 
   const timeToMinutes = (time: string): number => {
     const [h, m] = time.split(":").map(Number);
@@ -201,69 +231,13 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       return;
     }
 
-    const effectiveDateForDay = effectiveDates[editingDay] || getNextMonday();
-
-    const scheduleActivities = dayActivities.map((activity) => ({
-      activity_name: activity.name,
-      activity_type: activity.type,
-      start_time: activity.startTime,
-      end_time: activity.endTime,
-      day_of_week: DAYS[activity.day],
-      notes: activity.attendanceRequired ? "Attendance Required" : undefined,
-      min_teachers: activity.minTeachers,
-      min_assistants: activity.minAssistants,
-    }));
-
-    const payload = {
-      header: {
-        timezone: "America/New_York",
-        ayid: currentYear.ayid,
-        grade: grade,
-        day_of_week: DAYS[editingDay],
-        effective_date: effectiveDateForDay,
-        start_time: dayActivities[0].startTime,
-      },
-      activities: scheduleActivities,
-    };
-
-    setJsonPayload(payload);
-    setIsJsonPreviewDialogOpen(true);
-  };
-
-  const handleConfirmJsonSubmit = async () => {
-    if (!jsonPayload) return;
-
-    try {
-      await backend.grades.addClassSchedule(jsonPayload);
-
-      setEditingDay(null);
-      setIsEditMode(false);
-      setIsJsonPreviewDialogOpen(false);
-      setJsonPayload(null);
-      toast({
-        title: "Success",
-        description: `${DAYS[jsonPayload.header.day_of_week]} schedule saved with effective date ${jsonPayload.header.effective_date}`,
-      });
-    } catch (error) {
-      console.error("Failed to save schedule:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save schedule. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCancelEditingDay = () => {
-    setEditingDay(null);
-    setIsEditMode(false);
-  };
-
-  const handleSaveAndExit = () => {
+    setEffectiveDate(getNextMonday());
     setIsEffectiveDateDialogOpen(true);
   };
 
-  const handleConfirmSave = () => {
+  const handleConfirmEffectiveDateAndPreview = () => {
+    if (editingDay === null || !currentYear) return;
+
     if (!effectiveDate) {
       toast({
         title: "Error",
@@ -291,16 +265,121 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       return;
     }
 
-    toast({
-      title: "Success",
-      description: `Schedule saved with effective date: ${effectiveDate}`,
-    });
+    const dayActivities = getActivitiesForDay(editingDay);
 
+    const scheduleActivities = dayActivities.map((activity) => ({
+      activity_name: activity.name,
+      activity_type: activity.type,
+      start_time: activity.startTime,
+      end_time: activity.endTime,
+      day_of_week: DAYS[activity.day],
+      notes: activity.attendanceRequired ? "Attendance Required" : undefined,
+      min_teachers: activity.minTeachers,
+      min_assistants: activity.minAssistants,
+    }));
+
+    const payload = {
+      header: {
+        timezone: "America/New_York",
+        ayid: currentYear.ayid,
+        grade: grade,
+        day_of_week: DAYS[editingDay],
+        effective_date: effectiveDate,
+        start_time: dayActivities[0].startTime,
+      },
+      activities: scheduleActivities,
+    };
+
+    setJsonPayload(payload);
     setIsEffectiveDateDialogOpen(false);
-    setIsEditMode(false);
+    setIsJsonPreviewDialogOpen(true);
+  };
+
+  const handleConfirmJsonSubmit = async () => {
+    if (!jsonPayload) return;
+
+    try {
+      await backend.grades.addClassSchedule(jsonPayload);
+
+      setEditingDay(null);
+      setIsEditMode(false);
+      setIsJsonPreviewDialogOpen(false);
+      setJsonPayload(null);
+      setEffectiveDate("");
+      
+      toast({
+        title: "Success",
+        description: `${DAYS[jsonPayload.header.day_of_week]} schedule saved with effective date ${jsonPayload.header.effective_date}`,
+      });
+
+      const [scheduleResponse] = await Promise.all([
+        backend.grades.getClassScheduleByGrade({
+          timezone: "America/New_York",
+          ayid: academicYear,
+          grade: grade,
+        }),
+      ]);
+
+      if (scheduleResponse.schedule && scheduleResponse.schedule.length > 0) {
+        const loadedActivities: Activity[] = scheduleResponse.schedule.map((item: ScheduleActivity) => {
+          const dayIndex = DAYS.indexOf(item.day_of_week);
+          const formattedEffectiveDate = formatEffectiveDate(item.effective_date);
+          return {
+            id: `activity-${item.activity_name}-${item.start_time}-${formattedEffectiveDate}-${Math.random()}`,
+            name: item.activity_name,
+            type: item.activity_type as ActivityType,
+            day: dayIndex >= 0 ? dayIndex : 0,
+            startTime: item.start_time,
+            endTime: item.end_time,
+            attendanceRequired: item.notes === "Attendance Required",
+            minTeachers: item.min_teachers,
+            minAssistants: item.min_assistants,
+            effectiveDate: formattedEffectiveDate,
+          };
+        });
+        setAllActivities(loadedActivities);
+
+        const uniqueDates = Array.from(
+          new Set(
+            scheduleResponse.schedule
+              .map((item: ScheduleActivity) => formatEffectiveDate(item.effective_date))
+              .filter(Boolean)
+          )
+        ).sort();
+        
+        setAvailableEffectiveDates(uniqueDates);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const defaultDate = uniqueDates
+          .filter(date => {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d <= today;
+          })
+          .sort()
+          .pop() || uniqueDates[uniqueDates.length - 1] || "";
+
+        setSelectedEffectiveDate(defaultDate);
+      }
+    } catch (error) {
+      console.error("Failed to save schedule:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save schedule. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEditingDay = () => {
     setEditingDay(null);
+    setIsEditMode(false);
     setEffectiveDate("");
   };
+
+
 
   const getNextStartTime = (day: number): string => {
     const dayActivities = getActivitiesForDay(day);
@@ -502,7 +581,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
     <div className="space-y-4">
       <Card className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <div>
+          <div className="flex-1">
             <h3 className="text-lg font-semibold">Weekly Schedule - {grade}</h3>
             <p className="text-sm text-muted-foreground">Custom class timings (earliest start: 7:00 AM)</p>
             {isEditMode && editingDay !== null && (
@@ -511,19 +590,42 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               </p>
             )}
           </div>
-          <div className="flex gap-2">
-            {isEditMode && editingDay !== null && (
-              <>
-                <Button onClick={handleSaveDay} variant="default">
-                  <Save className="w-4 h-4 mr-2" />
-                  Save {DAYS[editingDay]}
-                </Button>
-                <Button onClick={handleCancelEditingDay} variant="outline">
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-              </>
+          <div className="flex gap-4 items-center">
+            {availableEffectiveDates.length > 0 && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Effective Date</Label>
+                <Select 
+                  value={selectedEffectiveDate} 
+                  onValueChange={setSelectedEffectiveDate}
+                  disabled={isEditMode}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableEffectiveDates.map((date) => (
+                      <SelectItem key={date} value={date}>
+                        {new Date(date).toLocaleDateString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
+            <div className="flex gap-2">
+              {isEditMode && editingDay !== null && (
+                <>
+                  <Button onClick={handleSaveDay} variant="default">
+                    <Save className="w-4 h-4 mr-2" />
+                    Save {DAYS[editingDay]}
+                  </Button>
+                  <Button onClick={handleCancelEditingDay} variant="outline">
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -605,23 +707,6 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
                     )}
                   </div>
                   </div>
-                  {effectiveDates[dayIndex] && (
-                    <div className="mb-2 pb-2 border-b">
-                      <Label className="text-xs text-muted-foreground">Current Effective Date</Label>
-                      <p className="text-xs font-medium mt-1">{effectiveDates[dayIndex]}</p>
-                    </div>
-                  )}
-                  {isDayEditing && (
-                    <div className="mb-2">
-                      <Label className="text-xs text-muted-foreground">New Effective Date</Label>
-                      <Input
-                        type="date"
-                        value={effectiveDates[dayIndex] || getNextMonday()}
-                        onChange={(e) => setEffectiveDates({...effectiveDates, [dayIndex]: e.target.value})}
-                        className="text-xs h-7 mt-1"
-                      />
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -894,7 +979,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
               <Button variant="outline" onClick={() => setIsEffectiveDateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleConfirmSave}>Confirm & Save</Button>
+              <Button onClick={handleConfirmEffectiveDateAndPreview}>Continue</Button>
             </div>
           </div>
         </DialogContent>
