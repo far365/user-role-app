@@ -78,6 +78,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   const [isEffectiveDateDialogOpen, setIsEffectiveDateDialogOpen] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState("");
   const [availableEffectiveDates, setAvailableEffectiveDates] = useState<string[]>([]);
+  const [useExistingDate, setUseExistingDate] = useState(false);
   const [selectedEffectiveDate, setSelectedEffectiveDate] = useState<string>("");
   const [courses, setCourses] = useState<CourseSetup[]>([]);
   const [currentYear, setCurrentYear] = useState<AcademicYear | null>(null);
@@ -229,7 +230,9 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
       return;
     }
 
-    setEffectiveDate(getNextMonday());
+    const futureDates = availableEffectiveDates.filter(date => isFutureDate(date));
+    setUseExistingDate(futureDates.length > 0);
+    setEffectiveDate(futureDates.length > 0 ? futureDates[0] : getNextMonday());
     setIsEffectiveDateDialogOpen(true);
   };
 
@@ -951,13 +954,65 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {availableEffectiveDates.filter(date => isFutureDate(date)).length > 0 && (
+              <div className="space-y-2">
+                <Label>Date Option</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={useExistingDate}
+                      onChange={() => {
+                        setUseExistingDate(true);
+                        const futureDates = availableEffectiveDates.filter(date => isFutureDate(date));
+                        setEffectiveDate(futureDates[0] || getNextMonday());
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Select Existing</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={!useExistingDate}
+                      onChange={() => {
+                        setUseExistingDate(false);
+                        setEffectiveDate(getNextMonday());
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Create New</span>
+                  </label>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Effective Date (Must be a future Monday)</Label>
-              <Input
-                type="date"
-                value={effectiveDate}
-                onChange={(e) => setEffectiveDate(e.target.value)}
-              />
+              {useExistingDate ? (
+                <Select
+                  value={effectiveDate}
+                  onValueChange={setEffectiveDate}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableEffectiveDates
+                      .filter(date => isFutureDate(date))
+                      .map((date) => (
+                        <SelectItem key={date} value={date}>
+                          {date}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  type="date"
+                  value={effectiveDate}
+                  onChange={(e) => setEffectiveDate(e.target.value)}
+                />
+              )}
               <p className="text-sm text-muted-foreground">
                 This schedule will take effect starting on the selected Monday.
               </p>
