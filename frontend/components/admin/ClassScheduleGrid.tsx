@@ -93,7 +93,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           backend.academic.getAllCourseSetup(),
           backend.academic.getCurrentYear(),
           backend.grades.getClassScheduleByGrade({
-            timezone: "",
+            timezone: "America/New_York",
             ayid: academicYear,
             grade: grade,
           }),
@@ -309,7 +309,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
 
       const [scheduleResponse] = await Promise.all([
         backend.grades.getClassScheduleByGrade({
-          timezone: "",
+          timezone: "America/New_York",
           ayid: academicYear,
           grade: grade,
         }),
