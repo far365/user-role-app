@@ -205,6 +205,14 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const handleStartEditingWeek = () => {
+    if (!isFutureDate(selectedEffectiveDate)) {
+      toast({
+        title: "Error",
+        description: "Cannot edit a week with an effective date that is not in the future",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsEditMode(true);
   };
 
