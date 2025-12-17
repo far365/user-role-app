@@ -93,7 +93,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           backend.academic.getAllCourseSetup(),
           backend.academic.getCurrentYear(),
           backend.grades.getClassScheduleByGrade({
-            timezone: "America/New_York",
+            timezone: "",
             ayid: academicYear,
             grade: grade,
           }),
@@ -147,15 +147,10 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
           
           setAvailableEffectiveDates(uniqueDates);
 
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+          const today = new Date().toISOString().split('T')[0];
           
           const defaultDate = uniqueDates
-            .filter(date => {
-              const d = new Date(date);
-              d.setHours(0, 0, 0, 0);
-              return d <= today;
-            })
+            .filter(date => date <= today)
             .sort()
             .pop() || uniqueDates[uniqueDates.length - 1] || "";
 
@@ -200,17 +195,13 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
   };
 
   const isMonday = (dateString: string): boolean => {
-    const [year, month, day] = dateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.getDay() === 1;
+    const date = new Date(dateString + 'T00:00:00');
+    return date.getUTCDay() === 1;
   };
 
   const isFutureDate = (dateString: string): boolean => {
-    const [year, month, day] = dateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date > today;
+    const today = new Date().toISOString().split('T')[0];
+    return dateString > today;
   };
 
   const handleStartEditingWeek = () => {
@@ -318,7 +309,7 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
 
       const [scheduleResponse] = await Promise.all([
         backend.grades.getClassScheduleByGrade({
-          timezone: "America/New_York",
+          timezone: "",
           ayid: academicYear,
           grade: grade,
         }),
@@ -353,15 +344,10 @@ export function ClassScheduleGrid({ grade, academicYear }: ClassScheduleGridProp
         
         setAvailableEffectiveDates(uniqueDates);
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = new Date().toISOString().split('T')[0];
         
         const defaultDate = uniqueDates
-          .filter(date => {
-            const d = new Date(date);
-            d.setHours(0, 0, 0, 0);
-            return d <= today;
-          })
+          .filter(date => date <= today)
           .sort()
           .pop() || uniqueDates[uniqueDates.length - 1] || "";
 
