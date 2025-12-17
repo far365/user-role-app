@@ -22,15 +22,10 @@ export const addClassScheduleWeek = api(
       throw APIError.invalidArgument("effective_date must be a Monday");
     }
 
-    const dayOfWeekSet = new Set<string>();
     for (const activity of week_schedule) {
       if (!activity.day_of_week) {
         throw APIError.invalidArgument("Each activity must have a day_of_week");
       }
-      if (dayOfWeekSet.has(activity.day_of_week)) {
-        throw APIError.invalidArgument(`Duplicate day_of_week found: ${activity.day_of_week}`);
-      }
-      dayOfWeekSet.add(activity.day_of_week);
     }
 
     const { data, error } = await supabase.rpc("add_class_schedule_week", {
