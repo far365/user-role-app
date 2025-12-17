@@ -15,10 +15,9 @@ export const addClassScheduleWeek = api(
       throw APIError.invalidArgument("week_schedule must be a non-empty array");
     }
 
-    const [year, month, day] = effective_date.split('-').map(Number);
-    const effectiveDateObj = new Date(year, month - 1, day);
+    const effectiveDateObj = new Date(effective_date + 'T00:00:00Z');
     
-    if (effectiveDateObj.getDay() !== 1) {
+    if (effectiveDateObj.getUTCDay() !== 1) {
       throw APIError.invalidArgument("effective_date must be a Monday");
     }
 
