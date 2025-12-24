@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Phone, UserCheck, AlertCircle, Car, Users, Edit, Save, X, GraduationCap, QrCode, RefreshCw, FileText, ExternalLink } from "lucide-react";
+import { Phone, UserCheck, AlertCircle, Car, Users, Edit, Save, X, GraduationCap, QrCode, RefreshCw, FileText, ExternalLink, ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "../QRCodeGenerator";
@@ -16,6 +16,7 @@ import type { ParentInfo } from "~backend/parent/get_parent_info";
 import type { Student } from "~backend/student/types";
 interface ParentDashboardProps {
   user: User;
+  onBack?: () => void;
 }
 interface EditableParentData {
   parentPhoneMain: string;
@@ -49,7 +50,7 @@ interface StudentWithDismissalStatus {
   isLoadingDismissalStatus?: boolean;
   dismissalStatusError?: string;
 }
-export function ParentDashboard({ user }: ParentDashboardProps) {
+export function ParentDashboard({ user, onBack }: ParentDashboardProps) {
   const [parentData, setParentData] = useState<ParentInfo | null>(null);
   const [studentData, setStudentData] = useState<StudentWithDismissalStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -412,7 +413,20 @@ export function ParentDashboard({ user }: ParentDashboardProps) {
         </div>
       )}
       <div className="space-y-3">
-        <h3 className="text-xl font-bold text-gray-900">Parent Dashboard</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-gray-900">Parent Dashboard</h3>
+          {onBack && (
+            <Button
+              onClick={onBack}
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-sm"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+              Back to Parent Hub
+            </Button>
+          )}
+        </div>
         
         {parentData && (
           <div className="flex flex-col gap-2">

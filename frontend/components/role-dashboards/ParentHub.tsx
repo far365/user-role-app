@@ -53,7 +53,7 @@ export function ParentHub({ user }: ParentHubProps) {
   }, [user.loginID]);
 
   if (showParentDashboard) {
-    return <ParentDashboard user={user} />;
+    return <ParentDashboard user={user} onBack={() => setShowParentDashboard(false)} />;
   }
 
   if (showManageAbsences) {
