@@ -302,11 +302,6 @@ export namespace hifz {
  */
 import { getByUsername as api_parent_get_getByUsername } from "~backend/parent/get";
 import { getParentInfo as api_parent_get_parent_info_getParentInfo } from "~backend/parent/get_parent_info";
-import {
-    searchByAlternateName as api_parent_search_searchByAlternateName,
-    searchByName as api_parent_search_searchByName,
-    searchByPhone as api_parent_search_searchByPhone
-} from "~backend/parent/search";
 import { searchParentCombined as api_parent_search_parent_combined_searchParentCombined } from "~backend/parent/search_parent_combined";
 import { update as api_parent_update_update } from "~backend/parent/update";
 
@@ -319,9 +314,6 @@ export namespace parent {
             this.baseClient = baseClient
             this.getByUsername = this.getByUsername.bind(this)
             this.getParentInfo = this.getParentInfo.bind(this)
-            this.searchByAlternateName = this.searchByAlternateName.bind(this)
-            this.searchByName = this.searchByName.bind(this)
-            this.searchByPhone = this.searchByPhone.bind(this)
             this.searchParentCombined = this.searchParentCombined.bind(this)
             this.update = this.update.bind(this)
         }
@@ -339,48 +331,6 @@ export namespace parent {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/parent/get-parent-info`, {method: "POST", body: JSON.stringify(params)})
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_get_parent_info_getParentInfo>
-        }
-
-        /**
-         * Searches for parent records by alternate contact name (minimum 4 characters).
-         */
-        public async searchByAlternateName(params: RequestType<typeof api_parent_search_searchByAlternateName>): Promise<ResponseType<typeof api_parent_search_searchByAlternateName>> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                alternateName: params.alternateName,
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/parent/search/alternate-name`, {query, method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_search_searchByAlternateName>
-        }
-
-        /**
-         * Searches for parent records by parent name (minimum 4 characters).
-         */
-        public async searchByName(params: RequestType<typeof api_parent_search_searchByName>): Promise<ResponseType<typeof api_parent_search_searchByName>> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                name: params.name,
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/parent/search/name`, {query, method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_search_searchByName>
-        }
-
-        /**
-         * Searches for parent records by main phone number (must be exactly 10 digits).
-         */
-        public async searchByPhone(params: RequestType<typeof api_parent_search_searchByPhone>): Promise<ResponseType<typeof api_parent_search_searchByPhone>> {
-            // Convert our params into the objects we need for the request
-            const query = makeRecord<string, string | string[]>({
-                phone: params.phone,
-            })
-
-            // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI(`/parent/search/phone`, {query, method: "GET", body: undefined})
-            return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_search_searchByPhone>
         }
 
         public async searchParentCombined(params: RequestType<typeof api_parent_search_parent_combined_searchParentCombined>): Promise<ResponseType<typeof api_parent_search_parent_combined_searchParentCombined>> {
