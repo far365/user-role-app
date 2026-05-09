@@ -345,9 +345,6 @@ export namespace parent {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_parent_search_parent_combined_searchParentCombined>
         }
 
-        /**
-         * Updates parent information by username.
-         */
         public async update(params: RequestType<typeof api_parent_update_update>): Promise<ResponseType<typeof api_parent_update_update>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/parent/update`, {method: "PUT", body: JSON.stringify(params)})
