@@ -147,7 +147,7 @@ export function StudentEditDialog({ student, isOpen, onClose, onStudentUpdated }
 
     try {
       setIsSearchingParents(true);
-      const response = await backend.parent.searchByName({ name: parentSearchTerm.trim() });
+      const response = await backend.parent.searchParentCombined({ search_text: parentSearchTerm.trim(), search_type: 'parentname' });
       setAvailableParents(response.parents);
       
       if (response.parents.length === 0) {
