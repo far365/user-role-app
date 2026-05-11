@@ -60,6 +60,8 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
       throw APIError.internal(`Failed to update parent record: ${error.message}`);
     }
 
+    throw APIError.internal(`DEBUG — pipedata sent: ${pipeData} | status returned: ${JSON.stringify(status)}`);
+
     if (typeof status === "string" && status.toLowerCase().includes("error")) {
       throw APIError.internal(`Update failed: ${status}`);
     }
