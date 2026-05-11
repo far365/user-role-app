@@ -29,24 +29,31 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
       throw APIError.invalidArgument("Username is required");
     }
 
-    const { data: status, error } = await supabase.rpc("update_parent_record_v3", {
+    const v = (val: string | boolean | undefined | null): string =>
+      val === undefined || val === null ? "null" : String(val);
+
+    const pipeData = [
+      v(req.parentName),
+      v(req.parentPhoneMain),
+      v(req.sendSMS),
+      v(req.parentVehicleInfo),
+      v(req.alternate1Name),
+      v(req.alternate1Phone),
+      v(req.alternate1Relationship),
+      v(req.alternate1VehicleInfo),
+      v(req.alternate2Name),
+      v(req.alternate2Phone),
+      v(req.alternate2Relationship),
+      v(req.alternate2VehicleInfo),
+      v(req.alternate3Name),
+      v(req.alternate3Phone),
+      v(req.alternate3Relationship),
+      v(req.alternate3VehicleInfo),
+    ].join("|");
+
+    const { data: status, error } = await supabase.rpc("update_parent_rcd", {
       parentid: req.username,
-      parentName: req.parentName ?? null,
-      parentPhoneMain: req.parentPhoneMain ?? null,
-      sendSMS: req.sendSMS !== undefined ? String(req.sendSMS) : null,
-      parentVehicleInfo: req.parentVehicleInfo ?? null,
-      alternate1Name: req.alternate1Name ?? null,
-      alternate1Phone: req.alternate1Phone ?? null,
-      alternate1Relationship: req.alternate1Relationship ?? null,
-      alternate1VehicleInfo: req.alternate1VehicleInfo ?? null,
-      alternate2Name: req.alternate2Name ?? null,
-      alternate2Phone: req.alternate2Phone ?? null,
-      alternate2Relationship: req.alternate2Relationship ?? null,
-      alternate2VehicleInfo: req.alternate2VehicleInfo ?? null,
-      alternate3Name: req.alternate3Name ?? null,
-      alternate3Phone: req.alternate3Phone ?? null,
-      alternate3Relationship: req.alternate3Relationship ?? null,
-      alternate3VehicleInfo: req.alternate3VehicleInfo ?? null,
+      pipedata: pipeData,
     });
 
     if (error) {
