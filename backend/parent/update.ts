@@ -29,7 +29,7 @@ export const update = api<UpdateParentRequest, GetParentResponse>(
       throw APIError.invalidArgument("Username is required");
     }
 
-    const { data: status, error } = await supabase.rpc("update_parent_record", {
+    const { data: status, error } = await supabase.rpc("update_parent_record_v3", {
       parentid: req.username,
       parentName: req.parentName ?? null,
       parentPhoneMain: req.parentPhoneMain ?? null,
