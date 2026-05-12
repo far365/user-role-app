@@ -94,18 +94,31 @@ export function ParentSetupPage({ onBack }: ParentSetupPageProps) {
       );
 
       console.log(`Fetching students for parent ID: ${parent.parentID}`);
-      const response = await backend.student.getByParentID_sql({ parentID: parent.parentID });
-      
-      // Update the parent with student data
+      const response = await backend.student.getStudentsByParentID({ parentId: parent.parentID });
+
+      const students: Student[] = response.students.map((s) => ({
+        studentId: s.studentid,
+        studentName: s.studentname,
+        grade: s.grade,
+        classBuilding: s.classbuilding,
+        parentId: s.parentid,
+        dismissalInstructions: s.dismissalinstructions,
+        otherNote: s.othernote,
+        studentStatus: '',
+        attendanceStatus: '',
+        createdAt: new Date(),
+        updatedAt: s.updated_at,
+      }));
+
       setSearchResults(prev => 
         prev.map(p => 
           p.parentID === parent.parentID 
-            ? { ...p, students: response.students, isLoadingStudents: false, studentError: undefined }
+            ? { ...p, students, isLoadingStudents: false, studentError: undefined }
             : p
         )
       );
 
-      console.log(`Found ${response.students.length} students for parent ${parent.parentID}`);
+      console.log(`Found ${students.length} students for parent ${parent.parentID}`);
     } catch (error) {
       console.error(`Failed to fetch students for parent ${parent.parentID}:`, error);
       
