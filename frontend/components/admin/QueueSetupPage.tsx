@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Play, StopCircle, Trash2, RefreshCw, Clock, User as UserIcon, Calendar, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
+import { ArrowLeft, Play, StopCircle, Trash2, RefreshCw, Clock, AlertCircle, Table, CheckCircle, XCircle, Database } from "lucide-react";
 import backend from "~backend/client";
 import type { Queue } from "~backend/queue/types";
 import type { User } from "~backend/user/types";
@@ -16,7 +16,6 @@ interface QueueSetupPageProps {
 }
 
 export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
-  const [currentQueue, setCurrentQueue] = useState<Queue | null>(null);
   const [openQueueInfo, setOpenQueueInfo] = useState<string | null>(null);
   const [allQueues, setAllQueues] = useState<Queue[]>([]);
   const [deleteQueueId, setDeleteQueueId] = useState("");
@@ -37,16 +36,6 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   } | null>(null);
   
   const { toast } = useToast();
-
-  const fetchCurrentQueue = async () => {
-    try {
-      const response = await backend.queue.getCurrentQueue();
-      setCurrentQueue(response.queue);
-    } catch (error) {
-      console.error("Failed to fetch current queue:", error);
-      setCurrentQueue(null);
-    }
-  };
 
   const fetchOpenQueueInfo = async () => {
     try {
@@ -76,7 +65,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([fetchCurrentQueue(), fetchAllQueues(), fetchOpenQueueInfo()]);
+      await Promise.all([fetchAllQueues(), fetchOpenQueueInfo()]);
     } finally {
       setIsLoading(false);
     }
@@ -159,15 +148,6 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   };
 
   const handleCloseQueue = async () => {
-    if (!currentQueue) {
-      toast({
-        title: "Error",
-        description: "No open queue to close",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setIsClosing(true);
       setCloseQueueStatus(null);
@@ -180,8 +160,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
 
       console.log("[Frontend] Close queue response:", response);
 
-      setCurrentQueue(null); // No more open queue
-      await fetchAllQueues(); // Refresh the list
+      await Promise.all([fetchAllQueues(), fetchOpenQueueInfo()]);
       
       // Show success status with details about the Supabase function
       setCloseQueueStatus({
@@ -246,12 +225,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
         queueId: deleteQueueId.trim(),
       });
 
-      // If we deleted the current queue, clear it
-      if (currentQueue && currentQueue.queueId === deleteQueueId.trim()) {
-        setCurrentQueue(null);
-      }
-      
-      await fetchAllQueues(); // Refresh the list
+      await Promise.all([fetchAllQueues(), fetchOpenQueueInfo()]);
       setDeleteQueueId(""); // Clear the input
       
       toast({
@@ -529,14 +503,14 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               </div>
               <Button 
                 onClick={handleCloseQueue} 
-                disabled={isClosing || !currentQueue}
+                disabled={isClosing || !openQueueInfo}
                 variant="outline"
                 className="w-full"
               >
                 <StopCircle className="w-4 h-4 mr-2" />
                 {isClosing ? 'Closing with Supabase...' : 'Starting Dissmisal Queue'}
               </Button>
-              {!currentQueue && (
+              {!openQueueInfo && (
                 <p className="text-xs text-gray-500">
                   No open queue to close
                 </p>
@@ -568,14 +542,14 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
               </div>
               <Button 
                 onClick={handleCloseQueue} 
-                disabled={isClosing || !currentQueue}
+                disabled={isClosing || !openQueueInfo}
                 variant="outline"
                 className="w-full"
               >
                 <StopCircle className="w-4 h-4 mr-2" />
                 {isClosing ? 'Closing with Supabase...' : 'Close Open Queue'}
               </Button>
-              {!currentQueue && (
+              {!openQueueInfo && (
                 <p className="text-xs text-gray-500">
                   No open queue to close
                 </p>
