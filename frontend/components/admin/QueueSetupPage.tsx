@@ -440,7 +440,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
       {/* Current Queue Status */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className={`flex items-center space-x-2 ${openQueueInfo ? (openQueueInfo.toLowerCase().includes("success") ? "text-green-600" : "text-red-600") : ""}`}>
             <Clock className="w-5 h-5" />
             <span>Current Open Queue</span>
           </CardTitle>
