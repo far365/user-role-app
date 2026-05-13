@@ -17,6 +17,7 @@ interface QueueSetupPageProps {
 
 export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const [currentQueue, setCurrentQueue] = useState<Queue | null>(null);
+  const [openQueueInfo, setOpenQueueInfo] = useState<string | null>(null);
   const [allQueues, setAllQueues] = useState<Queue[]>([]);
   const [deleteQueueId, setDeleteQueueId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -47,6 +48,17 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     }
   };
 
+  const fetchOpenQueueInfo = async () => {
+    try {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const response = await backend.queue.getOpenQueueInfo({ timeZone });
+      setOpenQueueInfo(response.status);
+    } catch (error) {
+      console.error("Failed to fetch open queue info:", error);
+      setOpenQueueInfo(null);
+    }
+  };
+
   const fetchAllQueues = async () => {
     try {
       const response = await backend.queue.list();
@@ -64,7 +76,7 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([fetchCurrentQueue(), fetchAllQueues()]);
+      await Promise.all([fetchCurrentQueue(), fetchAllQueues(), fetchOpenQueueInfo()]);
     } finally {
       setIsLoading(false);
     }
@@ -437,39 +449,9 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {currentQueue ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Queue ID: {currentQueue.queueId}</h3>
-                  <Badge className={getStatusColor(currentQueue.queueMasterStatus)}>
-                    {currentQueue.queueMasterStatus || 'Unknown'}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium">Started:</span>
-                    <span>{formatDateTime(currentQueue.queueStartTime)}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <UserIcon className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium">Started by:</span>
-                    <span>{currentQueue.queueStartedByUsername || 'Unknown'}</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <span className="font-medium">Last updated:</span>
-                    <span>{formatDateTime(currentQueue.lastUpdatedTTM)}</span>
-                  </div>
-                </div>
-              </div>
+          {openQueueInfo ? (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-800 whitespace-pre-wrap">{openQueueInfo}</p>
             </div>
           ) : (
             <div className="text-center py-8">
