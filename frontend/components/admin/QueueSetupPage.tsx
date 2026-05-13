@@ -76,6 +76,14 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
   }, []);
 
   const handleStartNewQueue = async () => {
+    if (openQueueInfo) {
+      toast({
+        title: "Queue Already Open",
+        description: "A new queue cannot be started until the current open queue is closed.",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
       setIsCreating(true);
       setDismissalQueueStatus(null);
@@ -283,17 +291,10 @@ export function QueueSetupPage({ user, onBack }: QueueSetupPageProps) {
     }
   };
 
-  // Check if we can start a new queue (simplified for Supabase function call)
-  const canStartNewQueue = () => {
-    // Since we're only calling the Supabase function, we can always call it
-    // The function itself will handle any business logic validation
-    return true;
-  };
+  const canStartNewQueue = () => !openQueueInfo;
 
-  const getStartQueueDisabledReason = () => {
-    // Since the Supabase function handles validation, no frontend restrictions
-    return null;
-  };
+  const getStartQueueDisabledReason = () =>
+    openQueueInfo ? "Close the current open queue before starting a new one." : null;
 
   if (isLoading) {
     return (
