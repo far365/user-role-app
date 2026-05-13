@@ -13,7 +13,7 @@ export const getOpenQueueInfo = api<GetOpenQueueInfoRequest, GetOpenQueueInfoRes
   { expose: true, method: "GET", path: "/queue/open-info" },
   async ({ timeZone }) => {
     try {
-      const { data, error } = await supabase.rpc('get_open_queue_info', { p_timezone: timeZone });
+      const { data, error } = await supabase.rpc('get_open_queue_info', { sch_tz: timeZone });
 
       if (error) {
         return { status: `Error: ${error.message}` };
