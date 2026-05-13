@@ -430,9 +430,6 @@ export namespace queue {
             return JSON.parse(await resp.text(), dateReviver) as ResponseType<typeof api_queue_build_new_queue_buildNewQueue>
         }
 
-        /**
-         * Closes the currently open queue using Supabase function.
-         */
         public async close(params: RequestType<typeof api_queue_close_close>): Promise<ResponseType<typeof api_queue_close_close>> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI(`/queue/close`, {method: "PUT", body: JSON.stringify(params)})
