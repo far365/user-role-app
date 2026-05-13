@@ -13,28 +13,13 @@ export const getOpenQueueInfo = api<GetOpenQueueInfoRequest, GetOpenQueueInfoRes
   { expose: true, method: "GET", path: "/queue/open-info" },
   async ({ timeZone }) => {
     try {
-      const { data: queueRow, error } = await supabase
-        .from('queuemasterrcd')
-        .select('queueid, queuestarttime, queuemasterstatus')
-        .eq('queuemasterstatus', 'Open')
-        .single();
+      const { data, error } = await supabase.rpc('get_open_queue_info', { p_timezone: timeZone });
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          return { status: "No open queue found" };
-        }
-        return { status: `Error checking queue: ${error.message}` };
+        return { status: `Error: ${error.message}` };
       }
 
-      if (!queueRow) {
-        return { status: "No open queue found" };
-      }
-
-      const startTime = queueRow.queuestarttime
-        ? new Date(queueRow.queuestarttime).toLocaleString('en-US', { timeZone })
-        : "unknown time";
-
-      return { status: `Open queue found (ID: ${queueRow.queueid}, started: ${startTime} ${timeZone})` };
+      return { status: data as string };
     } catch (err) {
       return { status: `Unexpected error: ${err instanceof Error ? err.message : String(err)}` };
     }
